@@ -6,5 +6,5 @@ use Illuminate\Http\Request;
 
 class Pinjam_alat extends Controller
 {
-    //
+    //pppp22
 }
