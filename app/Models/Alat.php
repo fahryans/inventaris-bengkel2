@@ -6,10 +6,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Alat extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $table = 'alat';
 
@@ -44,7 +45,6 @@ class Alat extends Model
         return $this->hasMany(PengadaanAlat::class, 'id_alat');
     }
 
-    // Hanya relevan untuk alat dengan tipe_pelacakan = 'agregat'
     public function peminjamanAlat(): HasMany
     {
         return $this->hasMany(PeminjamanAlat::class, 'id_alat');
@@ -53,5 +53,13 @@ class Alat extends Model
     public function isUnitTracked(): bool
     {
         return $this->tipe_pelacakan === 'unit';
+    }
+
+    public function getAvailableQuantity(): int
+    {
+        if ($this->isUnitTracked()) {
+            return $this->unitAlat()->where('status', 'tersedia')->count();
+        }
+        return $this->jumlah_alat;
     }
 }

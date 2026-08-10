@@ -1,0 +1,817 @@
+{
+  "communities": {
+    "0": [
+      "app_http_controllers_dashboardcontroller",
+      "app_http_controllers_dashboardcontroller_dashboardcontroller",
+      "app_http_controllers_dashboardcontroller_dashboardcontroller_index",
+      "app_models_alat",
+      "app_models_alat_alat",
+      "app_models_alat_alat_isunittracked",
+      "app_models_alat_alat_kategori",
+      "app_models_alat_alat_laboratorium",
+      "app_models_alat_alat_peminjamanalat",
+      "app_models_alat_alat_pengadaanalat",
+      "app_models_alat_alat_unitalat",
+      "app_models_bahan",
+      "app_models_bahan_bahan",
+      "app_models_bahan_bahan_isstokmenipis",
+      "app_models_bahan_bahan_kategori",
+      "app_models_bahan_bahan_laboratorium",
+      "app_models_bahan_bahan_pemakaianbahan",
+      "app_models_bahan_bahan_pengadaanbahan",
+      "app_models_kategori",
+      "app_models_kategori_kategori",
+      "app_models_laboratorium",
+      "app_models_laboratorium_laboratorium",
+      "app_models_laboratorium_laboratorium_alat",
+      "app_models_laboratorium_laboratorium_bahan",
+      "app_models_laboratorium_laboratorium_kalab",
+      "app_models_pemakaianbahan",
+      "app_models_pemakaianbahan_pemakaianbahan",
+      "app_models_pemakaianbahan_pemakaianbahan_bahan",
+      "app_models_pemakaianbahan_pemakaianbahan_casts",
+      "app_models_pemakaianbahan_pemakaianbahan_pengadaanbahan",
+      "app_models_pemakaianbahan_pemakaianbahan_userpemakai",
+      "app_models_pemakaianbahan_pemakaianbahan_userverifikasi",
+      "app_models_pemeliharaanalat",
+      "app_models_pemeliharaanalat_pemeliharaanalat",
+      "app_models_pemeliharaanalat_pemeliharaanalat_casts",
+      "app_models_pemeliharaanalat_pemeliharaanalat_teknisi",
+      "app_models_pemeliharaanalat_pemeliharaanalat_unitalat",
+      "app_models_peminjamanalat",
+      "app_models_peminjamanalat_peminjamanalat",
+      "app_models_peminjamanalat_peminjamanalat_alat",
+      "app_models_peminjamanalat_peminjamanalat_casts",
+      "app_models_peminjamanalat_peminjamanalat_unitalat",
+      "app_models_peminjamanalat_peminjamanalat_userpeminjam",
+      "app_models_pengadaanalat",
+      "app_models_pengadaanalat_pengadaanalat",
+      "app_models_pengadaanalat_pengadaanalat_alat",
+      "app_models_pengadaanalat_pengadaanalat_casts",
+      "app_models_pengadaanalat_pengadaanalat_userinput",
+      "app_models_pengadaanbahan",
+      "app_models_pengadaanbahan_pengadaanbahan",
+      "app_models_pengadaanbahan_pengadaanbahan_bahan",
+      "app_models_pengadaanbahan_pengadaanbahan_casts",
+      "app_models_pengadaanbahan_pengadaanbahan_pemakaianbahan",
+      "app_models_pengadaanbahan_pengadaanbahan_scopetersediaurutexpiry",
+      "app_models_pengadaanbahan_pengadaanbahan_userinput",
+      "app_models_unitalat",
+      "app_models_unitalat_unitalat",
+      "app_models_unitalat_unitalat_alat",
+      "app_models_unitalat_unitalat_pemeliharaanalat",
+      "app_models_unitalat_unitalat_peminjamanalat",
+      "illuminate_database_eloquent_factories_hasfactory",
+      "illuminate_database_eloquent_model",
+      "illuminate_database_eloquent_relations_belongsto"
+    ],
+    "1": [
+      "app_models_kategori_kategori_alat",
+      "app_models_kategori_kategori_bahan",
+      "app_models_user",
+      "app_models_user_user",
+      "app_models_user_user_casts",
+      "app_models_user_user_laboratoriumdikelola",
+      "app_models_user_user_pemakaianbahan",
+      "app_models_user_user_pemeliharaanalat",
+      "app_models_user_user_peminjamanalat",
+      "app_models_user_user_pengadaanalat",
+      "app_models_user_user_pengadaanbahan",
+      "app_models_user_user_verifikasipemakaianbahan",
+      "config_auth",
+      "illuminate_database_eloquent_relations_hasmany",
+      "illuminate_foundation_auth_user",
+      "illuminate_foundation_testing_refreshdatabase",
+      "illuminate_foundation_testing_testcase",
+      "illuminate_notifications_notifiable",
+      "tests_feature_auth_authenticationtest",
+      "tests_feature_auth_authenticationtest_authenticationtest",
+      "tests_feature_auth_authenticationtest_authenticationtest_test_login_screen_can_be_rendered",
+      "tests_feature_auth_authenticationtest_authenticationtest_test_users_can_authenticate_using_the_login_screen",
+      "tests_feature_auth_authenticationtest_authenticationtest_test_users_can_logout",
+      "tests_feature_auth_authenticationtest_authenticationtest_test_users_can_not_authenticate_with_invalid_password",
+      "tests_feature_auth_emailverificationtest",
+      "tests_feature_auth_emailverificationtest_emailverificationtest",
+      "tests_feature_auth_emailverificationtest_emailverificationtest_test_email_can_be_verified",
+      "tests_feature_auth_emailverificationtest_emailverificationtest_test_email_is_not_verified_with_invalid_hash",
+      "tests_feature_auth_emailverificationtest_emailverificationtest_test_email_verification_screen_can_be_rendered",
+      "tests_feature_auth_passwordconfirmationtest",
+      "tests_feature_auth_passwordconfirmationtest_passwordconfirmationtest",
+      "tests_feature_auth_passwordconfirmationtest_passwordconfirmationtest_test_confirm_password_screen_can_be_rendered",
+      "tests_feature_auth_passwordconfirmationtest_passwordconfirmationtest_test_password_can_be_confirmed",
+      "tests_feature_auth_passwordconfirmationtest_passwordconfirmationtest_test_password_is_not_confirmed_with_invalid_password",
+      "tests_feature_auth_passwordresettest",
+      "tests_feature_auth_passwordresettest_passwordresettest",
+      "tests_feature_auth_passwordresettest_passwordresettest_test_password_can_be_reset_with_valid_token",
+      "tests_feature_auth_passwordresettest_passwordresettest_test_reset_password_link_can_be_requested",
+      "tests_feature_auth_passwordresettest_passwordresettest_test_reset_password_link_screen_can_be_rendered",
+      "tests_feature_auth_passwordresettest_passwordresettest_test_reset_password_screen_can_be_rendered",
+      "tests_feature_auth_passwordupdatetest",
+      "tests_feature_auth_passwordupdatetest_passwordupdatetest",
+      "tests_feature_auth_passwordupdatetest_passwordupdatetest_test_correct_password_must_be_provided_to_update_password",
+      "tests_feature_auth_passwordupdatetest_passwordupdatetest_test_password_can_be_updated",
+      "tests_feature_auth_registrationtest",
+      "tests_feature_auth_registrationtest_registrationtest",
+      "tests_feature_auth_registrationtest_registrationtest_test_new_users_can_register",
+      "tests_feature_auth_registrationtest_registrationtest_test_registration_screen_can_be_rendered",
+      "tests_feature_exampletest",
+      "tests_feature_exampletest_exampletest",
+      "tests_feature_exampletest_exampletest_test_the_application_returns_a_successful_response",
+      "tests_feature_profiletest",
+      "tests_feature_profiletest_profiletest",
+      "tests_feature_profiletest_profiletest_test_correct_password_must_be_provided_to_delete_account",
+      "tests_feature_profiletest_profiletest_test_email_verification_status_is_unchanged_when_the_email_address_is_unchanged",
+      "tests_feature_profiletest_profiletest_test_profile_information_can_be_updated",
+      "tests_feature_profiletest_profiletest_test_profile_page_is_displayed",
+      "tests_feature_profiletest_profiletest_test_user_can_delete_their_account",
+      "tests_testcase",
+      "tests_testcase_testcase"
+    ],
+    "2": [
+      "app_http_controllers_auth_authenticatedsessioncontroller",
+      "app_http_controllers_auth_authenticatedsessioncontroller_authenticatedsessioncontroller",
+      "app_http_controllers_auth_authenticatedsessioncontroller_authenticatedsessioncontroller_create",
+      "app_http_controllers_auth_authenticatedsessioncontroller_authenticatedsessioncontroller_destroy",
+      "app_http_controllers_auth_authenticatedsessioncontroller_authenticatedsessioncontroller_store",
+      "app_http_controllers_auth_confirmablepasswordcontroller",
+      "app_http_controllers_auth_confirmablepasswordcontroller_confirmablepasswordcontroller",
+      "app_http_controllers_auth_confirmablepasswordcontroller_confirmablepasswordcontroller_show",
+      "app_http_controllers_auth_confirmablepasswordcontroller_confirmablepasswordcontroller_store",
+      "app_http_controllers_auth_emailverificationnotificationcontroller",
+      "app_http_controllers_auth_emailverificationnotificationcontroller_emailverificationnotificationcontroller",
+      "app_http_controllers_auth_emailverificationnotificationcontroller_emailverificationnotificationcontroller_store",
+      "app_http_controllers_auth_emailverificationpromptcontroller",
+      "app_http_controllers_auth_emailverificationpromptcontroller_emailverificationpromptcontroller",
+      "app_http_controllers_auth_emailverificationpromptcontroller_emailverificationpromptcontroller_invoke",
+      "app_http_controllers_auth_newpasswordcontroller",
+      "app_http_controllers_auth_newpasswordcontroller_newpasswordcontroller",
+      "app_http_controllers_auth_newpasswordcontroller_newpasswordcontroller_create",
+      "app_http_controllers_auth_newpasswordcontroller_newpasswordcontroller_store",
+      "app_http_controllers_auth_passwordcontroller",
+      "app_http_controllers_auth_passwordcontroller_passwordcontroller",
+      "app_http_controllers_auth_passwordcontroller_passwordcontroller_update",
+      "app_http_controllers_auth_passwordresetlinkcontroller",
+      "app_http_controllers_auth_passwordresetlinkcontroller_passwordresetlinkcontroller",
+      "app_http_controllers_auth_passwordresetlinkcontroller_passwordresetlinkcontroller_create",
+      "app_http_controllers_auth_passwordresetlinkcontroller_passwordresetlinkcontroller_store",
+      "app_http_controllers_auth_registeredusercontroller",
+      "app_http_controllers_auth_registeredusercontroller_registeredusercontroller",
+      "app_http_controllers_auth_registeredusercontroller_registeredusercontroller_create",
+      "app_http_controllers_auth_registeredusercontroller_registeredusercontroller_store",
+      "app_http_controllers_auth_verifyemailcontroller",
+      "app_http_controllers_auth_verifyemailcontroller_verifyemailcontroller",
+      "app_http_controllers_auth_verifyemailcontroller_verifyemailcontroller_invoke",
+      "app_http_controllers_controller",
+      "app_http_controllers_controller_controller",
+      "app_http_controllers_pinjam_alat",
+      "app_http_controllers_pinjam_alat_pinjam_alat",
+      "app_http_controllers_profilecontroller",
+      "app_http_controllers_profilecontroller_profilecontroller",
+      "app_http_controllers_profilecontroller_profilecontroller_destroy",
+      "app_http_controllers_profilecontroller_profilecontroller_edit",
+      "app_http_controllers_profilecontroller_profilecontroller_update",
+      "app_view_components_applayout",
+      "app_view_components_applayout_applayout",
+      "app_view_components_applayout_applayout_render",
+      "app_view_components_guestlayout",
+      "app_view_components_guestlayout_guestlayout",
+      "app_view_components_guestlayout_guestlayout_render",
+      "illuminate_foundation_auth_emailverificationrequest",
+      "illuminate_http_redirectresponse",
+      "illuminate_http_request",
+      "illuminate_view_component",
+      "illuminate_view_view",
+      "routes_auth",
+      "routes_web"
+    ],
+    "3": [
+      "composer",
+      "composer_allow_plugins_pestphp_pest_plugin",
+      "composer_allow_plugins_php_http_discovery",
+      "composer_autoload",
+      "composer_autoload_dev",
+      "composer_autoload_dev_psr_4",
+      "composer_autoload_psr_4",
+      "composer_config",
+      "composer_config_allow_plugins",
+      "composer_config_optimize_autoloader",
+      "composer_config_preferred_install",
+      "composer_config_sort_packages",
+      "composer_description",
+      "composer_extra",
+      "composer_extra_laravel",
+      "composer_keywords",
+      "composer_laravel_dont_discover",
+      "composer_license",
+      "composer_minimum_stability",
+      "composer_name",
+      "composer_prefer_stable",
+      "composer_psr_4_app",
+      "composer_psr_4_database_factories",
+      "composer_psr_4_database_seeders",
+      "composer_psr_4_tests",
+      "composer_require",
+      "composer_require_barryvdh_laravel_dompdf",
+      "composer_require_dev",
+      "composer_require_dev_fakerphp_faker",
+      "composer_require_dev_laravel_breeze",
+      "composer_require_dev_laravel_pail",
+      "composer_require_dev_laravel_pao",
+      "composer_require_dev_laravel_pint",
+      "composer_require_dev_mockery_mockery",
+      "composer_require_dev_nunomaduro_collision",
+      "composer_require_dev_phpunit_phpunit",
+      "composer_require_laravel_framework",
+      "composer_require_laravel_tinker",
+      "composer_require_php",
+      "composer_require_realrashid_sweet_alert",
+      "composer_schema",
+      "composer_type",
+      "ref_framework",
+      "ref_laravel"
+    ],
+    "4": [
+      "alpinejs",
+      "autoprefixer",
+      "concurrently",
+      "laravel_vite_plugin",
+      "package",
+      "package_devdependencies",
+      "package_devdependencies_alpinejs",
+      "package_devdependencies_autoprefixer",
+      "package_devdependencies_concurrently",
+      "package_devdependencies_laravel_vite_plugin",
+      "package_devdependencies_postcss",
+      "package_devdependencies_tailwindcss",
+      "package_devdependencies_tailwindcss_forms",
+      "package_devdependencies_tailwindcss_vite",
+      "package_devdependencies_vite",
+      "package_private",
+      "package_schema",
+      "package_scripts",
+      "package_scripts_build",
+      "package_scripts_dev",
+      "package_type",
+      "postcss",
+      "tailwindcss",
+      "tailwindcss_forms",
+      "tailwindcss_vite",
+      "vite"
+    ],
+    "5": [
+      "composer_scripts",
+      "composer_scripts_dev",
+      "composer_scripts_post_autoload_dump",
+      "composer_scripts_post_create_project_cmd",
+      "composer_scripts_post_root_package_install",
+      "composer_scripts_post_update_cmd",
+      "composer_scripts_pre_package_uninstall",
+      "composer_scripts_setup",
+      "composer_scripts_test",
+      "ref_composer_config_disableprocesstimeout",
+      "ref_composer_install",
+      "ref_illuminate_foundation_composerscripts_postautoloaddump",
+      "ref_illuminate_foundation_composerscripts_prepackageuninstall",
+      "ref_npm_install_ignore_scripts",
+      "ref_npm_run_build",
+      "ref_npx_concurrently_c_93c5fd_c4b5fd_fb7185_fdba74_php_artisan_serve_php_artisan_queue_listen_tries_1_timeout_0_php_artisan_pail_timeout_0_npm_run_dev_names_server_queue_logs_vite_kill_others",
+      "ref_php_artisan_config_clear_ansi_no_additional_args",
+      "ref_php_artisan_key_generate",
+      "ref_php_artisan_key_generate_ansi",
+      "ref_php_artisan_migrate_force",
+      "ref_php_artisan_migrate_graceful_ansi",
+      "ref_php_artisan_package_discover_ansi",
+      "ref_php_artisan_test",
+      "ref_php_artisan_vendor_publish_tag_laravel_assets_ansi_force",
+      "ref_php_r_file_exists_database_database_sqlite_touch_database_database_sqlite",
+      "ref_php_r_file_exists_env_copy_env_example_env"
+    ],
+    "6": [
+      "app_http_requests_auth_loginrequest",
+      "app_http_requests_auth_loginrequest_loginrequest",
+      "app_http_requests_auth_loginrequest_loginrequest_authenticate",
+      "app_http_requests_auth_loginrequest_loginrequest_authorize",
+      "app_http_requests_auth_loginrequest_loginrequest_ensureisnotratelimited",
+      "app_http_requests_auth_loginrequest_loginrequest_rules",
+      "app_http_requests_auth_loginrequest_loginrequest_throttlekey",
+      "app_http_requests_profileupdaterequest",
+      "app_http_requests_profileupdaterequest_profileupdaterequest",
+      "app_http_requests_profileupdaterequest_profileupdaterequest_rules",
+      "illuminate_foundation_http_formrequest"
+    ],
+    "7": [
+      "database_seeders_databaseseeder",
+      "database_seeders_databaseseeder_databaseseeder",
+      "database_seeders_databaseseeder_databaseseeder_run",
+      "database_seeders_userseeder",
+      "database_seeders_userseeder_userseeder",
+      "database_seeders_userseeder_userseeder_run",
+      "illuminate_database_seeder"
+    ],
+    "8": [
+      "app_providers_appserviceprovider",
+      "app_providers_appserviceprovider_appserviceprovider",
+      "app_providers_appserviceprovider_appserviceprovider_boot",
+      "app_providers_appserviceprovider_appserviceprovider_register",
+      "bootstrap_providers",
+      "illuminate_support_serviceprovider"
+    ],
+    "9": [
+      "database_factories_userfactory",
+      "database_factories_userfactory_userfactory",
+      "database_factories_userfactory_userfactory_definition",
+      "database_factories_userfactory_userfactory_unverified",
+      "illuminate_database_eloquent_factories_factory",
+      "static"
+    ],
+    "10": [
+      "partials_footer",
+      "partials_navbar",
+      "partials_scripts",
+      "partials_sidebar",
+      "resources_views_layouts_admin_blade"
+    ],
+    "11": [
+      "phpunit_framework_testcase",
+      "tests_unit_exampletest",
+      "tests_unit_exampletest_exampletest",
+      "tests_unit_exampletest_exampletest_test_that_true_is_true"
+    ],
+    "12": [
+      "profile_partials_delete_user_form",
+      "profile_partials_update_password_form",
+      "profile_partials_update_profile_information_form",
+      "resources_views_profile_edit_blade"
+    ],
+    "13": [
+      "database_migrations_0001_01_01_000001_create_cache_table",
+      "database_migrations_0001_01_01_000001_create_cache_table_down",
+      "database_migrations_0001_01_01_000001_create_cache_table_up"
+    ],
+    "14": [
+      "database_migrations_0001_01_01_000002_create_jobs_table",
+      "database_migrations_0001_01_01_000002_create_jobs_table_down",
+      "database_migrations_0001_01_01_000002_create_jobs_table_up"
+    ],
+    "15": [
+      "database_migrations_2026_08_04_000001_create_users_table",
+      "database_migrations_2026_08_04_000001_create_users_table_down",
+      "database_migrations_2026_08_04_000001_create_users_table_up"
+    ],
+    "16": [
+      "database_migrations_2026_08_04_000002_create_kategori_table",
+      "database_migrations_2026_08_04_000002_create_kategori_table_down",
+      "database_migrations_2026_08_04_000002_create_kategori_table_up"
+    ],
+    "17": [
+      "database_migrations_2026_08_04_000003_create_laboratorium_table",
+      "database_migrations_2026_08_04_000003_create_laboratorium_table_down",
+      "database_migrations_2026_08_04_000003_create_laboratorium_table_up"
+    ],
+    "18": [
+      "database_migrations_2026_08_04_000004_create_alat_table",
+      "database_migrations_2026_08_04_000004_create_alat_table_down",
+      "database_migrations_2026_08_04_000004_create_alat_table_up"
+    ],
+    "19": [
+      "database_migrations_2026_08_04_000005_create_unit_alat_table",
+      "database_migrations_2026_08_04_000005_create_unit_alat_table_down",
+      "database_migrations_2026_08_04_000005_create_unit_alat_table_up"
+    ],
+    "20": [
+      "database_migrations_2026_08_04_000006_create_pengadaan_alat_table",
+      "database_migrations_2026_08_04_000006_create_pengadaan_alat_table_down",
+      "database_migrations_2026_08_04_000006_create_pengadaan_alat_table_up"
+    ],
+    "21": [
+      "database_migrations_2026_08_04_000007_create_bahan_table",
+      "database_migrations_2026_08_04_000007_create_bahan_table_down",
+      "database_migrations_2026_08_04_000007_create_bahan_table_up"
+    ],
+    "22": [
+      "database_migrations_2026_08_04_000008_create_pengadaan_bahan_table",
+      "database_migrations_2026_08_04_000008_create_pengadaan_bahan_table_down",
+      "database_migrations_2026_08_04_000008_create_pengadaan_bahan_table_up"
+    ],
+    "23": [
+      "database_migrations_2026_08_04_000009_create_peminjaman_alat_table",
+      "database_migrations_2026_08_04_000009_create_peminjaman_alat_table_down",
+      "database_migrations_2026_08_04_000009_create_peminjaman_alat_table_up"
+    ],
+    "24": [
+      "database_migrations_2026_08_04_000010_create_pemakaian_bahan_table",
+      "database_migrations_2026_08_04_000010_create_pemakaian_bahan_table_down",
+      "database_migrations_2026_08_04_000010_create_pemakaian_bahan_table_up"
+    ],
+    "25": [
+      "database_migrations_2026_08_04_000011_create_pemeliharaan_alat_table",
+      "database_migrations_2026_08_04_000011_create_pemeliharaan_alat_table_down",
+      "database_migrations_2026_08_04_000011_create_pemeliharaan_alat_table_up"
+    ],
+    "26": [
+      "database_migrations_2026_08_05_163424_create_sessions_table",
+      "database_migrations_2026_08_05_163424_create_sessions_table_down",
+      "database_migrations_2026_08_05_163424_create_sessions_table_up"
+    ],
+    "27": [
+      "artisan",
+      "routes_console"
+    ],
+    "28": [
+      "bootstrap_app"
+    ],
+    "29": [
+      "config_app"
+    ],
+    "30": [
+      "config_cache"
+    ],
+    "31": [
+      "config_database"
+    ],
+    "32": [
+      "config_filesystems"
+    ],
+    "33": [
+      "config_logging"
+    ],
+    "34": [
+      "config_mail"
+    ],
+    "35": [
+      "config_queue"
+    ],
+    "36": [
+      "config_services"
+    ],
+    "37": [
+      "config_session"
+    ],
+    "38": [
+      "detect_project"
+    ],
+    "39": [
+      "postcss_config"
+    ],
+    "40": [
+      "public_index"
+    ],
+    "41": [
+      "resources_js_app"
+    ],
+    "42": [
+      "resources_views_alat_create_blade"
+    ],
+    "43": [
+      "resources_views_alat_edit_balde"
+    ],
+    "44": [
+      "resources_views_alat_index_blade"
+    ],
+    "45": [
+      "resources_views_auth_confirm_password_blade"
+    ],
+    "46": [
+      "resources_views_auth_forgot_password_blade"
+    ],
+    "47": [
+      "resources_views_auth_login_blade"
+    ],
+    "48": [
+      "resources_views_auth_register_blade"
+    ],
+    "49": [
+      "resources_views_auth_reset_password_blade"
+    ],
+    "50": [
+      "resources_views_auth_verify_email_blade"
+    ],
+    "51": [
+      "resources_views_components_application_logo_blade"
+    ],
+    "52": [
+      "resources_views_components_auth_session_status_blade"
+    ],
+    "53": [
+      "resources_views_components_danger_button_blade"
+    ],
+    "54": [
+      "resources_views_components_dropdown_blade"
+    ],
+    "55": [
+      "resources_views_components_dropdown_link_blade"
+    ],
+    "56": [
+      "resources_views_components_input_error_blade"
+    ],
+    "57": [
+      "resources_views_components_input_label_blade"
+    ],
+    "58": [
+      "resources_views_components_modal_blade"
+    ],
+    "59": [
+      "resources_views_components_nav_link_blade"
+    ],
+    "60": [
+      "resources_views_components_primary_button_blade"
+    ],
+    "61": [
+      "resources_views_components_responsive_nav_link_blade"
+    ],
+    "62": [
+      "resources_views_components_secondary_button_blade"
+    ],
+    "63": [
+      "resources_views_components_text_input_blade"
+    ],
+    "64": [
+      "resources_views_dashboard_index_blade"
+    ],
+    "65": [
+      "resources_views_kategori_create_blade"
+    ],
+    "66": [
+      "resources_views_kategori_edit_blade"
+    ],
+    "67": [
+      "resources_views_kategori_index_blade"
+    ],
+    "68": [
+      "resources_views_kategori_show_blade"
+    ],
+    "69": [
+      "resources_views_layouts_guest_blade"
+    ],
+    "70": [
+      "resources_views_partials_footer_blade"
+    ],
+    "71": [
+      "resources_views_partials_navbar_blade"
+    ],
+    "72": [
+      "resources_views_partials_scripts_blade"
+    ],
+    "73": [
+      "resources_views_partials_sidebar_blade"
+    ],
+    "74": [
+      "resources_views_profile_partials_delete_user_form_blade"
+    ],
+    "75": [
+      "resources_views_profile_partials_update_password_form_blade"
+    ],
+    "76": [
+      "resources_views_profile_partials_update_profile_information_form_blade"
+    ],
+    "77": [
+      "resources_views_users_create_blade"
+    ],
+    "78": [
+      "resources_views_users_edit_balde"
+    ],
+    "79": [
+      "resources_views_users_index_blade"
+    ],
+    "80": [
+      "resources_views_users_show_blade"
+    ],
+    "81": [
+      "tailwind_config"
+    ],
+    "82": [
+      "vite_config"
+    ]
+  },
+  "cohesion": {
+    "0": 0.06400409626216078,
+    "1": 0.06384180790960452,
+    "2": 0.08754208754208755,
+    "3": 0.045454545454545456,
+    "4": 0.07692307692307693,
+    "5": 0.08,
+    "6": 0.2727272727272727,
+    "7": 0.38095238095238093,
+    "8": 0.4,
+    "9": 0.4666666666666667,
+    "10": 0.4,
+    "11": 0.6666666666666666,
+    "12": 0.5,
+    "13": 0.6666666666666666,
+    "14": 0.6666666666666666,
+    "15": 0.6666666666666666,
+    "16": 0.6666666666666666,
+    "17": 0.6666666666666666,
+    "18": 0.6666666666666666,
+    "19": 0.6666666666666666,
+    "20": 0.6666666666666666,
+    "21": 0.6666666666666666,
+    "22": 0.6666666666666666,
+    "23": 0.6666666666666666,
+    "24": 0.6666666666666666,
+    "25": 0.6666666666666666,
+    "26": 0.6666666666666666,
+    "27": 1.0,
+    "28": 1.0,
+    "29": 1.0,
+    "30": 1.0,
+    "31": 1.0,
+    "32": 1.0,
+    "33": 1.0,
+    "34": 1.0,
+    "35": 1.0,
+    "36": 1.0,
+    "37": 1.0,
+    "38": 1.0,
+    "39": 1.0,
+    "40": 1.0,
+    "41": 1.0,
+    "42": 1.0,
+    "43": 1.0,
+    "44": 1.0,
+    "45": 1.0,
+    "46": 1.0,
+    "47": 1.0,
+    "48": 1.0,
+    "49": 1.0,
+    "50": 1.0,
+    "51": 1.0,
+    "52": 1.0,
+    "53": 1.0,
+    "54": 1.0,
+    "55": 1.0,
+    "56": 1.0,
+    "57": 1.0,
+    "58": 1.0,
+    "59": 1.0,
+    "60": 1.0,
+    "61": 1.0,
+    "62": 1.0,
+    "63": 1.0,
+    "64": 1.0,
+    "65": 1.0,
+    "66": 1.0,
+    "67": 1.0,
+    "68": 1.0,
+    "69": 1.0,
+    "70": 1.0,
+    "71": 1.0,
+    "72": 1.0,
+    "73": 1.0,
+    "74": 1.0,
+    "75": 1.0,
+    "76": 1.0,
+    "77": 1.0,
+    "78": 1.0,
+    "79": 1.0,
+    "80": 1.0,
+    "81": 1.0,
+    "82": 1.0
+  },
+  "gods": [
+    {
+      "id": "app_models_user_user",
+      "label": "User",
+      "degree": 33
+    },
+    {
+      "id": "app_http_controllers_controller_controller",
+      "label": "Controller",
+      "degree": 22
+    },
+    {
+      "id": "tests_testcase_testcase",
+      "label": "TestCase",
+      "degree": 18
+    },
+    {
+      "id": "app_models_alat_alat",
+      "label": "Alat",
+      "degree": 10
+    },
+    {
+      "id": "app_http_requests_auth_loginrequest_loginrequest",
+      "label": "LoginRequest",
+      "degree": 9
+    },
+    {
+      "id": "app_models_bahan_bahan",
+      "label": "Bahan",
+      "degree": 9
+    },
+    {
+      "id": "composer_require_dev",
+      "label": "require-dev",
+      "degree": 9
+    },
+    {
+      "id": "composer_scripts",
+      "label": "scripts",
+      "degree": 9
+    },
+    {
+      "id": "app_models_pemakaianbahan_pemakaianbahan",
+      "label": "PemakaianBahan",
+      "degree": 8
+    },
+    {
+      "id": "app_models_peminjamanalat_peminjamanalat",
+      "label": "PeminjamanAlat",
+      "degree": 8
+    }
+  ],
+  "surprises": [
+    {
+      "source": "DashboardController",
+      "target": "Controller",
+      "source_files": [
+        "app/Http/Controllers/DashboardController.php",
+        "app/Http/Controllers/Controller.php"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "inherits",
+      "why": "bridges separate communities"
+    },
+    {
+      "source": "Pinjam_alat",
+      "target": "Controller",
+      "source_files": [
+        "app/Http/Controllers/Pinjam_alat.php",
+        "app/Http/Controllers/Controller.php"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "inherits",
+      "why": "peripheral node `Pinjam_alat` unexpectedly reaches hub `Controller`"
+    },
+    {
+      "source": "AuthenticatedSessionController",
+      "target": "Controller",
+      "source_files": [
+        "app/Http/Controllers/Auth/AuthenticatedSessionController.php",
+        "app/Http/Controllers/Controller.php"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "inherits",
+      "why": "cross-file semantic connection"
+    },
+    {
+      "source": "ConfirmablePasswordController",
+      "target": "Controller",
+      "source_files": [
+        "app/Http/Controllers/Auth/ConfirmablePasswordController.php",
+        "app/Http/Controllers/Controller.php"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "inherits",
+      "why": "cross-file semantic connection"
+    },
+    {
+      "source": "EmailVerificationNotificationController",
+      "target": "Controller",
+      "source_files": [
+        "app/Http/Controllers/Auth/EmailVerificationNotificationController.php",
+        "app/Http/Controllers/Controller.php"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "inherits",
+      "why": "cross-file semantic connection"
+    }
+  ],
+  "questions": [
+    {
+      "type": "bridge_node",
+      "question": "Why does `User` connect `Community 1` to `Community 0`, `Community 2`, `Community 7`?",
+      "why": "High betweenness centrality (0.062) - this node is a cross-community bridge."
+    },
+    {
+      "type": "bridge_node",
+      "question": "Why does `Controller` connect `Community 2` to `Community 0`?",
+      "why": "High betweenness centrality (0.029) - this node is a cross-community bridge."
+    },
+    {
+      "type": "verify_inferred",
+      "question": "Are the 21 inferred relationships involving `User` (e.g. with `.store()` and `.run()`) actually correct?",
+      "why": "`User` has 21 INFERRED edges - model-reasoned connections that need verification."
+    },
+    {
+      "type": "isolated_nodes",
+      "question": "What connects `$schema`, `name`, `type` to the rest of the system?",
+      "why": "69 weakly-connected nodes found - possible documentation gaps or missing edges."
+    },
+    {
+      "type": "low_cohesion",
+      "question": "Should `Community 0` be split into smaller, more focused modules?",
+      "why": "Cohesion score 0.06400409626216078 - nodes in this community are weakly interconnected."
+    },
+    {
+      "type": "low_cohesion",
+      "question": "Should `Community 1` be split into smaller, more focused modules?",
+      "why": "Cohesion score 0.06384180790960452 - nodes in this community are weakly interconnected."
+    },
+    {
+      "type": "low_cohesion",
+      "question": "Should `Community 2` be split into smaller, more focused modules?",
+      "why": "Cohesion score 0.08754208754208755 - nodes in this community are weakly interconnected."
+    }
+  ]
+}

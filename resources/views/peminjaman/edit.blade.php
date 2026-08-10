@@ -1,0 +1,121 @@
+@extends('layouts.admin')
+
+@section('title', 'Edit Peminjaman')
+
+@section('content')
+<div class="container-fluid">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="{{ route('peminjaman.index') }}">Data Peminjaman</a></li>
+            <li class="breadcrumb-item active">Edit Peminjaman</li>
+        </ol>
+    </nav>
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Form Edit Peminjaman</h5>
+        </div>
+
+        <div class="card-body">
+            <form action="{{ route('peminjaman.update', $peminjaman) }}" method="POST">
+                @csrf
+                @method('PUT')
+
+                <div class="alert alert-info">
+                    <strong>Pilih salah satu:</strong> Pilih Alat (untuk agregat) ATAU Unit Alat (untuk unit individual)
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="id_alat" class="form-label">Alat (Agregat)</label>
+                            <select name="id_alat" id="id_alat" class="form-select @error('id_alat') is-invalid @enderror">
+                                <option value="">Pilih Alat</option>
+                                @foreach($alats as $alat)
+                                    <option value="{{ $alat->id }}" {{ old('id_alat', $peminjaman->id_alat) == $alat->id ? 'selected' : '' }}>
+                                        {{ $alat->nama_alat }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('id_alat')
+                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="id_unit_alat" class="form-label">Unit Alat (Individual)</label>
+                            <select name="id_unit_alat" id="id_unit_alat" class="form-select @error('id_unit_alat') is-invalid @enderror">
+                                <option value="">Pilih Unit</option>
+                                @foreach($units as $unit)
+                                    <option value="{{ $unit->id }}" {{ old('id_unit_alat', $peminjaman->id_unit_alat) == $unit->id ? 'selected' : '' }}>
+                                        {{ $unit->kode_inventaris }} - {{ $unit->alat->nama_alat }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('id_unit_alat')
+                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="keperluan" class="form-label">Keperluan <span class="text-danger">*</span></label>
+                    <input type="text" name="keperluan" id="keperluan" class="form-control @error('keperluan') is-invalid @enderror" 
+                           value="{{ old('keperluan', $peminjaman->keperluan) }}" required>
+                    @error('keperluan')
+                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                    @enderror
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="waktu_peminjaman" class="form-label">Waktu Peminjaman <span class="text-danger">*</span></label>
+                            <input type="datetime-local" name="waktu_peminjaman" id="waktu_peminjaman" class="form-control @error('waktu_peminjaman') is-invalid @enderror" 
+                                   value="{{ old('waktu_peminjaman', $peminjaman->waktu_peminjaman->format('Y-m-d\TH:i')) }}" required>
+                            @error('waktu_peminjaman')
+                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="waktu_pengembalian" class="form-label">Waktu Pengembalian <span class="text-danger">*</span></label>
+                            <input type="datetime-local" name="waktu_pengembalian" id="waktu_pengembalian" class="form-control @error('waktu_pengembalian') is-invalid @enderror" 
+                                   value="{{ old('waktu_pengembalian', $peminjaman->waktu_pengembalian->format('Y-m-d\TH:i')) }}" required>
+                            @error('waktu_pengembalian')
+                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="kondisi_saat_peminjaman" class="form-label">Kondisi Saat Peminjaman <span class="text-danger">*</span></label>
+                    <select name="kondisi_saat_peminjaman" id="kondisi_saat_peminjaman" class="form-select @error('kondisi_saat_peminjaman') is-invalid @enderror" required>
+                        <option value="">Pilih Kondisi</option>
+                        <option value="baik" {{ old('kondisi_saat_peminjaman', $peminjaman->kondisi_saat_peminjaman) == 'baik' ? 'selected' : '' }}>Baik</option>
+                        <option value="rusak_ringan" {{ old('kondisi_saat_peminjaman', $peminjaman->kondisi_saat_peminjaman) == 'rusak_ringan' ? 'selected' : '' }}>Rusak Ringan</option>
+                        <option value="rusak_berat" {{ old('kondisi_saat_peminjaman', $peminjaman->kondisi_saat_peminjaman) == 'rusak_berat' ? 'selected' : '' }}>Rusak Berat</option>
+                    </select>
+                    @error('kondisi_saat_peminjaman')
+                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                    @enderror
+                </div>
+
+                <div class="d-flex gap-2 justify-content-end">
+                    <a href="{{ route('peminjaman.index') }}" class="btn btn-secondary">Batal</a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Simpan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@endsection

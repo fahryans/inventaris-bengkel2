@@ -5,10 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class PemeliharaanAlat extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $table = 'pemeliharaan_alat';
 
@@ -41,5 +42,20 @@ class PemeliharaanAlat extends Model
     public function teknisi(): BelongsTo
     {
         return $this->belongsTo(User::class, 'id_teknisi');
+    }
+
+    public function scopeUpcoming($query)
+    {
+        return $query->where('tanggal_cek_berikutnya', '<=', now()->addDays(7));
+    }
+
+    public function scopeOverdue($query)
+    {
+        return $query->where('tanggal_cek_berikutnya', '<', now());
+    }
+
+    public function isOverdue(): bool
+    {
+        return $this->tanggal_cek_berikutnya && $this->tanggal_cek_berikutnya->isPast();
     }
 }

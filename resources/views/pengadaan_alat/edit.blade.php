@@ -1,0 +1,121 @@
+@extends('layouts.admin')
+
+@section('title', 'Edit Pengadaan Alat')
+
+@section('content')
+<div class="container-fluid">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="{{ route('pengadaan_alat.index') }}">Data Pengadaan Alat</a></li>
+            <li class="breadcrumb-item active">Edit Pengadaan</li>
+        </ol>
+    </nav>
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Form Edit Pengadaan Alat</h5>
+        </div>
+
+        <div class="card-body">
+            <form action="{{ route('pengadaan_alat.update', $pengadaan) }}" method="POST" enctype="multipart/form-data">
+                @csrf
+                @method('PUT')
+
+                <div class="mb-3">
+                    <label for="id_alat" class="form-label">Alat <span class="text-danger">*</span></label>
+                    <select name="id_alat" id="id_alat" class="form-select @error('id_alat') is-invalid @enderror" required>
+                        <option value="">Pilih Alat</option>
+                        @foreach($alats as $alat)
+                            <option value="{{ $alat->id }}" {{ old('id_alat', $pengadaan->id_alat) == $alat->id ? 'selected' : '' }}>
+                                {{ $alat->nama_alat }}
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('id_alat')
+                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                    @enderror
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="tanggal_pengadaan" class="form-label">Tanggal Pengadaan <span class="text-danger">*</span></label>
+                            <input type="date" name="tanggal_pengadaan" id="tanggal_pengadaan" class="form-control @error('tanggal_pengadaan') is-invalid @enderror" 
+                                   value="{{ old('tanggal_pengadaan', $pengadaan->tanggal_pengadaan->format('Y-m-d')) }}" required>
+                            @error('tanggal_pengadaan')
+                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="tanggal_masuk" class="form-label">Tanggal Masuk</label>
+                            <input type="date" name="tanggal_masuk" id="tanggal_masuk" class="form-control @error('tanggal_masuk') is-invalid @enderror" 
+                                   value="{{ old('tanggal_masuk', $pengadaan->tanggal_masuk?->format('Y-m-d')) }}">
+                            @error('tanggal_masuk')
+                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="harga_perolehan" class="form-label">Harga Perolehan <span class="text-danger">*</span></label>
+                            <input type="number" name="harga_perolehan" id="harga_perolehan" class="form-control @error('harga_perolehan') is-invalid @enderror" 
+                                   value="{{ old('harga_perolehan', $pengadaan->harga_perolehan) }}" min="0" step="0.01" required>
+                            @error('harga_perolehan')
+                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="jumlah" class="form-label">Jumlah <span class="text-danger">*</span></label>
+                            <input type="number" name="jumlah" id="jumlah" class="form-control @error('jumlah') is-invalid @enderror" 
+                                   value="{{ old('jumlah', $pengadaan->jumlah) }}" min="1" required>
+                            @error('jumlah')
+                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="supplier" class="form-label">Supplier <span class="text-danger">*</span></label>
+                    <input type="text" name="supplier" id="supplier" class="form-control @error('supplier') is-invalid @enderror" 
+                           value="{{ old('supplier', $pengadaan->supplier) }}" required>
+                    @error('supplier')
+                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                    @enderror
+                </div>
+
+                <div class="mb-3">
+                    <label for="foto_transaksi" class="form-label">Foto Transaksi</label>
+                    @if($pengadaan->foto_transaksi)
+                        <div class="mb-2">
+                            <img src="{{ asset('storage/' . $pengadaan->foto_transaksi) }}" alt="Foto Transaksi" class="img-thumbnail" style="max-width: 200px;">
+                        </div>
+                    @endif
+                    <input type="file" name="foto_transaksi" id="foto_transaksi" class="form-control @error('foto_transaksi') is-invalid @enderror" accept="image/*">
+                    <small class="text-muted">Format: JPG, PNG (Max 2MB)</small>
+                    @error('foto_transaksi')
+                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                    @enderror
+                </div>
+
+                <div class="d-flex gap-2 justify-content-end">
+                    <a href="{{ route('pengadaan_alat.index') }}" class="btn btn-secondary">Batal</a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Simpan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@endsection

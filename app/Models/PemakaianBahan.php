@@ -5,10 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class PemakaianBahan extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $table = 'pemakaian_bahan';
 
@@ -29,6 +30,12 @@ class PemakaianBahan extends Model
         return [
             'waktu_pemakaian' => 'datetime',
         ];
+    }
+
+    protected static function booting(): void
+    {
+        // Verifikasi dilakukan terpisah melalui action verify
+        // Tidak perlu check saat creating
     }
 
     public function bahan(): BelongsTo

@@ -6,10 +6,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Bahan extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $table = 'bahan';
 
@@ -48,5 +49,10 @@ class Bahan extends Model
     public function isStokMenipis(): bool
     {
         return $this->stok_saat_ini <= $this->stok_minimum;
+    }
+
+    public function scopeLowStock($query)
+    {
+        return $query->whereColumn('stok_saat_ini', '<=', 'stok_minimum');
     }
 }
