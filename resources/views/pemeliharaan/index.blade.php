@@ -14,9 +14,11 @@
     <div class="card shadow-sm">
         <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
             <h5 class="mb-0">Daftar Pemeliharaan</h5>
+            @can('create', \App\Models\PemeliharaanAlat::class)
             <a href="{{ route('pemeliharaan.create') }}" class="btn btn-sm btn-light">
                 <i class="fas fa-plus"></i> Tambah Pemeliharaan
             </a>
+            @endcan
         </div>
 
         <div class="card-body">
@@ -75,7 +77,7 @@
                                 </td>
                                 <td>{{ $pm->unitAlat->alat->nama_alat }}</td>
                                 <td>{{ $pm->teknisi->nama }}</td>
-                                <td>{{ $pm->tanggal_cek->format('d/m/Y') }}</td>
+                                <td>{{ $pm->tanggal_cek?->format('d/m/Y') ?? '-' }}</td>
                                 <td>{{ $pm->tanggal_cek_berikutnya->format('d/m/Y') }}</td>
                                 <td><span class="badge bg-info">{{ ucfirst($pm->kondisi) }}</span></td>
                                 <td>
@@ -90,9 +92,12 @@
                                         <a href="{{ route('pemeliharaan.show', $pm) }}" class="btn btn-outline-info" title="Lihat">
                                             <i class="fas fa-eye"></i>
                                         </a>
+                                        @can('update', $pm)
                                         <a href="{{ route('pemeliharaan.edit', $pm) }}" class="btn btn-outline-warning" title="Edit">
                                             <i class="fas fa-edit"></i>
                                         </a>
+                                        @endcan
+                                        @can('delete', $pm)
                                         <form action="{{ route('pemeliharaan.destroy', $pm) }}" method="POST" style="display:inline;">
                                             @csrf
                                             @method('DELETE')
@@ -101,6 +106,7 @@
                                                 <i class="fas fa-trash"></i>
                                             </button>
                                         </form>
+                                        @endcan
                                     </div>
                                 </td>
                             </tr>

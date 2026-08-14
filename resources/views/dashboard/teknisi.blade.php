@@ -48,7 +48,9 @@
             <div class="card shadow mb-4">
                 <div class="card-header py-3 d-flex justify-content-between align-items-center">
                     <h6 class="m-0 font-weight-bold text-primary">Jadwal Maintenance</h6>
+                    @can('create', \App\Models\PemeliharaanAlat::class)
                     <a href="{{ route('pemeliharaan.create') }}" class="btn btn-sm btn-primary">+ Tambah Jadwal</a>
+                    @endcan
                 </div>
                 <div class="card-body">
                     @if($maintenanceSchedule->count())
@@ -89,9 +91,11 @@
                                             </td>
                                             <td>
                                                 <a href="{{ route('pemeliharaan.show', $maintenance) }}" class="btn btn-sm btn-info">Detail</a>
+                                                @can('update', $maintenance)
                                                 @if(!$maintenance->tanggal_cek)
                                                     <a href="{{ route('pemeliharaan.edit', $maintenance) }}" class="btn btn-sm btn-warning">Kerjakan</a>
                                                 @endif
+                                                @endcan
                                             </td>
                                         </tr>
                                     @endforeach

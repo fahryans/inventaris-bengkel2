@@ -7,6 +7,7 @@ use App\Models\Bahan;
 use App\Models\PemakaianBahan;
 use App\Models\PengadaanBahan;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class PemakaianBahanController extends Controller
 {
@@ -53,7 +54,7 @@ class PemakaianBahanController extends Controller
         $this->authorize('create', PemakaianBahan::class);
 
         $validated = $request->validated();
-        $validated['id_user_pemakai'] = auth()->id();
+        $validated['id_user_pemakai'] = Auth::id();
 
         PemakaianBahan::create($validated);
 
@@ -64,8 +65,9 @@ class PemakaianBahanController extends Controller
             ->with('success', 'Pemakaian bahan berhasil dicatat');
     }
 
-    public function show(PemakaianBahan $pemakaian)
+    public function show($id)
     {
+        $pemakaian = PemakaianBahan::findOrFail($id);
         $this->authorize('view', $pemakaian);
 
         $pemakaian->load(['bahan', 'pengadaanBahan', 'userPemakai', 'userVerifikasi']);
@@ -73,8 +75,9 @@ class PemakaianBahanController extends Controller
         return view('pemakaian_bahan.show', compact('pemakaian'));
     }
 
-    public function edit(PemakaianBahan $pemakaian)
+    public function edit($id)
     {
+        $pemakaian = PemakaianBahan::findOrFail($id);
         $this->authorize('update', $pemakaian);
 
         $bahans = Bahan::all();
@@ -83,8 +86,9 @@ class PemakaianBahanController extends Controller
         return view('pemakaian_bahan.edit', compact('pemakaian', 'bahans', 'pengadaans'));
     }
 
-    public function update(PemakaianBahanRequest $request, PemakaianBahan $pemakaian)
+    public function update(PemakaianBahanRequest $request, $id)
     {
+        $pemakaian = PemakaianBahan::findOrFail($id);
         $this->authorize('update', $pemakaian);
 
         $oldJumlah = $pemakaian->jumlah_terpakai;
@@ -100,20 +104,22 @@ class PemakaianBahanController extends Controller
             ->with('success', 'Pemakaian bahan berhasil diperbarui');
     }
 
-    public function verify(Request $request, PemakaianBahan $pemakaian)
+    public function verify(Request $request, $id)
     {
+        $pemakaian = PemakaianBahan::findOrFail($id);
         $this->authorize('verify', $pemakaian);
 
         $pemakaian->update([
-            'id_user_verifikasi' => auth()->id(),
+            'id_user_verifikasi' => Auth::id(),
         ]);
 
         return redirect()->route('pemakaian_bahan.show', $pemakaian)
             ->with('success', 'Pemakaian bahan berhasil diverifikasi');
     }
 
-    public function destroy(PemakaianBahan $pemakaian)
+    public function destroy($id)
     {
+        $pemakaian = PemakaianBahan::findOrFail($id);
         $this->authorize('delete', $pemakaian);
 
         $bahan = $pemakaian->bahan;

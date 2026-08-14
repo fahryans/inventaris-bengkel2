@@ -14,9 +14,11 @@
     <div class="card shadow-sm">
         <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
             <h5 class="mb-0">Daftar Unit Alat</h5>
+            @can('create', \App\Models\UnitAlat::class)
             <a href="{{ route('unit-alat.create') }}" class="btn btn-sm btn-light">
                 <i class="fas fa-plus"></i> Tambah Unit
             </a>
+            @endcan
         </div>
 
         <div class="card-body">
@@ -106,9 +108,12 @@
                                         <a href="{{ route('unit-alat.show', $unit) }}" class="btn btn-outline-info" title="Lihat">
                                             <i class="fas fa-eye"></i>
                                         </a>
+                                        @can('update', $unit)
                                         <a href="{{ route('unit-alat.edit', $unit) }}" class="btn btn-outline-warning" title="Edit">
                                             <i class="fas fa-edit"></i>
                                         </a>
+                                        @endcan
+                                        @can('delete', $unit)
                                         <form action="{{ route('unit-alat.destroy', $unit) }}" method="POST" style="display:inline;">
                                             @csrf
                                             @method('DELETE')
@@ -117,6 +122,7 @@
                                                 <i class="fas fa-trash"></i>
                                             </button>
                                         </form>
+                                        @endcan
                                     </div>
                                 </td>
                             </tr>

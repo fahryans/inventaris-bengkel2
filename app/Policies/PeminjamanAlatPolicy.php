@@ -50,13 +50,13 @@ class PeminjamanAlatPolicy
 
     public function return(User $user, PeminjamanAlat $peminjaman): bool
     {
-        return in_array($user->role, [
+        return (in_array($user->role, [
             'admin_jurusan',
             'kepala_labor',
             'teknisi',
             'dosen',
             'mahasiswa'
-        ]) && $peminjaman->status === 'terpinjam';
+        ]) || $user->id === $peminjaman->id_user_peminjam) && $peminjaman->status === 'terpinjam';
     }
 
     public function delete(User $user, PeminjamanAlat $peminjaman): bool

@@ -57,7 +57,7 @@
                         <div class="mb-3">
                             <label for="tanggal_cek" class="form-label">Tanggal Cek <span class="text-danger">*</span></label>
                             <input type="date" name="tanggal_cek" id="tanggal_cek" class="form-control @error('tanggal_cek') is-invalid @enderror" 
-                                   value="{{ old('tanggal_cek', $pemeliharaan->tanggal_cek->format('Y-m-d')) }}" required>
+                                   value="{{ old('tanggal_cek', $pemeliharaan->tanggal_cek?->format('Y-m-d')) }}" required>
                             @error('tanggal_cek')
                                 <div class="invalid-feedback d-block">{{ $message }}</div>
                             @enderror

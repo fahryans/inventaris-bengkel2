@@ -14,9 +14,11 @@
     <div class="card shadow-sm">
         <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
             <h5 class="mb-0">Daftar Pengadaan Alat</h5>
+            @can('create', App\Models\PengadaanAlat::class)
             <a href="{{ route('pengadaan_alat.create') }}" class="btn btn-sm btn-light">
                 <i class="fas fa-plus"></i> Tambah Pengadaan
             </a>
+            @endcan
         </div>
 
         <div class="card-body">
@@ -61,9 +63,9 @@
                     <tbody>
                         @forelse($pengadaans as $pad)
                             <tr>
-                                <td><strong>{{ $pad->alat->nama_alat }}</strong></td>
+                                <td><strong>{{ $pad->alat->nama_alat ?? '-' }}</strong></td>
                                 <td>{{ $pad->supplier }}</td>
-                                <td>{{ $pad->tanggal_pengadaan->format('d/m/Y') }}</td>
+                                <td>{{ $pad->tanggal_pengadaan?->format('d/m/Y') ?? '-' }}</td>
                                 <td>{{ $pad->tanggal_masuk?->format('d/m/Y') ?? '-' }}</td>
                                 <td>{{ $pad->jumlah }}</td>
                                 <td>Rp {{ number_format($pad->harga_perolehan, 0, ',', '.') }}</td>
@@ -73,9 +75,12 @@
                                         <a href="{{ route('pengadaan_alat.show', $pad) }}" class="btn btn-outline-info" title="Lihat">
                                             <i class="fas fa-eye"></i>
                                         </a>
+                                        @can('update', $pad)
                                         <a href="{{ route('pengadaan_alat.edit', $pad) }}" class="btn btn-outline-warning" title="Edit">
                                             <i class="fas fa-edit"></i>
                                         </a>
+                                        @endcan
+                                        @can('delete', $pad)
                                         <form action="{{ route('pengadaan_alat.destroy', $pad) }}" method="POST" style="display:inline;">
                                             @csrf
                                             @method('DELETE')
@@ -84,6 +89,7 @@
                                                 <i class="fas fa-trash"></i>
                                             </button>
                                         </form>
+                                        @endcan
                                     </div>
                                 </td>
                             </tr>

@@ -48,7 +48,9 @@
             <div class="card shadow mb-4">
                 <div class="card-header py-3 d-flex justify-content-between align-items-center">
                     <h6 class="m-0 font-weight-bold text-primary">Peminjaman Aktif</h6>
+                    @can('create', \App\Models\PeminjamanAlat::class)
                     <a href="{{ route('peminjaman.create') }}" class="btn btn-sm btn-primary">+ Pinjam Alat/Bahan</a>
+                    @endcan
                 </div>
                 <div class="card-body">
                     @if($activePeminjaman->count())
@@ -81,7 +83,9 @@
                                             </td>
                                             <td>
                                                 <a href="{{ route('peminjaman.show', $peminjaman) }}" class="btn btn-sm btn-info">Lihat</a>
+                                                @can('return', $peminjaman)
                                                 <a href="{{ route('peminjaman.show', $peminjaman) }}#return-form" class="btn btn-sm btn-success">Kembalikan</a>
+                                                @endcan
                                             </td>
                                         </tr>
                                     @endforeach
@@ -90,7 +94,10 @@
                         </div>
                     @else
                         <div class="alert alert-info" role="alert">
-                            Anda tidak sedang meminjam apapun. <a href="{{ route('peminjaman.create') }}">Pinjam sekarang →</a>
+                            Anda tidak sedang meminjam apapun.
+                            @can('create', \App\Models\PeminjamanAlat::class)
+                            <a href="{{ route('peminjaman.create') }}">Pinjam sekarang →</a>
+                            @endcan
                         </div>
                     @endif
                 </div>

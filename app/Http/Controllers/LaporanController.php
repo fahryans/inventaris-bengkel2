@@ -10,38 +10,62 @@ use App\Models\PemeliharaanAlat;
 use App\Models\PengadaanAlat;
 use App\Models\PengadaanBahan;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class LaporanController extends Controller
 {
     public function index()
     {
-        $this->authorize('viewAny', Alat::class);
+        $this->authorize('viewAny', \App\Models\PeminjamanAlat::class);
+
+        $user = Auth::user();
+        $isDosen = $user->role === 'dosen';
+        $isMahasiswa = $user->role === 'mahasiswa';
 
         $summary = [
             'total_alat' => Alat::count(),
             'total_bahan' => Bahan::count(),
-            'peminjaman_aktif' => PeminjamanAlat::where('status', 'terpinjam')->count(),
-            'peminjaman_terlambat' => PeminjamanAlat::where('status', 'terpinjam')
-                ->where('waktu_pengembalian', '<', now())->count(),
-            'pemeliharaan_upcoming' => PemeliharaanAlat::where('tanggal_cek_berikutnya', '>=', now())
-                ->where('tanggal_cek_berikutnya', '<=', now()->addDays(7))->count(),
-            'pemeliharaan_overdue' => PemeliharaanAlat::where('tanggal_cek_berikutnya', '<', now())->count(),
-            'pengadaan_alat_pending' => PengadaanAlat::whereNull('tanggal_masuk')->count(),
-            'pengadaan_bahan_pending' => PengadaanBahan::whereNull('tanggal_masuk')->count(),
-            'bahan_low_stock' => Bahan::whereRaw('stok_saat_ini <= stok_minimum')->count(),
+            'peminjaman_aktif' => $isMahasiswa
+                ? PeminjamanAlat::where('id_user_peminjam', Auth::id())->where('status', 'terpinjam')->count()
+                : PeminjamanAlat::where('status', 'terpinjam')->count(),
+            'peminjaman_terlambat' => $isMahasiswa
+                ? PeminjamanAlat::where('id_user_peminjam', Auth::id())->where('status', 'terpinjam')
+                    ->where('waktu_pengembalian', '<', now())->count()
+                : PeminjamanAlat::where('status', 'terpinjam')
+                    ->where('waktu_pengembalian', '<', now())->count(),
         ];
 
-        return view('laporan.index', compact('summary'));
+        if (!$isMahasiswa) {
+            $summary += [
+                'pemeliharaan_upcoming' => PemeliharaanAlat::where('tanggal_cek_berikutnya', '>=', now())
+                    ->where('tanggal_cek_berikutnya', '<=', now()->addDays(7))->count(),
+                'pemeliharaan_overdue' => PemeliharaanAlat::where('tanggal_cek_berikutnya', '<', now())->count(),
+                'pengadaan_alat_pending' => PengadaanAlat::whereNull('tanggal_masuk')->count(),
+                'pengadaan_bahan_pending' => PengadaanBahan::whereNull('tanggal_masuk')->count(),
+                'bahan_low_stock' => Bahan::whereRaw('stok_saat_ini <= stok_minimum')->count(),
+            ];
+        }
+
+        return view('laporan.index', compact('summary', 'user'));
     }
 
     public function show($tipe)
     {
-        $this->authorize('viewAny', Alat::class);
+        $this->authorize('viewAny', \App\Models\PeminjamanAlat::class);
+
+        $user = Auth::user();
+        $isMahasiswa = $user->role === 'mahasiswa';
+
+        if ($isMahasiswa && !in_array($tipe, ['alat', 'bahan', 'peminjaman'])) {
+            abort(403, 'Anda tidak memiliki akses ke laporan ini.');
+        }
 
         $data = match($tipe) {
             'alat' => Alat::with(['kategori', 'laboratorium'])->latest()->paginate(20),
             'bahan' => Bahan::with('kategori')->latest()->paginate(20),
-            'peminjaman' => PeminjamanAlat::with(['alat', 'unitAlat', 'userPeminjam'])->latest()->paginate(20),
+            'peminjaman' => $isMahasiswa
+                ? PeminjamanAlat::where('id_user_peminjam', Auth::id())->with(['alat', 'unitAlat', 'userPeminjam'])->latest()->paginate(20)
+                : PeminjamanAlat::with(['alat', 'unitAlat', 'userPeminjam'])->latest()->paginate(20),
             'pemeliharaan' => PemeliharaanAlat::with(['unitAlat', 'teknisi'])->latest()->paginate(20),
             'pengadaan_alat' => PengadaanAlat::with(['alat', 'userInput'])->latest()->paginate(20),
             'pengadaan_bahan' => PengadaanBahan::with(['bahan', 'userInput'])->latest()->paginate(20),
@@ -65,7 +89,7 @@ class LaporanController extends Controller
 
     public function export($tipe, Request $request)
     {
-        $this->authorize('viewAny', Alat::class);
+        $this->authorize('viewAny', \App\Models\PeminjamanAlat::class);
 
         return redirect()->route('laporan.show', $tipe)
             ->with('info', 'Export sedang dalam pengembangan');

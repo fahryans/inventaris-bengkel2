@@ -6,6 +6,7 @@ use App\Http\Requests\PengadaanBahanRequest;
 use App\Models\Bahan;
 use App\Models\PengadaanBahan;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class PengadaanBahanController extends Controller
 {
@@ -49,7 +50,7 @@ class PengadaanBahanController extends Controller
         $this->authorize('create', PengadaanBahan::class);
 
         $validated = $request->validated();
-        $validated['id_user_input'] = auth()->id();
+        $validated['id_user_input'] = Auth::id();
 
         if ($request->hasFile('foto_transaksi')) {
             $validated['foto_transaksi'] = $request->file('foto_transaksi')->store('pengadaan', 'public');
@@ -61,8 +62,9 @@ class PengadaanBahanController extends Controller
             ->with('success', 'Pengadaan bahan berhasil dicatat');
     }
 
-    public function show(PengadaanBahan $pengadaan)
+    public function show($id)
     {
+        $pengadaan = PengadaanBahan::findOrFail($id);
         $this->authorize('view', $pengadaan);
 
         $pengadaan->load(['bahan', 'userInput', 'pemakaianBahan']);
@@ -70,8 +72,9 @@ class PengadaanBahanController extends Controller
         return view('pengadaan_bahan.show', compact('pengadaan'));
     }
 
-    public function edit(PengadaanBahan $pengadaan)
+    public function edit($id)
     {
+        $pengadaan = PengadaanBahan::findOrFail($id);
         $this->authorize('update', $pengadaan);
 
         $bahans = Bahan::all();
@@ -79,8 +82,9 @@ class PengadaanBahanController extends Controller
         return view('pengadaan_bahan.edit', compact('pengadaan', 'bahans'));
     }
 
-    public function update(PengadaanBahanRequest $request, PengadaanBahan $pengadaan)
+    public function update(PengadaanBahanRequest $request, $id)
     {
+        $pengadaan = PengadaanBahan::findOrFail($id);
         $this->authorize('update', $pengadaan);
 
         $validated = $request->validated();
@@ -98,8 +102,9 @@ class PengadaanBahanController extends Controller
             ->with('success', 'Pengadaan bahan berhasil diperbarui');
     }
 
-    public function markReceived(Request $request, PengadaanBahan $pengadaan)
+    public function markReceived(Request $request, $id)
     {
+        $pengadaan = PengadaanBahan::findOrFail($id);
         $this->authorize('update', $pengadaan);
 
         $request->validate([
@@ -116,8 +121,9 @@ class PengadaanBahanController extends Controller
             ->with('success', 'Bahan berhasil diterima dan stok diperbarui');
     }
 
-    public function destroy(PengadaanBahan $pengadaan)
+    public function destroy($id)
     {
+        $pengadaan = PengadaanBahan::findOrFail($id);
         $this->authorize('delete', $pengadaan);
 
         $pengadaan->delete();

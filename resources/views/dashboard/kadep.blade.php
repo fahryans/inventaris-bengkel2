@@ -140,7 +140,7 @@
     </div>
 </div>
 
-@push('scripts')
+@push('js')
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {

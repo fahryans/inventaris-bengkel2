@@ -46,7 +46,7 @@ class KategoriController extends Controller
 
     public function show(Kategori $kategori)
     {
-        $this->authorize('viewAny', Kategori::class);
+        $this->authorize('view', $kategori);
 
         $kategori->load(['alat', 'bahan']);
 

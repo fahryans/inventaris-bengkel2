@@ -107,49 +107,49 @@
                                     <td>{{ $item->satuan }}</td>
                                 @elseif($tipe === 'peminjaman')
                                     <td><strong>{{ $item->alat->nama_alat ?? '-' }}</strong></td>
-                                    <td>{{ $item->unit ?? '-' }}</td>
+                                    <td>{{ $item->unitAlat->kode_inventaris ?? '-' }}</td>
                                     <td>{{ $item->userPeminjam->nama ?? '-' }}</td>
-                                    <td><small>{{ $item->tanggal_pinjam?->format('d-m-Y') }}</small></td>
-                                    <td><small>{{ $item->tanggal_kembali?->format('d-m-Y') }}</small></td>
+                                    <td><small>{{ $item->waktu_peminjaman?->format('d-m-Y') }}</small></td>
+                                    <td><small>{{ $item->waktu_pengembalian?->format('d-m-Y') }}</small></td>
                                     <td>
                                         <span class="badge bg-{{ $item->status === 'terpinjam' ? 'warning' : ($item->status === 'terlambat' ? 'danger' : 'success') }}">
                                             {{ ucfirst(str_replace('_', ' ', $item->status)) }}
                                         </span>
                                     </td>
                                 @elseif($tipe === 'pemeliharaan')
-                                    <td><strong>{{ $item->unitAlat->nama_alat ?? '-' }}</strong></td>
+                                    <td><strong>{{ $item->unitAlat->alat->nama_alat ?? '-' }}</strong></td>
                                     <td>{{ $item->teknisi->nama ?? '-' }}</td>
-                                    <td><small>{{ $item->tanggal?->format('d-m-Y') }}</small></td>
-                                    <td><span class="badge bg-info">{{ ucfirst($item->jenis) }}</span></td>
+                                    <td><small>{{ $item->tanggal_cek?->format('d-m-Y') ?? '-' }}</small></td>
+                                    <td><span class="badge bg-info">{{ $item->kondisi ?? '-' }}</span></td>
                                     <td>
-                                        <span class="badge bg-{{ $item->status === 'selesai' ? 'success' : ($item->status === 'berjalan' ? 'warning' : 'danger') }}">
-                                            {{ ucfirst($item->status) }}
+                                        <span class="badge bg-{{ $item->tanggal_cek ? 'success' : 'warning' }}">
+                                            {{ $item->tanggal_cek ? 'Selesai' : 'Terjadwal' }}
                                         </span>
                                     </td>
                                 @elseif($tipe === 'pengadaan_alat')
                                     <td><strong>{{ $item->alat->nama_alat ?? '-' }}</strong></td>
                                     <td>{{ $item->jumlah }}</td>
-                                    <td><small>{{ $item->tanggal?->format('d-m-Y') }}</small></td>
+                                    <td><small>{{ $item->tanggal_pengadaan?->format('d-m-Y') ?? '-' }}</small></td>
                                     <td>
-                                        <span class="badge bg-{{ $item->status === 'diterima' ? 'success' : ($item->status === 'diproses' ? 'warning' : 'danger') }}">
-                                            {{ ucfirst($item->status) }}
+                                        <span class="badge bg-{{ $item->tanggal_masuk ? 'success' : 'warning' }}">
+                                            {{ $item->tanggal_masuk ? 'Diterima' : 'Pending' }}
                                         </span>
                                     </td>
                                 @elseif($tipe === 'pengadaan_bahan')
                                     <td><strong>{{ $item->bahan->nama_bahan ?? '-' }}</strong></td>
                                     <td>{{ $item->jumlah }}</td>
-                                    <td><small>{{ $item->tanggal?->format('d-m-Y') }}</small></td>
+                                    <td><small>{{ $item->tanggal_pengadaan?->format('d-m-Y') ?? '-' }}</small></td>
                                     <td>
-                                        <span class="badge bg-{{ $item->status === 'diterima' ? 'success' : ($item->status === 'diproses' ? 'warning' : 'danger') }}">
-                                            {{ ucfirst($item->status) }}
+                                        <span class="badge bg-{{ $item->tanggal_masuk ? 'success' : 'warning' }}">
+                                            {{ $item->tanggal_masuk ? 'Diterima' : 'Pending' }}
                                         </span>
                                     </td>
                                 @elseif($tipe === 'pemakaian_bahan')
                                     <td><strong>{{ $item->bahan->nama_bahan ?? '-' }}</strong></td>
-                                    <td>{{ $item->jumlah }}</td>
+                                    <td>{{ $item->jumlah_terpakai ?? $item->jumlah_pengambilan }}</td>
                                     <td>{{ $item->userPemakai->nama ?? '-' }}</td>
-                                    <td>{{ $item->userVerifikator->nama ?? '-' }}</td>
-                                    <td><small>{{ $item->tanggal?->format('d-m-Y') }}</small></td>
+                                    <td>{{ $item->userVerifikasi->nama ?? '-' }}</td>
+                                    <td><small>{{ $item->waktu_pemakaian?->format('d-m-Y') ?? '-' }}</small></td>
                                 @endif
                             </tr>
                         @empty
