@@ -16,7 +16,7 @@
         <div class="col-md-8">
             <div class="card shadow-sm">
                 <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">{{ $pengadaan->alat->nama_alat }}</h5>
+                    <h5 class="mb-0">{{ $pengadaan->alat->nama_alat ?? 'Alat tidak ditemukan' }}</h5>
                 </div>
 
                 <div class="card-body">
@@ -27,14 +27,14 @@
                         </div>
                         <div class="col-md-6">
                             <p><strong>Input oleh:</strong></p>
-                            <p>{{ $pengadaan->userInput->nama }}</p>
+                            <p>{{ $pengadaan->userInput->nama ?? '-' }}</p>
                         </div>
                     </div>
 
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <p><strong>Tanggal Pengadaan:</strong></p>
-                            <p>{{ $pengadaan->tanggal_pengadaan->format('d/m/Y') }}</p>
+                            <p>{{ $pengadaan->tanggal_pengadaan?->format('d/m/Y') ?? '-' }}</p>
                         </div>
                         <div class="col-md-6">
                             <p><strong>Tanggal Masuk:</strong></p>
@@ -66,9 +66,12 @@
                     @endif
 
                     <div class="d-flex gap-2">
+                        @can('update', $pengadaan)
                         <a href="{{ route('pengadaan_alat.edit', $pengadaan) }}" class="btn btn-warning">
                             <i class="fas fa-edit"></i> Edit
                         </a>
+                        @endcan
+                        @can('delete', $pengadaan)
                         <form action="{{ route('pengadaan_alat.destroy', $pengadaan) }}" method="POST" style="display:inline;">
                             @csrf
                             @method('DELETE')
@@ -76,6 +79,7 @@
                                 <i class="fas fa-trash"></i> Hapus
                             </button>
                         </form>
+                        @endcan
                         <a href="{{ route('pengadaan_alat.index') }}" class="btn btn-secondary">
                             <i class="fas fa-arrow-left"></i> Kembali
                         </a>
@@ -90,10 +94,10 @@
                     <h6 class="mb-0">Informasi Alat</h6>
                 </div>
                 <div class="card-body">
-                    <p><strong>Kategori:</strong><br><span class="badge bg-secondary">{{ $pengadaan->alat->kategori->nama_kategori }}</span></p>
-                    <p><strong>Lab:</strong><br>{{ $pengadaan->alat->laboratorium->nama_labor }}</p>
+                    <p><strong>Kategori:</strong><br><span class="badge bg-secondary">{{ $pengadaan->alat->kategori->nama_kategori ?? '-' }}</span></p>
+                    <p><strong>Lab:</strong><br>{{ $pengadaan->alat->laboratorium->nama_labor ?? '-' }}</p>
                     <p><strong>Merek:</strong><br>{{ $pengadaan->alat->merek ?? '-' }}</p>
-                    <p><strong>Tipe Pelacakan:</strong><br><span class="badge bg-{{ $pengadaan->alat->tipe_pelacakan == 'unit' ? 'warning' : 'success' }}">{{ ucfirst($pengadaan->alat->tipe_pelacakan) }}</span></p>
+                    <p><strong>Tipe Pelacakan:</strong><br><span class="badge bg-{{ ($pengadaan->alat->tipe_pelacakan ?? '') == 'unit' ? 'warning' : 'success' }}">{{ ucfirst($pengadaan->alat->tipe_pelacakan ?? '-') }}</span></p>
                 </div>
             </div>
         </div>

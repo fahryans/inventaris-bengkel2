@@ -6,12 +6,15 @@ use App\Models\Alat;
 use App\Models\PeminjamanAlat;
 use App\Models\UnitAlat;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 
 class Pinjam_alat extends Controller
 {
     public function index()
     {
+        $this->authorize('viewAny', PeminjamanAlat::class);
+
         $peminjaman = PeminjamanAlat::with(['alat', 'unitAlat', 'userPeminjam'])
             ->latest('waktu_peminjaman')
             ->paginate(15);
@@ -21,14 +24,18 @@ class Pinjam_alat extends Controller
 
     public function create()
     {
-        $alat = Alat::where('tipe_pelacakan', 'agregat')->get();
-        $unitAlat = UnitAlat::with('alat')->get();
+        $this->authorize('create', PeminjamanAlat::class);
 
-        return view('peminjaman.create', compact('alat', 'unitAlat'));
+        $alats = Alat::where('tipe_pelacakan', 'agregat')->get();
+        $units = UnitAlat::with('alat')->get();
+
+        return view('peminjaman.create', compact('alats', 'units'));
     }
 
     public function store(Request $request)
     {
+        $this->authorize('create', PeminjamanAlat::class);
+
         $validated = $request->validate([
             'id_alat' => ['nullable', 'exists:alat,id'],
             'id_unit_alat' => ['nullable', 'exists:unit_alat,id'],
@@ -45,7 +52,7 @@ class Pinjam_alat extends Controller
             ]);
         }
 
-        $validated['id_user_peminjam'] = auth()->id();
+        $validated['id_user_peminjam'] = Auth::id();
         $validated['jumlah'] = $validated['jumlah'] ?? 1;
         $validated['status'] = 'terpinjam';
 
@@ -57,6 +64,8 @@ class Pinjam_alat extends Controller
 
     public function show(PeminjamanAlat $peminjaman)
     {
+        $this->authorize('view', $peminjaman);
+
         $peminjaman->load(['alat', 'unitAlat', 'userPeminjam']);
 
         return view('peminjaman.show', compact('peminjaman'));
@@ -64,19 +73,23 @@ class Pinjam_alat extends Controller
 
     public function edit(PeminjamanAlat $peminjaman)
     {
+        $this->authorize('update', $peminjaman);
+
         if ($peminjaman->status === 'sudah_dikembalikan') {
             return redirect()->route('peminjaman.show', $peminjaman)
                 ->with('error', 'Tidak dapat mengedit peminjaman yang sudah dikembalikan');
         }
 
-        $alat = Alat::where('tipe_pelacakan', 'agregat')->get();
-        $unitAlat = UnitAlat::with('alat')->get();
+        $alats = Alat::where('tipe_pelacakan', 'agregat')->get();
+        $units = UnitAlat::with('alat')->get();
 
-        return view('peminjaman.edit', compact('peminjaman', 'alat', 'unitAlat'));
+        return view('peminjaman.edit', compact('peminjaman', 'alats', 'units'));
     }
 
     public function update(Request $request, PeminjamanAlat $peminjaman)
     {
+        $this->authorize('update', $peminjaman);
+
         if ($peminjaman->status === 'sudah_dikembalikan') {
             return redirect()->route('peminjaman.show', $peminjaman)
                 ->with('error', 'Tidak dapat mengedit peminjaman yang sudah dikembalikan');
@@ -96,6 +109,8 @@ class Pinjam_alat extends Controller
 
     public function return(Request $request, PeminjamanAlat $peminjaman)
     {
+        $this->authorize('return', $peminjaman);
+
         if ($peminjaman->status === 'sudah_dikembalikan') {
             return redirect()->route('peminjaman.show', $peminjaman)
                 ->with('error', 'Peminjaman sudah dikembalikan sebelumnya');
@@ -118,6 +133,8 @@ class Pinjam_alat extends Controller
 
     public function destroy(PeminjamanAlat $peminjaman)
     {
+        $this->authorize('delete', $peminjaman);
+
         if ($peminjaman->status === 'terpinjam') {
             return redirect()->route('peminjaman.show', $peminjaman)
                 ->with('error', 'Tidak dapat menghapus peminjaman yang masih aktif');

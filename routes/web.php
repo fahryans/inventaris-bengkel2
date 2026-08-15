@@ -56,15 +56,15 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('pemakaian_bahan', PemakaianBahanController::class);
         Route::post('pemakaian_bahan/{pemakaian}/verify', [PemakaianBahanController::class, 'verify'])
             ->name('pemakaian_bahan.verify');
-        Route::get('laporan', [LaporanController::class, 'index'])->name('laporan.index');
-        Route::get('laporan/{tipe}', [LaporanController::class, 'show'])->name('laporan.show');
-        Route::post('laporan/{tipe}/export', [LaporanController::class, 'export'])->name('laporan.export');
     });
 
     Route::middleware(['role:admin_jurusan,kepala_labor,teknisi,dosen,mahasiswa,kadep'])->group(function () {
         Route::resource('peminjaman', Pinjam_alat::class);
         Route::post('peminjaman/{peminjaman}/return', [Pinjam_alat::class, 'return'])
             ->name('peminjaman.return');
+        Route::get('laporan', [LaporanController::class, 'index'])->name('laporan.index');
+        Route::get('laporan/{tipe}', [LaporanController::class, 'show'])->name('laporan.show');
+        Route::post('laporan/{tipe}/export', [LaporanController::class, 'export'])->name('laporan.export');
     });
 
 });

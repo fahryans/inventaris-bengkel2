@@ -4,21 +4,25 @@ namespace App\Providers;
 
 use App\Models\Alat;
 use App\Models\Bahan;
+use App\Models\Kategori;
 use App\Models\Laboratorium;
 use App\Models\PemakaianBahan;
 use App\Models\PemeliharaanAlat;
 use App\Models\PeminjamanAlat;
 use App\Models\PengadaanAlat;
 use App\Models\PengadaanBahan;
+use App\Models\UnitAlat;
 use App\Models\User;
 use App\Policies\AlatPolicy;
 use App\Policies\BahanPolicy;
+use App\Policies\KategoriPolicy;
 use App\Policies\LaboratoriumPolicy;
 use App\Policies\PemakaianBahanPolicy;
 use App\Policies\PemeliharaanAlatPolicy;
 use App\Policies\PeminjamanAlatPolicy;
 use App\Policies\PengadaanAlatPolicy;
 use App\Policies\PengadaanBahanPolicy;
+use App\Policies\UnitAlatPolicy;
 use App\Policies\UserPolicy;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Gate;
@@ -28,7 +32,9 @@ class AppServiceProvider extends ServiceProvider
     protected $policies = [
         Alat::class => AlatPolicy::class,
         Bahan::class => BahanPolicy::class,
+        Kategori::class => KategoriPolicy::class,
         Laboratorium::class => LaboratoriumPolicy::class,
+        UnitAlat::class => UnitAlatPolicy::class,
         User::class => UserPolicy::class,
         PeminjamanAlat::class => PeminjamanAlatPolicy::class,
         PemeliharaanAlat::class => PemeliharaanAlatPolicy::class,

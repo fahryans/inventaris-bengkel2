@@ -6,6 +6,7 @@ use App\Http\Requests\PengadaanAlatRequest;
 use App\Models\Alat;
 use App\Models\PengadaanAlat;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class PengadaanAlatController extends Controller
 {
@@ -49,7 +50,7 @@ class PengadaanAlatController extends Controller
         $this->authorize('create', PengadaanAlat::class);
 
         $validated = $request->validated();
-        $validated['id_user_input'] = auth()->id();
+        $validated['id_user_input'] = Auth::id();
 
         if ($request->hasFile('foto_transaksi')) {
             $validated['foto_transaksi'] = $request->file('foto_transaksi')->store('pengadaan', 'public');
@@ -61,8 +62,9 @@ class PengadaanAlatController extends Controller
             ->with('success', 'Pengadaan alat berhasil dicatat');
     }
 
-    public function show(PengadaanAlat $pengadaan)
+    public function show($id)
     {
+        $pengadaan = PengadaanAlat::findOrFail($id);
         $this->authorize('view', $pengadaan);
 
         $pengadaan->load(['alat', 'userInput']);
@@ -70,17 +72,20 @@ class PengadaanAlatController extends Controller
         return view('pengadaan_alat.show', compact('pengadaan'));
     }
 
-    public function edit(PengadaanAlat $pengadaan)
+    public function edit($id)
     {
+        $pengadaan = PengadaanAlat::findOrFail($id);
         $this->authorize('update', $pengadaan);
 
+        $pengadaan->load('alat');
         $alats = Alat::all();
 
         return view('pengadaan_alat.edit', compact('pengadaan', 'alats'));
     }
 
-    public function update(PengadaanAlatRequest $request, PengadaanAlat $pengadaan)
+    public function update(PengadaanAlatRequest $request, $id)
     {
+        $pengadaan = PengadaanAlat::findOrFail($id);
         $this->authorize('update', $pengadaan);
 
         $validated = $request->validated();
@@ -98,8 +103,9 @@ class PengadaanAlatController extends Controller
             ->with('success', 'Pengadaan alat berhasil diperbarui');
     }
 
-    public function markReceived(Request $request, PengadaanAlat $pengadaan)
+    public function markReceived(Request $request, $id)
     {
+        $pengadaan = PengadaanAlat::findOrFail($id);
         $this->authorize('update', $pengadaan);
 
         $request->validate([
@@ -116,8 +122,9 @@ class PengadaanAlatController extends Controller
             ->with('success', 'Alat berhasil diterima dan stok diperbarui');
     }
 
-    public function destroy(PengadaanAlat $pengadaan)
+    public function destroy($id)
     {
+        $pengadaan = PengadaanAlat::findOrFail($id);
         $this->authorize('delete', $pengadaan);
 
         $pengadaan->delete();

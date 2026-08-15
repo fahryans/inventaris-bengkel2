@@ -50,9 +50,12 @@
                     </div>
 
                     <div class="d-flex gap-2">
+                        @can('update', $user)
                         <a href="{{ route('users.edit', $user) }}" class="btn btn-warning">
                             <i class="fas fa-edit"></i> Edit
                         </a>
+                        @endcan
+                        @can('delete', $user)
                         <form action="{{ route('users.destroy', $user) }}" method="POST" style="display:inline;">
                             @csrf
                             @method('DELETE')
@@ -60,6 +63,7 @@
                                 <i class="fas fa-trash"></i> Hapus
                             </button>
                         </form>
+                        @endcan
                         <a href="{{ route('users.index') }}" class="btn btn-secondary">
                             <i class="fas fa-arrow-left"></i> Kembali
                         </a>
@@ -69,7 +73,7 @@
         </div>
 
         <div class="col-md-4">
-            @if($user->role == 'kalab')
+            @if($user->role == 'kepala_labor')
                 <div class="card shadow-sm mb-3">
                     <div class="card-header bg-info text-white">
                         <h6 class="mb-0">Lab Dikelola ({{ $user->laboratoriumDikelola->count() }})</h6>
@@ -95,7 +99,7 @@
                     <div class="card-body">
                         @forelse($user->pemeliharaanAlat()->latest()->limit(5)->get() as $pemeliharaan)
                             <div class="mb-2 pb-2 border-bottom">
-                                <small class="text-muted">{{ $pemeliharaan->tanggal_cek->format('d/m/Y') }}</small><br>
+                                <small class="text-muted">{{ $pemeliharaan->tanggal_cek?->format('d/m/Y') ?? '-' }}</small><br>
                                 <small>{{ $pemeliharaan->unitAlat->alat->nama_alat ?? '-' }}</small>
                             </div>
                         @empty

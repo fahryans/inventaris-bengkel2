@@ -18,7 +18,7 @@
         </div>
 
         <div class="card-body">
-            <form action="{{ route('pengadaan_alat.update', $pengadaan) }}" method="POST" enctype="multipart/form-data">
+            <form action="/pengadaan_alat/{{ $pengadaan->getKey() }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
 
@@ -42,7 +42,7 @@
                         <div class="mb-3">
                             <label for="tanggal_pengadaan" class="form-label">Tanggal Pengadaan <span class="text-danger">*</span></label>
                             <input type="date" name="tanggal_pengadaan" id="tanggal_pengadaan" class="form-control @error('tanggal_pengadaan') is-invalid @enderror" 
-                                   value="{{ old('tanggal_pengadaan', $pengadaan->tanggal_pengadaan->format('Y-m-d')) }}" required>
+                                   value="{{ old('tanggal_pengadaan', $pengadaan->tanggal_pengadaan?->format('Y-m-d')) }}" required>
                             @error('tanggal_pengadaan')
                                 <div class="invalid-feedback d-block">{{ $message }}</div>
                             @enderror

@@ -16,7 +16,7 @@
         <div class="col-md-8">
             <div class="card shadow-sm">
                 <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">{{ $pemakaian->bahan->nama_bahan }}</h5>
+                    <h5 class="mb-0">{{ $pemakaian->bahan->nama_bahan ?? '-' }}</h5>
                 </div>
 
                 <div class="card-body">
@@ -27,35 +27,35 @@
                         </div>
                         <div class="col-md-6">
                             <p><strong>Waktu Pemakaian:</strong></p>
-                            <p>{{ $pemakaian->waktu_pemakaian->format('d/m/Y H:i') }}</p>
+                            <p>{{ $pemakaian->waktu_pemakaian?->format('d/m/Y H:i') ?? '-' }}</p>
                         </div>
                     </div>
 
                     <div class="row mb-3">
                         <div class="col-md-4">
                             <p><strong>Jumlah Pengambilan:</strong></p>
-                            <p>{{ $pemakaian->jumlah_pengambilan }} {{ $pemakaian->bahan->satuan }}</p>
+                            <p>{{ $pemakaian->jumlah_pengambilan }} {{ $pemakaian->bahan->satuan ?? '-' }}</p>
                         </div>
                         <div class="col-md-4">
                             <p><strong>Jumlah Terpakai:</strong></p>
-                            <p>{{ $pemakaian->jumlah_terpakai }} {{ $pemakaian->bahan->satuan }}</p>
+                            <p>{{ $pemakaian->jumlah_terpakai }} {{ $pemakaian->bahan->satuan ?? '-' }}</p>
                         </div>
                         <div class="col-md-4">
                             <p><strong>Jumlah Pengembalian:</strong></p>
-                            <p>{{ $pemakaian->jumlah_pengembalian }} {{ $pemakaian->bahan->satuan }}</p>
+                            <p>{{ $pemakaian->jumlah_pengembalian }} {{ $pemakaian->bahan->satuan ?? '-' }}</p>
                         </div>
                     </div>
 
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <p><strong>Batch Pengadaan:</strong></p>
-                            <p>{{ $pemakaian->pengadaanBahan->supplier }} ({{ $pemakaian->pengadaanBahan->tanggal_pengadaan->format('d/m/Y') }})</p>
+                            <p>{{ $pemakaian->pengadaanBahan->supplier ?? '-' }} ({{ $pemakaian->pengadaanBahan->tanggal_pengadaan?->format('d/m/Y') ?? '-' }})</p>
                         </div>
                         <div class="col-md-6">
                             <p><strong>Status Verifikasi:</strong></p>
                             <p>
                                 @if($pemakaian->id_user_verifikasi)
-                                    <span class="badge bg-success">Terverifikasi oleh {{ $pemakaian->userVerifikasi->nama }}</span>
+                                    <span class="badge bg-success">Terverifikasi oleh {{ $pemakaian->userVerifikasi->nama ?? '-' }}</span>
                                 @else
                                     <span class="badge bg-warning">Belum Diverifikasi</span>
                                 @endif
@@ -64,6 +64,7 @@
                     </div>
 
                     <div class="d-flex gap-2">
+                        @can('verify', $pemakaian)
                         @if(!$pemakaian->id_user_verifikasi)
                             <form action="{{ route('pemakaian_bahan.verify', $pemakaian) }}" method="POST" style="display:inline;">
                                 @csrf
@@ -72,9 +73,13 @@
                                 </button>
                             </form>
                         @endif
+                        @endcan
+                        @can('update', $pemakaian)
                         <a href="{{ route('pemakaian_bahan.edit', $pemakaian) }}" class="btn btn-warning">
                             <i class="fas fa-edit"></i> Edit
                         </a>
+                        @endcan
+                        @can('delete', $pemakaian)
                         <form action="{{ route('pemakaian_bahan.destroy', $pemakaian) }}" method="POST" style="display:inline;">
                             @csrf
                             @method('DELETE')
@@ -82,6 +87,7 @@
                                 <i class="fas fa-trash"></i> Hapus
                             </button>
                         </form>
+                        @endcan
                         <a href="{{ route('pemakaian_bahan.index') }}" class="btn btn-secondary">
                             <i class="fas fa-arrow-left"></i> Kembali
                         </a>
@@ -96,9 +102,9 @@
                     <h6 class="mb-0">Informasi Bahan</h6>
                 </div>
                 <div class="card-body">
-                    <p><strong>Nama:</strong><br>{{ $pemakaian->bahan->nama_bahan }}</p>
-                    <p><strong>Kategori:</strong><br><span class="badge bg-secondary">{{ $pemakaian->bahan->kategori->nama_kategori }}</span></p>
-                    <p><strong>Lab:</strong><br>{{ $pemakaian->bahan->laboratorium->nama_labor }}</p>
+                    <p><strong>Nama:</strong><br>{{ $pemakaian->bahan->nama_bahan ?? '-' }}</p>
+                    <p><strong>Kategori:</strong><br><span class="badge bg-secondary">{{ $pemakaian->bahan->kategori->nama_kategori ?? '-' }}</span></p>
+                    <p><strong>Lab:</strong><br>{{ $pemakaian->bahan->laboratorium->nama_labor ?? '-' }}</p>
                     <p><strong>Merek:</strong><br>{{ $pemakaian->bahan->merek ?? '-' }}</p>
                 </div>
             </div>

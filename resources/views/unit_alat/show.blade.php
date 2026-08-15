@@ -59,9 +59,12 @@
                     </div>
 
                     <div class="d-flex gap-2">
+                        @can('update', $unitAlat)
                         <a href="{{ route('unit-alat.edit', $unitAlat) }}" class="btn btn-warning">
                             <i class="fas fa-edit"></i> Edit
                         </a>
+                        @endcan
+                        @can('delete', $unitAlat)
                         <form action="{{ route('unit-alat.destroy', $unitAlat) }}" method="POST" style="display:inline;">
                             @csrf
                             @method('DELETE')
@@ -69,6 +72,7 @@
                                 <i class="fas fa-trash"></i> Hapus
                             </button>
                         </form>
+                        @endcan
                         <a href="{{ route('unit-alat.index') }}" class="btn btn-secondary">
                             <i class="fas fa-arrow-left"></i> Kembali
                         </a>
@@ -104,9 +108,9 @@
                 <div class="card-body">
                     @forelse($unitAlat->pemeliharaanAlat()->latest()->limit(5)->get() as $pemeliharaan)
                         <div class="mb-2 pb-2 border-bottom">
-                            <small class="text-muted">{{ $pemeliharaan->tanggal_pemeliharaan->format('d/m/Y') }}</small><br>
-                            <small>{{ $pemeliharaan->deskripsi ?? '-' }}</small><br>
-                            <small class="badge bg-secondary">{{ ucfirst($pemeliharaan->status) }}</small>
+                            <small class="text-muted">{{ $pemeliharaan->tanggal_cek?->format('d/m/Y') ?? '-' }}</small><br>
+                            <small>{{ $pemeliharaan->catatan ?? '-' }}</small><br>
+                            <small class="badge bg-secondary">{{ $pemeliharaan->tanggal_cek ? 'Selesai' : 'Terjadwal' }}</small>
                         </div>
                     @empty
                         <p class="text-muted text-center">Belum ada pemeliharaan</p>

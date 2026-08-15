@@ -34,7 +34,7 @@
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <p><strong>Tanggal Cek:</strong></p>
-                            <p>{{ $pemeliharaan->tanggal_cek->format('d/m/Y') }}</p>
+                            <p>{{ $pemeliharaan->tanggal_cek?->format('d/m/Y') ?? '-' }}</p>
                         </div>
                         <div class="col-md-6">
                             <p><strong>Tanggal Cek Berikutnya:</strong></p>
@@ -69,9 +69,12 @@
                     </div>
 
                     <div class="d-flex gap-2">
+                        @can('update', $pemeliharaan)
                         <a href="{{ route('pemeliharaan.edit', $pemeliharaan) }}" class="btn btn-warning">
                             <i class="fas fa-edit"></i> Edit
                         </a>
+                        @endcan
+                        @can('delete', $pemeliharaan)
                         <form action="{{ route('pemeliharaan.destroy', $pemeliharaan) }}" method="POST" style="display:inline;">
                             @csrf
                             @method('DELETE')
@@ -79,6 +82,7 @@
                                 <i class="fas fa-trash"></i> Hapus
                             </button>
                         </form>
+                        @endcan
                         <a href="{{ route('pemeliharaan.index') }}" class="btn btn-secondary">
                             <i class="fas fa-arrow-left"></i> Kembali
                         </a>

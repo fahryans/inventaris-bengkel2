@@ -16,7 +16,7 @@
         <div class="col-md-8">
             <div class="card shadow-sm">
                 <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">{{ $pengadaan->bahan->nama_bahan }}</h5>
+                    <h5 class="mb-0">{{ $pengadaan->bahan->nama_bahan ?? '-' }}</h5>
                 </div>
 
                 <div class="card-body">
@@ -27,14 +27,14 @@
                         </div>
                         <div class="col-md-6">
                             <p><strong>Input oleh:</strong></p>
-                            <p>{{ $pengadaan->userInput->nama }}</p>
+                            <p>{{ $pengadaan->userInput->nama ?? '-' }}</p>
                         </div>
                     </div>
 
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <p><strong>Tanggal Pengadaan:</strong></p>
-                            <p>{{ $pengadaan->tanggal_pengadaan->format('d/m/Y') }}</p>
+                            <p>{{ $pengadaan->tanggal_pengadaan?->format('d/m/Y') ?? '-' }}</p>
                         </div>
                         <div class="col-md-6">
                             <p><strong>Tanggal Masuk:</strong></p>
@@ -45,7 +45,7 @@
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <p><strong>Jumlah:</strong></p>
-                            <p>{{ $pengadaan->jumlah }} {{ $pengadaan->bahan->satuan }}</p>
+                            <p>{{ $pengadaan->jumlah }} {{ $pengadaan->bahan->satuan ?? '-' }}</p>
                         </div>
                         <div class="col-md-6">
                             <p><strong>Harga Perolehan/Unit:</strong></p>
@@ -77,9 +77,12 @@
                     @endif
 
                     <div class="d-flex gap-2">
+                        @can('update', $pengadaan)
                         <a href="{{ route('pengadaan_bahan.edit', $pengadaan) }}" class="btn btn-warning">
                             <i class="fas fa-edit"></i> Edit
                         </a>
+                        @endcan
+                        @can('delete', $pengadaan)
                         <form action="{{ route('pengadaan_bahan.destroy', $pengadaan) }}" method="POST" style="display:inline;">
                             @csrf
                             @method('DELETE')
@@ -87,6 +90,7 @@
                                 <i class="fas fa-trash"></i> Hapus
                             </button>
                         </form>
+                        @endcan
                         <a href="{{ route('pengadaan_bahan.index') }}" class="btn btn-secondary">
                             <i class="fas fa-arrow-left"></i> Kembali
                         </a>
@@ -103,7 +107,7 @@
                 <div class="card-body">
                     @forelse($pengadaan->pemakaianBahan()->latest()->limit(5)->get() as $pemakaian)
                         <div class="mb-2 pb-2 border-bottom">
-                            <small class="text-muted">{{ $pemakaian->waktu_pemakaian->format('d/m/Y') }}</small><br>
+                            <small class="text-muted">{{ $pemakaian->waktu_pemakaian?->format('d/m/Y') ?? '-' }}</small><br>
                             <small>Dipakai: {{ $pemakaian->jumlah_terpakai }}</small><br>
                             <small class="text-muted">{{ $pemakaian->keperluan }}</small>
                         </div>

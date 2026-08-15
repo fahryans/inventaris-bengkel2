@@ -47,7 +47,7 @@
                                 <option value="">Pilih Batch</option>
                                 @foreach($pengadaans as $pad)
                                     <option value="{{ $pad->id }}" {{ old('id_pengadaan_bahan', $pemakaian->id_pengadaan_bahan) == $pad->id ? 'selected' : '' }}>
-                                        {{ $pad->bahan->nama_bahan }} - {{ $pad->supplier }} ({{ $pad->tanggal_pengadaan->format('d/m/Y') }})
+                                        {{ $pad->bahan->nama_bahan ?? '-' }} - {{ $pad->supplier }} ({{ $pad->tanggal_pengadaan?->format('d/m/Y') ?? '-' }})
                                     </option>
                                 @endforeach
                             </select>
@@ -105,7 +105,7 @@
                 <div class="mb-3">
                     <label for="waktu_pemakaian" class="form-label">Waktu Pemakaian <span class="text-danger">*</span></label>
                     <input type="datetime-local" name="waktu_pemakaian" id="waktu_pemakaian" class="form-control @error('waktu_pemakaian') is-invalid @enderror" 
-                           value="{{ old('waktu_pemakaian', $pemakaian->waktu_pemakaian->format('Y-m-d\TH:i')) }}" required>
+                           value="{{ old('waktu_pemakaian', $pemakaian->waktu_pemakaian?->format('Y-m-d\TH:i')) }}" required>
                     @error('waktu_pemakaian')
                         <div class="invalid-feedback d-block">{{ $message }}</div>
                     @enderror

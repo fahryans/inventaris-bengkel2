@@ -60,8 +60,9 @@ class PemeliharaanAlatController extends Controller
             ->with('success', 'Pemeliharaan alat berhasil dijadwalkan');
     }
 
-    public function show(PemeliharaanAlat $pemeliharaan)
+    public function show($id)
     {
+        $pemeliharaan = PemeliharaanAlat::findOrFail($id);
         $this->authorize('view', $pemeliharaan);
 
         $pemeliharaan->load(['unitAlat.alat', 'teknisi']);
@@ -69,8 +70,9 @@ class PemeliharaanAlatController extends Controller
         return view('pemeliharaan.show', compact('pemeliharaan'));
     }
 
-    public function edit(PemeliharaanAlat $pemeliharaan)
+    public function edit($id)
     {
+        $pemeliharaan = PemeliharaanAlat::findOrFail($id);
         $this->authorize('update', $pemeliharaan);
 
         $unitAlats = UnitAlat::with('alat')->get();
@@ -79,8 +81,9 @@ class PemeliharaanAlatController extends Controller
         return view('pemeliharaan.edit', compact('pemeliharaan', 'unitAlats', 'teknisis'));
     }
 
-    public function update(PemeliharaanAlatRequest $request, PemeliharaanAlat $pemeliharaan)
+    public function update(PemeliharaanAlatRequest $request, $id)
     {
+        $pemeliharaan = PemeliharaanAlat::findOrFail($id);
         $this->authorize('update', $pemeliharaan);
 
         $pemeliharaan->update($request->validated());
@@ -89,8 +92,9 @@ class PemeliharaanAlatController extends Controller
             ->with('success', 'Pemeliharaan alat berhasil diperbarui');
     }
 
-    public function complete(Request $request, PemeliharaanAlat $pemeliharaan)
+    public function complete(Request $request, $id)
     {
+        $pemeliharaan = PemeliharaanAlat::findOrFail($id);
         $this->authorize('complete', $pemeliharaan);
 
         $request->validate([
@@ -110,8 +114,9 @@ class PemeliharaanAlatController extends Controller
             ->with('success', 'Pemeliharaan alat berhasil diselesaikan');
     }
 
-    public function destroy(PemeliharaanAlat $pemeliharaan)
+    public function destroy($id)
     {
+        $pemeliharaan = PemeliharaanAlat::findOrFail($id);
         $this->authorize('delete', $pemeliharaan);
 
         $pemeliharaan->delete();

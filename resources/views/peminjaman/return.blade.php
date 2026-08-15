@@ -13,6 +13,7 @@
         </ol>
     </nav>
 
+    @can('return', $peminjaman)
     <div class="card shadow-sm">
         <div class="card-header bg-primary text-white">
             <h5 class="mb-0">Form Pengembalian Alat</h5>
@@ -25,9 +26,8 @@
                 <strong>Waktu Peminjaman:</strong> {{ $peminjaman->waktu_peminjaman->format('d/m/Y H:i') }}
             </div>
 
-            <form action="{{ route('peminjaman.complete', $peminjaman) }}" method="POST">
+            <form action="{{ route('peminjaman.return', $peminjaman) }}" method="POST">
                 @csrf
-                @method('PUT')
 
                 <div class="row">
                     <div class="col-md-6">
@@ -66,5 +66,10 @@
             </form>
         </div>
     </div>
+    @else
+    <div class="alert alert-warning">
+        <i class="fas fa-exclamation-triangle"></i> Anda tidak memiliki akses untuk mengembalikan peminjaman ini.
+    </div>
+    @endcan
 </div>
 @endsection

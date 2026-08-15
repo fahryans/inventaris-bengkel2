@@ -71,9 +71,12 @@
                     @endif
 
                     <div class="d-flex gap-2">
+                        @can('update', $bahan)
                         <a href="{{ route('bahan.edit', $bahan) }}" class="btn btn-warning">
                             <i class="fas fa-edit"></i> Edit
                         </a>
+                        @endcan
+                        @can('delete', $bahan)
                         <form action="{{ route('bahan.destroy', $bahan) }}" method="POST" style="display:inline;">
                             @csrf
                             @method('DELETE')
@@ -81,6 +84,7 @@
                                 <i class="fas fa-trash"></i> Hapus
                             </button>
                         </form>
+                        @endcan
                         <a href="{{ route('bahan.index') }}" class="btn btn-secondary">
                             <i class="fas fa-arrow-left"></i> Kembali
                         </a>

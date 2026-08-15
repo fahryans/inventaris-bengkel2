@@ -9,12 +9,13 @@ use App\Models\PeminjamanAlat;
 use App\Models\PemeliharaanAlat;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
 {
     public function index(Request $request)
     {
-        $user = auth()->user();
+        $user = Auth::user();
 
         if ($user->role === 'admin_jurusan') {
             return $this->adminDashboard();
@@ -31,6 +32,9 @@ class DashboardController extends Controller
 
     private function adminDashboard()
     {
+        $this->authorize('viewAny', PeminjamanAlat::class);
+        $this->authorize('create', PeminjamanAlat::class);
+
         $totalAlat = Alat::count();
         $totalBahan = Bahan::count();
         $totalLaboratorium = Laboratorium::count();
@@ -69,7 +73,7 @@ class DashboardController extends Controller
 
     private function kepalaLaborDashboard()
     {
-        $lab = Laboratorium::where('id_user_kalab', auth()->id())->first();
+        $lab = Laboratorium::where('id_user_kalab', Auth::id())->first();
 
         if (!$lab) {
             return view('dashboard.index', ['message' => 'Anda belum ditugaskan sebagai kepala laboratorium']);
@@ -100,18 +104,20 @@ class DashboardController extends Controller
 
     private function teknisiDashboard()
     {
-        $maintenanceSchedule = PemeliharaanAlat::where('id_teknisi', auth()->id())
+        $this->authorize('viewAny', PemeliharaanAlat::class);
+
+        $maintenanceSchedule = PemeliharaanAlat::where('id_teknisi', Auth::id())
             ->where('tanggal_cek_berikutnya', '<=', now()->addDays(14))
             ->with('unitAlat.alat')
             ->orderBy('tanggal_cek_berikutnya')
             ->limit(10)
             ->get();
 
-        $overdueCount = PemeliharaanAlat::where('id_teknisi', auth()->id())
+        $overdueCount = PemeliharaanAlat::where('id_teknisi', Auth::id())
             ->where('tanggal_cek_berikutnya', '<', now())
             ->count();
 
-        $completedThisMonth = PemeliharaanAlat::where('id_teknisi', auth()->id())
+        $completedThisMonth = PemeliharaanAlat::where('id_teknisi', Auth::id())
             ->whereBetween('tanggal_cek', [now()->startOfMonth(), now()->endOfMonth()])
             ->count();
 
@@ -124,6 +130,8 @@ class DashboardController extends Controller
 
     private function kadepDashboard()
     {
+        $this->authorize('viewAny', PeminjamanAlat::class);
+
         $totalAlat = Alat::count();
         $totalBahan = Bahan::count();
         $totalLaboratorium = Laboratorium::count();
@@ -147,7 +155,9 @@ class DashboardController extends Controller
 
     private function userDashboard()
     {
-        $myPeminjaman = PeminjamanAlat::where('id_user_peminjam', auth()->id())
+        $this->authorize('viewAny', PeminjamanAlat::class);
+
+        $myPeminjaman = PeminjamanAlat::where('id_user_peminjam', Auth::id())
             ->with(['alat', 'unitAlat'])
             ->latest()
             ->limit(5)

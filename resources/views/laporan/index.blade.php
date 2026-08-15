@@ -63,6 +63,7 @@
             </div>
         </div>
 
+        @if($user->role !== 'mahasiswa')
         <div class="col-md-4 col-sm-6 mb-4">
             <div class="card border-left-warning shadow h-100 py-2 cursor-pointer" onclick="location.href='{{ route('laporan.show', ['tipe' => 'pemeliharaan']) }}'">
                 <div class="card-body">
@@ -112,6 +113,7 @@
                 </div>
             </div>
         </div>
+        @endif
     </div>
 </div>
 

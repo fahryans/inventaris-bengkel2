@@ -73,14 +73,19 @@
                     @endif
 
                     <div class="d-flex gap-2">
+                        @can('return', $peminjaman)
                         @if($peminjaman->status == 'terpinjam')
                             <a href="{{ route('peminjaman.return', $peminjaman) }}" class="btn btn-success">
                                 <i class="fas fa-undo"></i> Kembalikan
                             </a>
                         @endif
+                        @endcan
+                        @can('update', $peminjaman)
                         <a href="{{ route('peminjaman.edit', $peminjaman) }}" class="btn btn-warning">
                             <i class="fas fa-edit"></i> Edit
                         </a>
+                        @endcan
+                        @can('delete', $peminjaman)
                         <form action="{{ route('peminjaman.destroy', $peminjaman) }}" method="POST" style="display:inline;">
                             @csrf
                             @method('DELETE')
@@ -88,6 +93,7 @@
                                 <i class="fas fa-trash"></i> Hapus
                             </button>
                         </form>
+                        @endcan
                         <a href="{{ route('peminjaman.index') }}" class="btn btn-secondary">
                             <i class="fas fa-arrow-left"></i> Kembali
                         </a>

@@ -46,7 +46,7 @@
                                 <option value="">Pilih Batch</option>
                                 @foreach($pengadaans as $pad)
                                     <option value="{{ $pad->id }}" {{ old('id_pengadaan_bahan') == $pad->id ? 'selected' : '' }}>
-                                        {{ $pad->bahan->nama_bahan }} - {{ $pad->supplier }} ({{ $pad->tanggal_pengadaan->format('d/m/Y') }})
+                                        {{ $pad->bahan->nama_bahan ?? '-' }} - {{ $pad->supplier }} ({{ $pad->tanggal_pengadaan?->format('d/m/Y') ?? '-' }})
                                     </option>
                                 @endforeach
                             </select>
