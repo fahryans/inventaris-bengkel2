@@ -8,7 +8,9 @@ class PemakaianBahanRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('create', \App\Models\PemakaianBahan::class);
+        $ability = $this->isMethod('PUT') || $this->isMethod('PATCH') ? 'update' : 'create';
+
+        return $this->user()->can($ability, \App\Models\PemakaianBahan::class);
     }
 
     public function rules(): array

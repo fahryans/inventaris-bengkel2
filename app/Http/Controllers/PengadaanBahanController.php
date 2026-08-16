@@ -5,11 +5,16 @@ namespace App\Http\Controllers;
 use App\Http\Requests\PengadaanBahanRequest;
 use App\Models\Bahan;
 use App\Models\PengadaanBahan;
+use App\Services\StokService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class PengadaanBahanController extends Controller
 {
+    public function __construct(
+        protected StokService $stokService,
+    ) {}
     public function index(Request $request)
     {
         $this->authorize('viewAny', PengadaanBahan::class);
@@ -107,15 +112,26 @@ class PengadaanBahanController extends Controller
         $pengadaan = PengadaanBahan::findOrFail($id);
         $this->authorize('update', $pengadaan);
 
+        if ($pengadaan->tanggal_masuk) {
+            return redirect()->route('pengadaan_bahan.show', $pengadaan)
+                ->with('error', 'Pengadaan ini sudah pernah diterima');
+        }
+
         $request->validate([
             'tanggal_masuk' => ['required', 'date'],
         ]);
 
-        $pengadaan->update([
-            'tanggal_masuk' => $request->tanggal_masuk,
-        ]);
+        DB::transaction(function () use ($pengadaan, $request) {
+            $pengadaan->update([
+                'tanggal_masuk' => $request->tanggal_masuk,
+                'stok_tersisa_batch' => $pengadaan->jumlah,
+            ]);
 
-        $pengadaan->bahan->increment('stok_saat_ini', $pengadaan->jumlah);
+            $this->stokService->tambahBahan(
+                $pengadaan->bahan,
+                $pengadaan->jumlah
+            );
+        });
 
         return redirect()->route('pengadaan_bahan.show', $pengadaan)
             ->with('success', 'Bahan berhasil diterima dan stok diperbarui');

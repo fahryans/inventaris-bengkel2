@@ -162,3 +162,11 @@
     </div>
 </div>
 @endsection
+
+@push('css')
+<style>
+    .badge {
+        color: #1a1a1a !important;
+    }
+</style>
+@endpush

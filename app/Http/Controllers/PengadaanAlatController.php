@@ -5,11 +5,16 @@ namespace App\Http\Controllers;
 use App\Http\Requests\PengadaanAlatRequest;
 use App\Models\Alat;
 use App\Models\PengadaanAlat;
+use App\Services\StokService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class PengadaanAlatController extends Controller
 {
+    public function __construct(
+        protected StokService $stokService,
+    ) {}
     public function index(Request $request)
     {
         $this->authorize('viewAny', PengadaanAlat::class);
@@ -108,15 +113,25 @@ class PengadaanAlatController extends Controller
         $pengadaan = PengadaanAlat::findOrFail($id);
         $this->authorize('update', $pengadaan);
 
+        if ($pengadaan->tanggal_masuk) {
+            return redirect()->route('pengadaan_alat.show', $pengadaan)
+                ->with('error', 'Pengadaan ini sudah pernah diterima');
+        }
+
         $request->validate([
             'tanggal_masuk' => ['required', 'date'],
         ]);
 
-        $pengadaan->update([
-            'tanggal_masuk' => $request->tanggal_masuk,
-        ]);
+        DB::transaction(function () use ($pengadaan, $request) {
+            $pengadaan->update([
+                'tanggal_masuk' => $request->tanggal_masuk,
+            ]);
 
-        $pengadaan->alat->increment('jumlah_alat', $pengadaan->jumlah);
+            $this->stokService->tambahAlatAgregat(
+                $pengadaan->alat,
+                $pengadaan->jumlah
+            );
+        });
 
         return redirect()->route('pengadaan_alat.show', $pengadaan)
             ->with('success', 'Alat berhasil diterima dan stok diperbarui');

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Alat;
 use App\Models\Bahan;
+use App\Models\Laboratorium;
 use App\Models\PeminjamanAlat;
 use App\Models\PemakaianBahan;
 use App\Models\PemeliharaanAlat;
@@ -93,5 +94,38 @@ class LaporanController extends Controller
 
         return redirect()->route('laporan.show', $tipe)
             ->with('info', 'Export sedang dalam pengembangan');
+    }
+
+    public function myReport(Request $request)
+    {
+        $user = Auth::user();
+        $labs = Laboratorium::all();
+
+        $peminjamanQuery = PeminjamanAlat::where('id_user_peminjam', Auth::id())
+            ->with(['alat.laboratorium', 'unitAlat.alat.laboratorium']);
+
+        $pemakaianQuery = PemakaianBahan::where('id_user_pemakai', Auth::id())
+            ->with(['bahan.laboratorium', 'pengadaanBahan']);
+
+        if ($request->filled('lab')) {
+            $labId = $request->lab;
+
+            $peminjamanQuery->where(function ($q) use ($labId) {
+                $q->whereHas('alat', function ($q2) use ($labId) {
+                    $q2->where('id_labor', $labId);
+                })->orWhereHas('unitAlat.alat', function ($q2) use ($labId) {
+                    $q2->where('id_labor', $labId);
+                });
+            });
+
+            $pemakaianQuery->whereHas('bahan', function ($q) use ($labId) {
+                $q->where('id_labor', $labId);
+            });
+        }
+
+        $peminjaman = $peminjamanQuery->latest('waktu_peminjaman')->paginate(15)->withQueryString();
+        $pemakaian = $pemakaianQuery->latest('waktu_pemakaian')->paginate(15)->withQueryString();
+
+        return view('laporan.my-report', compact('peminjaman', 'pemakaian', 'labs'));
     }
 }

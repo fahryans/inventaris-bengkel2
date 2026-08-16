@@ -4,10 +4,11 @@ use App\Http\Controllers\AlatController;
 use App\Http\Controllers\BahanController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\KategoriController;
+use App\Http\Controllers\LabController;
 use App\Http\Controllers\LaboratoriumController;
 use App\Http\Controllers\PemakaianBahanController;
 use App\Http\Controllers\PemeliharaanAlatController;
-use App\Http\Controllers\Pinjam_alat;
+use App\Http\Controllers\PeminjamanAlatController;
 use App\Http\Controllers\PengadaanAlatController;
 use App\Http\Controllers\PengadaanBahanController;
 use App\Http\Controllers\ProfileController;
@@ -36,7 +37,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::middleware(['role:admin_jurusan,kepala_labor,kadep'])->group(function () {
         Route::resource('users', UserController::class);
-        Route::resource('laboratorium', LaboratoriumController::class);
+        Route::resource('laboratorium', LaboratoriumController::class)->except(['create', 'store']);
     });
 
     Route::middleware(['role:admin_jurusan,kepala_labor,teknisi,kadep'])->group(function () {
@@ -46,25 +47,34 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('kategori', KategoriController::class);
         Route::resource('pemeliharaan', PemeliharaanAlatController::class);
         Route::post('pemeliharaan/{pemeliharaan}/complete', [PemeliharaanAlatController::class, 'complete'])
+            ->middleware('throttle:10,1')
             ->name('pemeliharaan.complete');
         Route::resource('pengadaan_alat', PengadaanAlatController::class);
         Route::post('pengadaan_alat/{pengadaan}/mark-received', [PengadaanAlatController::class, 'markReceived'])
+            ->middleware('throttle:10,1')
             ->name('pengadaan_alat.mark_received');
         Route::resource('pengadaan_bahan', PengadaanBahanController::class);
         Route::post('pengadaan_bahan/{pengadaan}/mark-received', [PengadaanBahanController::class, 'markReceived'])
+            ->middleware('throttle:10,1')
             ->name('pengadaan_bahan.mark_received');
         Route::resource('pemakaian_bahan', PemakaianBahanController::class);
         Route::post('pemakaian_bahan/{pemakaian}/verify', [PemakaianBahanController::class, 'verify'])
+            ->middleware('throttle:10,1')
             ->name('pemakaian_bahan.verify');
     });
 
     Route::middleware(['role:admin_jurusan,kepala_labor,teknisi,dosen,mahasiswa,kadep'])->group(function () {
-        Route::resource('peminjaman', Pinjam_alat::class);
-        Route::post('peminjaman/{peminjaman}/return', [Pinjam_alat::class, 'return'])
+        Route::get('lab/{lab}', [LabController::class, 'show'])->name('lab.show');
+        Route::resource('peminjaman', PeminjamanAlatController::class);
+        Route::post('peminjaman/{peminjaman}/return', [PeminjamanAlatController::class, 'return'])
+            ->middleware('throttle:10,1')
             ->name('peminjaman.return');
+        Route::get('laporan/saya', [LaporanController::class, 'myReport'])->name('laporan.saya');
         Route::get('laporan', [LaporanController::class, 'index'])->name('laporan.index');
         Route::get('laporan/{tipe}', [LaporanController::class, 'show'])->name('laporan.show');
-        Route::post('laporan/{tipe}/export', [LaporanController::class, 'export'])->name('laporan.export');
+        Route::post('laporan/{tipe}/export', [LaporanController::class, 'export'])
+            ->middleware('throttle:5,1')
+            ->name('laporan.export');
     });
 
 });

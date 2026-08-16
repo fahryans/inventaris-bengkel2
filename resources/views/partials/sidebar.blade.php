@@ -11,13 +11,14 @@
 
         </h3>
 
-        <button class="sidebar-close d-lg-none" onclick="toggleSidebar()">
-            <i class="fas fa-times"></i>
+        <button class="sidebar-close d-lg-none" onclick="toggleSidebar()" aria-label="Tutup sidebar">
+            <i class="fas fa-times" aria-hidden="true"></i>
         </button>
 
     </div>
 
     {{-- Menu --}}
+    <nav aria-label="Sidebar navigation">
     <ul class="sidebar-menu">
 
         {{-- Dashboard --}}
@@ -179,6 +180,7 @@
         </li>
 
     </ul>
+    </nav>
 
 </aside>
 

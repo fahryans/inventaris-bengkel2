@@ -13,7 +13,7 @@ return new class extends Migration
             $table->foreignId('id_alat')
                 ->constrained('alat')
                 ->cascadeOnUpdate()
-                ->cascadeOnDelete();
+                ->restrictOnDelete();
             $table->string('kode_inventaris')->unique();
             $table->string('kondisi_saat_ini')->nullable();
             $table->enum('status', ['tersedia', 'dipinjam', 'rusak', 'maintenance'])->default('tersedia');

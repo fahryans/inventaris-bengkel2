@@ -8,7 +8,9 @@ class AlatRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('create', \App\Models\Alat::class);
+        $ability = $this->isMethod('PUT') || $this->isMethod('PATCH') ? 'update' : 'create';
+
+        return $this->user()->can($ability, \App\Models\Alat::class);
     }
 
     public function rules(): array

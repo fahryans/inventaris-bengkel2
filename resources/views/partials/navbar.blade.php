@@ -18,7 +18,7 @@
 
 <li class="nav-item dropdown">
 
-<a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#">
+<a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-expanded="false" aria-haspopup="true">
 
 {{ Auth::user()->nama }}
 
@@ -51,9 +51,3 @@
 </ul>
 
 </nav>
-
-<script>
-function toggleSidebar() {
-    document.getElementById('sidebar').classList.toggle('show');
-}
-</script>

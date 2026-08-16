@@ -6,6 +6,7 @@ use App\Models\Alat;
 use App\Models\PeminjamanAlat;
 use App\Models\UnitAlat;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 
 class PeminjamanService
 {
@@ -18,34 +19,47 @@ class PeminjamanService
 
     public function createBorrowing(array $data): PeminjamanAlat
     {
-        try {
-            \DB::beginTransaction();
+        $idAlat = $data['id_alat'] ?? null;
+        $idUnitAlat = $data['id_unit_alat'] ?? null;
+
+        if (!$idAlat && !$idUnitAlat) {
+            throw new \Exception('Harus memilih salah satu: alat atau unit alat');
+        }
+
+        if ($idAlat && $idUnitAlat) {
+            throw new \Exception('Hanya boleh memilih salah satu: alat atau unit alat');
+        }
+
+        $availability = $this->checkBorrowingAvailability($idAlat, $idUnitAlat);
+        if (!$availability['available']) {
+            throw new \Exception($availability['message']);
+        }
+
+        return DB::transaction(function () use ($data, $idAlat, $idUnitAlat) {
+            $data['status'] = 'terpinjam';
+            $data['jumlah'] = $data['jumlah'] ?? 1;
 
             $peminjaman = PeminjamanAlat::create($data);
 
-            if ($data['id_alat']) {
-                $this->stokService->kurangiAlatAgregat(
-                    Alat::find($data['id_alat']),
-                    $data['jumlah'] ?? 1
-                );
-            } elseif ($data['id_unit_alat']) {
-                $unit = UnitAlat::find($data['id_unit_alat']);
+            if ($idAlat) {
+                $alat = Alat::findOrFail($idAlat);
+                $this->stokService->kurangiAlatAgregat($alat, $peminjaman->jumlah);
+            } elseif ($idUnitAlat) {
+                $unit = UnitAlat::findOrFail($idUnitAlat);
                 $this->stokService->updateUnitStatus($unit, 'terpinjam');
             }
 
-            \DB::commit();
             return $peminjaman;
-        } catch (\Exception $e) {
-            \DB::rollBack();
-            throw $e;
-        }
+        });
     }
 
     public function returnBorrowing(PeminjamanAlat $peminjaman, array $data): bool
     {
-        try {
-            \DB::beginTransaction();
+        if ($peminjaman->status !== 'terpinjam') {
+            throw new \Exception('Peminjaman sudah dikembalikan sebelumnya');
+        }
 
+        return DB::transaction(function () use ($peminjaman, $data) {
             $peminjaman->update([
                 'waktu_kembali_aktual' => $data['waktu_kembali_aktual'],
                 'kondisi_saat_pengembalian' => $data['kondisi_saat_pengembalian'],
@@ -53,22 +67,16 @@ class PeminjamanService
             ]);
 
             if ($peminjaman->id_alat) {
-                $this->stokService->tambahAlatAgregat(
-                    Alat::find($peminjaman->id_alat),
-                    $peminjaman->jumlah ?? 1
-                );
+                $alat = Alat::findOrFail($peminjaman->id_alat);
+                $this->stokService->tambahAlatAgregat($alat, $peminjaman->jumlah ?? 1);
             } elseif ($peminjaman->id_unit_alat) {
-                $unit = UnitAlat::find($peminjaman->id_unit_alat);
+                $unit = UnitAlat::findOrFail($peminjaman->id_unit_alat);
                 $this->stokService->updateUnitStatus($unit, 'tersedia');
                 $unit->update(['kondisi_saat_ini' => $data['kondisi_saat_pengembalian']]);
             }
 
-            \DB::commit();
             return true;
-        } catch (\Exception $e) {
-            \DB::rollBack();
-            throw $e;
-        }
+        });
     }
 
     public function getActiveBorrowings(User $user): \Illuminate\Database\Eloquent\Collection
@@ -87,11 +95,8 @@ class PeminjamanService
             ->get();
     }
 
-    public function checkBorrowingAvailability(int $idAlat = null, int $idUnitAlat = null): array
+    public function checkBorrowingAvailability(?int $idAlat, ?int $idUnitAlat): array
     {
-        $available = true;
-        $message = '';
-
         if ($idAlat) {
             $alat = Alat::find($idAlat);
             if (!$alat) {

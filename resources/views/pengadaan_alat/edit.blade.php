@@ -18,7 +18,7 @@
         </div>
 
         <div class="card-body">
-            <form action="/pengadaan_alat/{{ $pengadaan->getKey() }}" method="POST" enctype="multipart/form-data">
+            <form action="{{ route('pengadaan_alat.update', $pengadaan) }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
 

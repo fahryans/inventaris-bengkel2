@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\UnitAlatRequest;
 use App\Models\Alat;
 use App\Models\UnitAlat;
 use Illuminate\Http\Request;
@@ -45,16 +46,11 @@ class UnitAlatController extends Controller
         return view('unit_alat.create', compact('alats'));
     }
 
-    public function store(Request $request)
+    public function store(UnitAlatRequest $request)
     {
         $this->authorize('create', UnitAlat::class);
 
-        $validated = $request->validate([
-            'id_alat' => 'required|exists:alat,id',
-            'kode_inventaris' => 'required|string|max:255|unique:unit_alat,kode_inventaris',
-            'kondisi_saat_ini' => 'required|in:baik,rusak_ringan,rusak_berat',
-        ]);
-
+        $validated = $request->validated();
         $validated['status'] = 'tersedia';
 
         UnitAlat::create($validated);
@@ -81,16 +77,11 @@ class UnitAlatController extends Controller
         return view('unit_alat.edit', compact('unitAlat', 'alats'));
     }
 
-    public function update(Request $request, UnitAlat $unitAlat)
+    public function update(UnitAlatRequest $request, UnitAlat $unitAlat)
     {
         $this->authorize('update', $unitAlat);
 
-        $validated = $request->validate([
-            'id_alat' => 'required|exists:alat,id',
-            'kode_inventaris' => 'required|string|max:255|unique:unit_alat,kode_inventaris,' . $unitAlat->id,
-            'kondisi_saat_ini' => 'required|in:baik,rusak_ringan,rusak_berat',
-            'status' => 'required|in:tersedia,dipinjam,rusak,maintenance',
-        ]);
+        $validated = $request->validated();
 
         $unitAlat->update($validated);
 

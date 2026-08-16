@@ -157,6 +157,8 @@ class DashboardController extends Controller
     {
         $this->authorize('viewAny', PeminjamanAlat::class);
 
+        $labs = Laboratorium::withCount(['alat', 'bahan'])->get();
+
         $myPeminjaman = PeminjamanAlat::where('id_user_peminjam', Auth::id())
             ->with(['alat', 'unitAlat'])
             ->latest()
@@ -164,12 +166,11 @@ class DashboardController extends Controller
             ->get();
 
         $activePeminjaman = $myPeminjaman->where('status', 'terpinjam');
-        $returnedPeminjaman = $myPeminjaman->where('status', 'sudah_dikembalikan');
 
         return view('dashboard.user', compact(
+            'labs',
             'myPeminjaman',
-            'activePeminjaman',
-            'returnedPeminjaman'
+            'activePeminjaman'
         ));
     }
 }

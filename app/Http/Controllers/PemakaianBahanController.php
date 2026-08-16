@@ -6,11 +6,19 @@ use App\Http\Requests\PemakaianBahanRequest;
 use App\Models\Bahan;
 use App\Models\PemakaianBahan;
 use App\Models\PengadaanBahan;
+use App\Services\FIFOService;
+use App\Services\StokService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class PemakaianBahanController extends Controller
 {
+    public function __construct(
+        protected FIFOService $fifoService,
+        protected StokService $stokService,
+    ) {}
+
     public function index(Request $request)
     {
         $this->authorize('viewAny', PemakaianBahan::class);
@@ -56,10 +64,14 @@ class PemakaianBahanController extends Controller
         $validated = $request->validated();
         $validated['id_user_pemakai'] = Auth::id();
 
-        PemakaianBahan::create($validated);
+        DB::transaction(function () use ($validated) {
+            PemakaianBahan::create($validated);
 
-        $bahan = Bahan::find($validated['id_bahan']);
-        $bahan->decrement('stok_saat_ini', $validated['jumlah_terpakai']);
+            $this->fifoService->consumeFromBatches(
+                $validated['id_bahan'],
+                $validated['jumlah_terpakai']
+            );
+        });
 
         return redirect()->route('pemakaian_bahan.index')
             ->with('success', 'Pemakaian bahan berhasil dicatat');
@@ -92,13 +104,26 @@ class PemakaianBahanController extends Controller
         $this->authorize('update', $pemakaian);
 
         $oldJumlah = $pemakaian->jumlah_terpakai;
+        $oldBahanId = $pemakaian->id_bahan;
         $validated = $request->validated();
+        $newJumlah = $validated['jumlah_terpakai'];
+        $newBahanId = $validated['id_bahan'];
 
-        $pemakaian->update($validated);
+        DB::transaction(function () use ($pemakaian, $validated, $oldJumlah, $oldBahanId, $newJumlah, $newBahanId) {
+            $pemakaian->update($validated);
 
-        $bahan = Bahan::find($validated['id_bahan']);
-        $selisih = $validated['jumlah_terpakai'] - $oldJumlah;
-        $bahan->decrement('stok_saat_ini', $selisih);
+            if ($oldBahanId === $newBahanId) {
+                $selisih = $newJumlah - $oldJumlah;
+                if ($selisih > 0) {
+                    $this->fifoService->consumeFromBatches($newBahanId, $selisih);
+                } elseif ($selisih < 0) {
+                    $this->fifoService->reverseConsumeFromBatches($newBahanId, abs($selisih));
+                }
+            } else {
+                $this->fifoService->reverseConsumeFromBatches($oldBahanId, $oldJumlah);
+                $this->fifoService->consumeFromBatches($newBahanId, $newJumlah);
+            }
+        });
 
         return redirect()->route('pemakaian_bahan.show', $pemakaian)
             ->with('success', 'Pemakaian bahan berhasil diperbarui');
@@ -122,10 +147,14 @@ class PemakaianBahanController extends Controller
         $pemakaian = PemakaianBahan::findOrFail($id);
         $this->authorize('delete', $pemakaian);
 
-        $bahan = $pemakaian->bahan;
-        $bahan->increment('stok_saat_ini', $pemakaian->jumlah_terpakai);
+        DB::transaction(function () use ($pemakaian) {
+            $this->fifoService->reverseConsumeFromBatches(
+                $pemakaian->id_bahan,
+                $pemakaian->jumlah_terpakai
+            );
 
-        $pemakaian->delete();
+            $pemakaian->delete();
+        });
 
         return redirect()->route('pemakaian_bahan.index')
             ->with('success', 'Pemakaian bahan berhasil dihapus');

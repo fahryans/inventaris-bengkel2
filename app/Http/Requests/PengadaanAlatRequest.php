@@ -8,7 +8,9 @@ class PengadaanAlatRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('create', \App\Models\PengadaanAlat::class);
+        $ability = $this->isMethod('PUT') || $this->isMethod('PATCH') ? 'update' : 'create';
+
+        return $this->user()->can($ability, \App\Models\PengadaanAlat::class);
     }
 
     public function rules(): array

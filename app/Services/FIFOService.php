@@ -3,24 +3,39 @@
 namespace App\Services;
 
 use App\Models\Bahan;
-use App\Models\PemakaianBahan;
 use App\Models\PengadaanBahan;
+use Illuminate\Support\Facades\DB;
 
 class FIFOService
 {
+    protected StokService $stokService;
+
+    public function __construct(StokService $stokService)
+    {
+        $this->stokService = $stokService;
+    }
+
     public function consumeFromBatches(int $idBahan, int $jumlahTerpakai): array
     {
-        try {
-            \DB::beginTransaction();
+        if ($jumlahTerpakai <= 0) {
+            throw new \Exception('Jumlah pemakaian harus lebih dari 0');
+        }
 
+        return DB::transaction(function () use ($idBahan, $jumlahTerpakai) {
             $batches = PengadaanBahan::query()
                 ->where('id_bahan', $idBahan)
                 ->where('stok_tersisa_batch', '>', 0)
                 ->orderByRaw('masa_expire_bahan IS NULL, masa_expire_bahan ASC')
+                ->lockForUpdate()
                 ->get();
 
             if ($batches->isEmpty()) {
                 throw new \Exception('Tidak ada batch yang tersedia untuk bahan ini');
+            }
+
+            $totalStokBatch = $batches->sum('stok_tersisa_batch');
+            if ($totalStokBatch < $jumlahTerpakai) {
+                throw new \Exception("Stok bahan tidak cukup. Tersedia: {$totalStokBatch}, Diminta: {$jumlahTerpakai}");
             }
 
             $sisaPemakaian = $jumlahTerpakai;
@@ -33,7 +48,10 @@ class FIFOService
 
                 $ambilDariBatch = min($sisaPemakaian, $batch->stok_tersisa_batch);
 
-                $batch->decrement('stok_tersisa_batch', $ambilDariBatch);
+                DB::table('pengadaan_bahan')
+                    ->where('id', $batch->id)
+                    ->where('stok_tersisa_batch', '>=', $ambilDariBatch)
+                    ->update(['stok_tersisa_batch' => DB::raw("stok_tersisa_batch - {$ambilDariBatch}")]);
 
                 $batchesUsed[] = [
                     'id_pengadaan_bahan' => $batch->id,
@@ -48,21 +66,54 @@ class FIFOService
                 throw new \Exception("Stok bahan tidak cukup. Kurang: {$sisaPemakaian}");
             }
 
-            \DB::commit();
+            $this->stokService->kurangiBahan(
+                Bahan::findOrFail($idBahan),
+                $jumlahTerpakai
+            );
+
             return $batchesUsed;
-        } catch (\Exception $e) {
-            \DB::rollBack();
-            throw $e;
+        });
+    }
+
+    public function reverseConsumeFromBatches(int $idBahan, int $jumlahDikembalikan): void
+    {
+        if ($jumlahDikembalikan <= 0) {
+            throw new \Exception('Jumlah pengembalian harus lebih dari 0');
         }
+
+        DB::transaction(function () use ($idBahan, $jumlahDikembalikan) {
+            $batches = PengadaanBahan::query()
+                ->where('id_bahan', $idBahan)
+                ->orderByRaw('masa_expire_bahan IS NULL, masa_expire_bahan DESC')
+                ->lockForUpdate()
+                ->get();
+
+            $sisaPengembalian = $jumlahDikembalikan;
+
+            foreach ($batches as $batch) {
+                if ($sisaPengembalian <= 0) {
+                    break;
+                }
+
+                $kembalikanKeBatch = $sisaPengembalian;
+
+                DB::table('pengadaan_bahan')
+                    ->where('id', $batch->id)
+                    ->update(['stok_tersisa_batch' => DB::raw("stok_tersisa_batch + {$kembalikanKeBatch}")]);
+
+                $sisaPengembalian -= $kembalikanKeBatch;
+            }
+
+            $this->stokService->tambahBahan(
+                Bahan::findOrFail($idBahan),
+                $jumlahDikembalikan
+            );
+        });
     }
 
     public function getBatchesForBahan(int $idBahan): \Illuminate\Database\Eloquent\Collection
     {
-        return PengadaanBahan::query()
-            ->where('id_bahan', $idBahan)
-            ->where('stok_tersisa_batch', '>', 0)
-            ->orderByRaw('masa_expire_bahan IS NULL, masa_expire_bahan ASC')
-            ->get();
+        return PengadaanBahan::tersediaUrutExpiry($idBahan)->get();
     }
 
     public function getExpiredBatches(): \Illuminate\Database\Eloquent\Collection
@@ -88,16 +139,11 @@ class FIFOService
 
     public function markBatchAsExpired(PengadaanBahan $batch): bool
     {
-        try {
-            \DB::beginTransaction();
+        DB::table('pengadaan_bahan')
+            ->where('id', $batch->id)
+            ->where('stok_tersisa_batch', '>', 0)
+            ->update(['stok_tersisa_batch' => 0]);
 
-            $batch->update(['stok_tersisa_batch' => 0]);
-
-            \DB::commit();
-            return true;
-        } catch (\Exception $e) {
-            \DB::rollBack();
-            throw $e;
-        }
+        return true;
     }
 }

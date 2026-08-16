@@ -12,13 +12,8 @@
     </nav>
 
     <div class="card shadow-sm">
-        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <div class="card-header bg-primary text-white">
             <h5 class="mb-0">Daftar Laboratorium</h5>
-            @can('create', \App\Models\Laboratorium::class)
-            <a href="{{ route('laboratorium.create') }}" class="btn btn-sm btn-light">
-                <i class="fas fa-plus"></i> Tambah Lab
-            </a>
-            @endcan
         </div>
 
         <div class="card-body">

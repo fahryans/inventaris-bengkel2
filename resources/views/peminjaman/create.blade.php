@@ -21,44 +21,43 @@
             <form action="{{ route('peminjaman.store') }}" method="POST">
                 @csrf
 
-                <div class="alert alert-info">
-                    <strong>Pilih salah satu:</strong> Pilih Alat (untuk agregat) ATAU Unit Alat (untuk unit individual)
+                <div class="mb-3">
+                    <label for="tipe_pelacakan" class="form-label">Tipe Peminjaman <span class="text-danger">*</span></label>
+                    <select name="tipe_pelacakan" id="tipe_pelacakan" class="form-select" required>
+                        <option value="">Pilih Tipe</option>
+                        <option value="agregat" {{ old('tipe_pelacakan') == 'agregat' ? 'selected' : '' }}>Alat (Agregat)</option>
+                        <option value="unit" {{ old('tipe_pelacakan') == 'unit' ? 'selected' : '' }}>Unit Alat (Individual)</option>
+                    </select>
                 </div>
 
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label for="id_alat" class="form-label">Alat (Agregat)</label>
-                            <select name="id_alat" id="id_alat" class="form-select @error('id_alat') is-invalid @enderror">
-                                <option value="">Pilih Alat</option>
-                                @foreach($alats as $alat)
-                                    <option value="{{ $alat->id }}" {{ old('id_alat') == $alat->id ? 'selected' : '' }}>
-                                        {{ $alat->nama_alat }} ({{ $alat->getAvailableQuantity() }} tersedia)
-                                    </option>
-                                @endforeach
-                            </select>
-                            @error('id_alat')
-                                <div class="invalid-feedback d-block">{{ $message }}</div>
-                            @enderror
-                        </div>
-                    </div>
+                <div id="field-alat" class="mb-3" style="display: none;">
+                    <label for="id_alat" class="form-label">Pilih Alat <span class="text-danger">*</span></label>
+                    <select name="id_alat" id="id_alat" class="form-select @error('id_alat') is-invalid @enderror">
+                        <option value="">Pilih Alat</option>
+                        @foreach($alats as $alat)
+                            <option value="{{ $alat->id }}" {{ old('id_alat') == $alat->id ? 'selected' : '' }}>
+                                {{ $alat->nama_alat }} ({{ $alat->getAvailableQuantity() }} tersedia)
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('id_alat')
+                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                    @enderror
+                </div>
 
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label for="id_unit_alat" class="form-label">Unit Alat (Individual)</label>
-                            <select name="id_unit_alat" id="id_unit_alat" class="form-select @error('id_unit_alat') is-invalid @enderror">
-                                <option value="">Pilih Unit</option>
-                                @foreach($units as $unit)
-                                    <option value="{{ $unit->id }}" {{ old('id_unit_alat') == $unit->id ? 'selected' : '' }}>
-                                        {{ $unit->kode_inventaris }} - {{ $unit->alat->nama_alat }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            @error('id_unit_alat')
-                                <div class="invalid-feedback d-block">{{ $message }}</div>
-                            @enderror
-                        </div>
-                    </div>
+                <div id="field-unit" class="mb-3" style="display: none;">
+                    <label for="id_unit_alat" class="form-label">Pilih Unit Alat <span class="text-danger">*</span></label>
+                    <select name="id_unit_alat" id="id_unit_alat" class="form-select @error('id_unit_alat') is-invalid @enderror">
+                        <option value="">Pilih Unit</option>
+                        @foreach($units as $unit)
+                            <option value="{{ $unit->id }}" {{ old('id_unit_alat') == $unit->id ? 'selected' : '' }}>
+                                {{ $unit->kode_inventaris }} - {{ $unit->alat->nama_alat }} [{{ ucfirst($unit->status) }}]
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('id_unit_alat')
+                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                    @enderror
                 </div>
 
                 <div class="mb-3">
@@ -117,4 +116,23 @@
         </div>
     </div>
 </div>
+
+@push('js')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const tipeSelect = document.getElementById('tipe_pelacakan');
+        const fieldAlat = document.getElementById('field-alat');
+        const fieldUnit = document.getElementById('field-unit');
+
+        function toggleFields() {
+            const tipe = tipeSelect.value;
+            fieldAlat.style.display = (tipe === 'agregat') ? 'block' : 'none';
+            fieldUnit.style.display = (tipe === 'unit') ? 'block' : 'none';
+        }
+
+        tipeSelect.addEventListener('change', toggleFields);
+        toggleFields();
+    });
+</script>
+@endpush
 @endsection

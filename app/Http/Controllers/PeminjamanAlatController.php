@@ -5,12 +5,16 @@ namespace App\Http\Controllers;
 use App\Models\Alat;
 use App\Models\PeminjamanAlat;
 use App\Models\UnitAlat;
+use App\Services\PeminjamanService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\ValidationException;
 
-class Pinjam_alat extends Controller
+class PeminjamanAlatController extends Controller
 {
+    public function __construct(
+        protected PeminjamanService $peminjamanService,
+    ) {}
+
     public function index()
     {
         $this->authorize('viewAny', PeminjamanAlat::class);
@@ -46,17 +50,9 @@ class Pinjam_alat extends Controller
             'kondisi_saat_peminjaman' => ['required', 'string', 'max:255'],
         ]);
 
-        if (!$validated['id_alat'] && !$validated['id_unit_alat']) {
-            throw ValidationException::withMessages([
-                'id_alat' => 'Harus memilih salah satu: alat atau unit alat',
-            ]);
-        }
-
         $validated['id_user_peminjam'] = Auth::id();
-        $validated['jumlah'] = $validated['jumlah'] ?? 1;
-        $validated['status'] = 'terpinjam';
 
-        PeminjamanAlat::create($validated);
+        $this->peminjamanService->createBorrowing($validated);
 
         return redirect()->route('peminjaman.index')
             ->with('success', 'Peminjaman berhasil dibuat');
@@ -111,21 +107,12 @@ class Pinjam_alat extends Controller
     {
         $this->authorize('return', $peminjaman);
 
-        if ($peminjaman->status === 'sudah_dikembalikan') {
-            return redirect()->route('peminjaman.show', $peminjaman)
-                ->with('error', 'Peminjaman sudah dikembalikan sebelumnya');
-        }
-
         $validated = $request->validate([
             'waktu_kembali_aktual' => ['required', 'date_format:Y-m-d H:i'],
             'kondisi_saat_pengembalian' => ['required', 'string', 'max:255'],
         ]);
 
-        $peminjaman->update([
-            'waktu_kembali_aktual' => $validated['waktu_kembali_aktual'],
-            'kondisi_saat_pengembalian' => $validated['kondisi_saat_pengembalian'],
-            'status' => 'sudah_dikembalikan',
-        ]);
+        $this->peminjamanService->returnBorrowing($peminjaman, $validated);
 
         return redirect()->route('peminjaman.show', $peminjaman)
             ->with('success', 'Alat berhasil dikembalikan');

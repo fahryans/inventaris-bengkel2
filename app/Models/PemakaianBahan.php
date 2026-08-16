@@ -32,12 +32,6 @@ class PemakaianBahan extends Model
         ];
     }
 
-    protected static function booting(): void
-    {
-        // Verifikasi dilakukan terpisah melalui action verify
-        // Tidak perlu check saat creating
-    }
-
     public function bahan(): BelongsTo
     {
         return $this->belongsTo(Bahan::class, 'id_bahan');

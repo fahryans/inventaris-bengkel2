@@ -26,9 +26,12 @@
                         <div class="mb-3">
                             <label for="nama" class="form-label">Nama</label>
                             <input type="text" name="nama" id="nama" class="form-control @error('nama') is-invalid @enderror"
-                                   value="{{ old('nama', $user->nama) }}" required autofocus>
+                                   value="{{ old('nama', $user->nama) }}" {{ Auth::user()->role === 'mahasiswa' ? 'readonly' : 'required autofocus' }}>
+                            @if(Auth::user()->role === 'mahasiswa')
+                                <small class="text-muted">Nama tidak dapat diubah. Hubungi admin untuk perubahan nama.</small>
+                            @endif
                             @error('nama')
-                                <div class="invalid-feedback">{{ $message }}</div>
+                                <div class="invalid-feedback d-block">{{ $message }}</div>
                             @enderror
                         </div>
 
@@ -37,7 +40,7 @@
                             <input type="email" name="email" id="email" class="form-control @error('email') is-invalid @enderror"
                                    value="{{ old('email', $user->email) }}" required>
                             @error('email')
-                                <div class="invalid-feedback">{{ $message }}</div>
+                                <div class="invalid-feedback d-block">{{ $message }}</div>
                             @enderror
                         </div>
 

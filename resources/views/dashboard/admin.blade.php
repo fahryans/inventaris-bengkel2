@@ -20,43 +20,51 @@
 
     <div class="row">
         <div class="col-md-3 mb-4">
-            <div class="card border-left-primary shadow h-100 py-2 cursor-pointer" onclick="location.href='{{ route('alat.index') }}'">
-                <div class="card-body">
-                    <div class="text-primary text-uppercase mb-1 small font-weight-bold">Total Alat</div>
-                    <div class="h3 mb-0">{{ $totalAlat }}</div>
-                    <small class="text-muted">Klik untuk lihat detail</small>
+            <a href="{{ route('alat.index') }}" class="text-decoration-none">
+                <div class="card border-left-primary shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="text-primary text-uppercase mb-1 small font-weight-bold">Total Alat</div>
+                        <div class="h3 mb-0">{{ $totalAlat }}</div>
+                        <small class="text-muted">Klik untuk lihat detail</small>
+                    </div>
                 </div>
-            </div>
+            </a>
         </div>
 
         <div class="col-md-3 mb-4">
-            <div class="card border-left-success shadow h-100 py-2 cursor-pointer" onclick="location.href='{{ route('bahan.index') }}'">
-                <div class="card-body">
-                    <div class="text-success text-uppercase mb-1 small font-weight-bold">Total Bahan</div>
-                    <div class="h3 mb-0">{{ $totalBahan }}</div>
-                    <small class="text-muted">Klik untuk lihat detail</small>
+            <a href="{{ route('bahan.index') }}" class="text-decoration-none">
+                <div class="card border-left-success shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="text-success text-uppercase mb-1 small font-weight-bold">Total Bahan</div>
+                        <div class="h3 mb-0">{{ $totalBahan }}</div>
+                        <small class="text-muted">Klik untuk lihat detail</small>
+                    </div>
                 </div>
-            </div>
+            </a>
         </div>
 
         <div class="col-md-3 mb-4">
-            <div class="card border-left-warning shadow h-100 py-2 cursor-pointer" onclick="location.href='{{ route('laboratorium.index') }}'">
-                <div class="card-body">
-                    <div class="text-warning text-uppercase mb-1 small font-weight-bold">Total Lab</div>
-                    <div class="h3 mb-0">{{ $totalLaboratorium }}</div>
-                    <small class="text-muted">Klik untuk lihat detail</small>
+            <a href="{{ route('laboratorium.index') }}" class="text-decoration-none">
+                <div class="card border-left-warning shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="text-warning text-uppercase mb-1 small font-weight-bold">Total Lab</div>
+                        <div class="h3 mb-0">{{ $totalLaboratorium }}</div>
+                        <small class="text-muted">Klik untuk lihat detail</small>
+                    </div>
                 </div>
-            </div>
+            </a>
         </div>
 
         <div class="col-md-3 mb-4">
-            <div class="card border-left-info shadow h-100 py-2 cursor-pointer" onclick="location.href='{{ route('users.index') }}'">
-                <div class="card-body">
-                    <div class="text-info text-uppercase mb-1 small font-weight-bold">Total Pengguna</div>
-                    <div class="h3 mb-0">{{ $totalUser }}</div>
-                    <small class="text-muted">Klik untuk lihat detail</small>
+            <a href="{{ route('users.index') }}" class="text-decoration-none">
+                <div class="card border-left-info shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="text-info text-uppercase mb-1 small font-weight-bold">Total Pengguna</div>
+                        <div class="h3 mb-0">{{ $totalUser }}</div>
+                        <small class="text-muted">Klik untuk lihat detail</small>
+                    </div>
                 </div>
-            </div>
+            </a>
         </div>
     </div>
 
@@ -118,11 +126,6 @@
                         <div class="col-md-2 mb-2">
                             <a href="{{ route('bahan.create') }}" class="btn btn-success btn-block btn-sm">
                                 <i class="fas fa-plus"></i> Tambah Bahan
-                            </a>
-                        </div>
-                        <div class="col-md-2 mb-2">
-                            <a href="{{ route('laboratorium.create') }}" class="btn btn-warning btn-block btn-sm">
-                                <i class="fas fa-plus"></i> Tambah Lab
                             </a>
                         </div>
                         <div class="col-md-2 mb-2">
