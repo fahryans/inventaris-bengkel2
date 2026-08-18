@@ -211,10 +211,19 @@ class DashboardController extends Controller
 
         $activePeminjaman = $myPeminjaman->where('status', 'terpinjam');
 
+        $riwayatPeminjaman = PeminjamanAlat::where('id_user_peminjam', $user->id)
+            ->whereYear('created_at', now()->year)
+            ->selectRaw('MONTH(created_at) as month, count(*) as total')
+            ->groupBy('month')
+            ->pluck('total', 'month')
+            ->toArray();
+        $riwayatPeminjaman = collect(range(1, 12))->map(fn($m) => $riwayatPeminjaman[$m] ?? 0)->toArray();
+
         return view('dashboard.user', compact(
             'labs',
             'myPeminjaman',
-            'activePeminjaman'
+            'activePeminjaman',
+            'riwayatPeminjaman'
         ));
     }
 }

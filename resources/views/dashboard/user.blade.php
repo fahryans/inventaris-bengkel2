@@ -147,5 +147,40 @@
         </div>
     </div>
     @endif
+
+    {{-- Riwayat Peminjaman Chart --}}
+    <div class="row mb-4">
+        <div class="col-xl-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-chart-line me-1"></i>Riwayat Peminjaman Saya ({{ date('Y') }})
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="riwayatPeminjamanChart" height="150"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+    new Chart(document.getElementById('riwayatPeminjamanChart'), {
+        type: 'line',
+        data: {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'],
+            datasets: [{
+                label: 'Peminjaman',
+                data: @json($riwayatPeminjaman ?? []),
+                borderColor: '#4e73df',
+                tension: 0.3,
+                fill: true,
+                backgroundColor: 'rgba(78, 115, 223, 0.1)'
+            }]
+        },
+        options: { responsive: true, scales: { y: { beginAtZero: true } } }
+    });
+    </script>
 </div>
 @endsection
