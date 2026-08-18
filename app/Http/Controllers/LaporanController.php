@@ -10,6 +10,7 @@ use App\Models\PemakaianBahan;
 use App\Models\PemeliharaanAlat;
 use App\Models\PengadaanAlat;
 use App\Models\PengadaanBahan;
+use Barryvdh\DomPDF\Facades\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -92,8 +93,46 @@ class LaporanController extends Controller
     {
         $this->authorize('viewAny', \App\Models\PeminjamanAlat::class);
 
-        return redirect()->route('laporan.show', $tipe)
-            ->with('info', 'Export sedang dalam pengembangan');
+        $user = Auth::user();
+        $isMahasiswa = $user->role === 'mahasiswa';
+
+        if ($isMahasiswa && !in_array($tipe, ['alat', 'bahan', 'peminjaman'])) {
+            abort(403, 'Anda tidak memiliki akses ke laporan ini.');
+        }
+
+        $data = match($tipe) {
+            'alat' => Alat::with(['kategori', 'laboratorium'])->latest()->get(),
+            'bahan' => Bahan::with('kategori')->latest()->get(),
+            'peminjaman' => $isMahasiswa
+                ? PeminjamanAlat::where('id_user_peminjam', Auth::id())->with(['alat', 'unitAlat', 'userPeminjam'])->latest()->get()
+                : PeminjamanAlat::with(['alat', 'unitAlat', 'userPeminjam'])->latest()->get(),
+            'pemeliharaan' => PemeliharaanAlat::with(['unitAlat', 'teknisi'])->latest()->get(),
+            'pengadaan_alat' => PengadaanAlat::with(['alat', 'userInput'])->latest()->get(),
+            'pengadaan_bahan' => PengadaanBahan::with(['bahan', 'userInput'])->latest()->get(),
+            'pemakaian_bahan' => PemakaianBahan::with(['bahan', 'userPemakai', 'userVerifikasi'])->latest()->get(),
+            default => abort(404),
+        };
+
+        $title = match($tipe) {
+            'alat' => 'Laporan Data Alat',
+            'bahan' => 'Laporan Data Bahan',
+            'peminjaman' => 'Laporan Peminjaman Alat',
+            'pemeliharaan' => 'Laporan Pemeliharaan Alat',
+            'pengadaan_alat' => 'Laporan Pengadaan Alat',
+            'pengadaan_bahan' => 'Laporan Pengadaan Bahan',
+            'pemakaian_bahan' => 'Laporan Pemakaian Bahan',
+            default => 'Laporan',
+        };
+
+        $pdf = Pdf::loadView("laporan.pdf.{$tipe}", [
+            'data' => $data,
+            'title' => $title,
+            'date' => now()->format('d/m/Y'),
+        ]);
+
+        $filename = "laporan-{$tipe}-" . now()->format('Y-m-d') . '.pdf';
+
+        return $pdf->download($filename);
     }
 
     public function myReport(Request $request)
