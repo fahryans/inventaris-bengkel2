@@ -63,6 +63,9 @@
                         <a href="{{ route('unit-alat.edit', $unitAlat) }}" class="btn btn-warning">
                             <i class="fas fa-edit"></i> Edit
                         </a>
+                        <a href="{{ route('unit-alat.qr', $unitAlat) }}" class="btn btn-info" target="_blank">
+                            <i class="fas fa-qrcode me-1"></i>Cetak QR
+                        </a>
                         @endcan
                         @can('delete', $unitAlat)
                         <form action="{{ route('unit-alat.destroy', $unitAlat) }}" method="POST" style="display:inline;">

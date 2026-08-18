@@ -108,6 +108,9 @@
                                         <a href="{{ route('unit-alat.show', $unit) }}" class="btn btn-outline-info" title="Lihat">
                                             <i class="fas fa-eye"></i>
                                         </a>
+                                        <a href="{{ route('unit-alat.qr', $unit) }}" class="btn btn-outline-info" title="Cetak QR" target="_blank">
+                                            <i class="fas fa-qrcode"></i>
+                                        </a>
                                         @can('update', $unit)
                                         <a href="{{ route('unit-alat.edit', $unit) }}" class="btn btn-outline-warning" title="Edit">
                                             <i class="fas fa-edit"></i>
