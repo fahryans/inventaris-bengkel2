@@ -160,6 +160,63 @@
             </div>
         </div>
     </div>
+
+    <div class="row mb-4">
+        <div class="col-xl-6">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-chart-bar me-1"></i>Pemeliharaan per Bulan
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="pemeliharaanChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-6">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-chart-pie me-1"></i>Status Unit Alat
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="statusUnitChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+    // Pemeliharaan per Bulan
+    new Chart(document.getElementById('pemeliharaanChart'), {
+        type: 'bar',
+        data: {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'],
+            datasets: [{
+                label: 'Pemeliharaan',
+                data: @json($pemeliharaanPerBulan ?? []),
+                backgroundColor: '#36b9cc'
+            }]
+        },
+        options: { responsive: true, scales: { y: { beginAtZero: true } } }
+    });
+
+    // Status Unit Pie
+    new Chart(document.getElementById('statusUnitChart'), {
+        type: 'pie',
+        data: {
+            labels: @json($statusLabels ?? []),
+            datasets: [{
+                data: @json($statusCounts ?? []),
+                backgroundColor: ['#1cc88a', '#4e73df', '#e74a3b', '#f6c23e']
+            }]
+        },
+        options: { responsive: true }
+    });
+    </script>
 </div>
 @endsection
 

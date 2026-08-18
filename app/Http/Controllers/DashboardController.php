@@ -147,10 +147,28 @@ class DashboardController extends Controller
             ->whereBetween('tanggal_cek', [now()->startOfMonth(), now()->endOfMonth()])
             ->count();
 
+        $pemeliharaanPerBulan = PemeliharaanAlat::whereYear('created_at', now()->year)
+            ->selectRaw('MONTH(created_at) as month, count(*) as total')
+            ->groupBy('month')
+            ->pluck('total', 'month')
+            ->toArray();
+        $pemeliharaanPerBulan = collect(range(1, 12))->map(fn($m) => $pemeliharaanPerBulan[$m] ?? 0)->toArray();
+
+        $statusLabels = ['Tersedia', 'Dipinjam', 'Rusak', 'Maintenance'];
+        $statusCounts = [
+            \App\Models\UnitAlat::where('status', 'tersedia')->count(),
+            \App\Models\UnitAlat::where('status', 'dipinjam')->count(),
+            \App\Models\UnitAlat::where('status', 'rusak')->count(),
+            \App\Models\UnitAlat::where('status', 'maintenance')->count(),
+        ];
+
         return view('dashboard.teknisi', compact(
             'maintenanceSchedule',
             'overdueCount',
-            'completedThisMonth'
+            'completedThisMonth',
+            'pemeliharaanPerBulan',
+            'statusLabels',
+            'statusCounts'
         ));
     }
 
