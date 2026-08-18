@@ -110,8 +110,13 @@ class LaporanController extends Controller
             'pengadaan_alat' => PengadaanAlat::with(['alat', 'userInput'])->latest()->get(),
             'pengadaan_bahan' => PengadaanBahan::with(['bahan', 'userInput'])->latest()->get(),
             'pemakaian_bahan' => PemakaianBahan::with(['bahan', 'userPemakai', 'userVerifikasi'])->latest()->get(),
-            default => abort(404),
+            default => null,
         };
+
+        if (!$data) {
+            return redirect()->route('laporan.show', $tipe)
+                ->with('error', 'Tipe laporan tidak valid');
+        }
 
         $title = match($tipe) {
             'alat' => 'Laporan Data Alat',
@@ -130,7 +135,7 @@ class LaporanController extends Controller
             'date' => now()->format('d/m/Y'),
         ]);
 
-        $filename = "laporan-{$tipe}-" . now()->format('Y-m-d') . '.pdf';
+        $filename = "laporan_{$tipe}_" . now()->format('d/m/Y') . '.pdf';
 
         return $pdf->download($filename);
     }
