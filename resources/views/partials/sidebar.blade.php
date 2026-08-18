@@ -160,6 +160,15 @@
             </a>
         </li>
 
+        @can('viewAny', \Spatie\Activitylog\Models\Activity::class)
+        <li>
+            <a href="{{ route('activity-log.index') }}" class="{{ request()->routeIs('activity-log.*') ? 'active' : '' }}">
+                <i class="fas fa-history"></i>
+                Aktivitas Sistem
+            </a>
+        </li>
+        @endcan
+
         {{-- PENGATURAN --}}
         <li class="menu-title">
 

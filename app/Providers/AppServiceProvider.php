@@ -13,6 +13,7 @@ use App\Models\PengadaanAlat;
 use App\Models\PengadaanBahan;
 use App\Models\UnitAlat;
 use App\Models\User;
+use App\Policies\ActivityPolicy;
 use App\Policies\AlatPolicy;
 use App\Policies\BahanPolicy;
 use App\Policies\KategoriPolicy;
@@ -24,8 +25,9 @@ use App\Policies\PengadaanAlatPolicy;
 use App\Policies\PengadaanBahanPolicy;
 use App\Policies\UnitAlatPolicy;
 use App\Policies\UserPolicy;
-use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\ServiceProvider;
+use Spatie\Activitylog\Models\Activity;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -41,6 +43,7 @@ class AppServiceProvider extends ServiceProvider
         PengadaanAlat::class => PengadaanAlatPolicy::class,
         PengadaanBahan::class => PengadaanBahanPolicy::class,
         PemakaianBahan::class => PemakaianBahanPolicy::class,
+        Activity::class => ActivityPolicy::class,
     ];
 
     public function register(): void
@@ -84,4 +87,3 @@ class AppServiceProvider extends ServiceProvider
         }
     }
 }
-

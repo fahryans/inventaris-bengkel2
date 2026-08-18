@@ -1,11 +1,13 @@
 <?php
 
+use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\AlatController;
 use App\Http\Controllers\BahanController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\KategoriController;
 use App\Http\Controllers\LabController;
 use App\Http\Controllers\LaboratoriumController;
+use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\PemakaianBahanController;
 use App\Http\Controllers\PemeliharaanAlatController;
 use App\Http\Controllers\PeminjamanAlatController;
@@ -13,7 +15,6 @@ use App\Http\Controllers\PengadaanAlatController;
 use App\Http\Controllers\PengadaanBahanController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UnitAlatController;
-use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -76,6 +77,10 @@ Route::middleware(['auth'])->group(function () {
             ->middleware('throttle:5,1')
             ->name('laporan.export');
     });
+
+    Route::get('/activity-log', [ActivityLogController::class, 'index'])
+        ->name('activity-log.index')
+        ->middleware('role:admin_jurusan');
 
 });
 
