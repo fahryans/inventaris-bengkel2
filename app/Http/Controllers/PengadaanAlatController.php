@@ -9,6 +9,7 @@ use App\Services\StokService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Spatie\Activitylog\Facades\Activity;
 
 class PengadaanAlatController extends Controller
 {
@@ -61,7 +62,13 @@ class PengadaanAlatController extends Controller
             $validated['foto_transaksi'] = $request->file('foto_transaksi')->store('pengadaan', 'public');
         }
 
-        PengadaanAlat::create($validated);
+        $pengadaan = PengadaanAlat::create($validated);
+
+        activity()
+            ->performedOn($pengadaan)
+            ->withProperties(['attributes' => $pengadaan->toArray()])
+            ->event('created')
+            ->log('Pengadaan alat baru dicatat');
 
         return redirect()->route('pengadaan_alat.index')
             ->with('success', 'Pengadaan alat berhasil dicatat');
@@ -93,6 +100,8 @@ class PengadaanAlatController extends Controller
         $pengadaan = PengadaanAlat::findOrFail($id);
         $this->authorize('update', $pengadaan);
 
+        $oldData = $pengadaan->toArray();
+
         $validated = $request->validated();
 
         if ($request->hasFile('foto_transaksi')) {
@@ -103,6 +112,12 @@ class PengadaanAlatController extends Controller
         }
 
         $pengadaan->update($validated);
+
+        activity()
+            ->performedOn($pengadaan)
+            ->withProperties(['old' => $oldData, 'attributes' => $pengadaan->toArray()])
+            ->event('updated')
+            ->log('Pengadaan alat diperbarui');
 
         return redirect()->route('pengadaan_alat.show', $pengadaan)
             ->with('success', 'Pengadaan alat berhasil diperbarui');
@@ -122,6 +137,8 @@ class PengadaanAlatController extends Controller
             'tanggal_masuk' => ['required', 'date'],
         ]);
 
+        $oldData = $pengadaan->toArray();
+
         DB::transaction(function () use ($pengadaan, $request) {
             $pengadaan->update([
                 'tanggal_masuk' => $request->tanggal_masuk,
@@ -133,6 +150,14 @@ class PengadaanAlatController extends Controller
             );
         });
 
+        $pengadaan->refresh();
+
+        activity()
+            ->performedOn($pengadaan)
+            ->withProperties(['old' => $oldData, 'attributes' => $pengadaan->toArray()])
+            ->event('received')
+            ->log('Alat berhasil diterima');
+
         return redirect()->route('pengadaan_alat.show', $pengadaan)
             ->with('success', 'Alat berhasil diterima dan stok diperbarui');
     }
@@ -141,6 +166,12 @@ class PengadaanAlatController extends Controller
     {
         $pengadaan = PengadaanAlat::findOrFail($id);
         $this->authorize('delete', $pengadaan);
+
+        activity()
+            ->performedOn($pengadaan)
+            ->withProperties(['attributes' => $pengadaan->toArray()])
+            ->event('deleted')
+            ->log('Pengadaan alat dihapus');
 
         $pengadaan->delete();
 

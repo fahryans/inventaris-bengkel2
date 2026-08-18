@@ -9,6 +9,7 @@ use App\Services\StokService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Spatie\Activitylog\Facades\Activity;
 
 class PengadaanBahanController extends Controller
 {
@@ -61,7 +62,13 @@ class PengadaanBahanController extends Controller
             $validated['foto_transaksi'] = $request->file('foto_transaksi')->store('pengadaan', 'public');
         }
 
-        PengadaanBahan::create($validated);
+        $pengadaan = PengadaanBahan::create($validated);
+
+        activity()
+            ->performedOn($pengadaan)
+            ->withProperties(['attributes' => $pengadaan->toArray()])
+            ->event('created')
+            ->log('Pengadaan bahan baru dicatat');
 
         return redirect()->route('pengadaan_bahan.index')
             ->with('success', 'Pengadaan bahan berhasil dicatat');
@@ -92,6 +99,8 @@ class PengadaanBahanController extends Controller
         $pengadaan = PengadaanBahan::findOrFail($id);
         $this->authorize('update', $pengadaan);
 
+        $oldData = $pengadaan->toArray();
+
         $validated = $request->validated();
 
         if ($request->hasFile('foto_transaksi')) {
@@ -102,6 +111,12 @@ class PengadaanBahanController extends Controller
         }
 
         $pengadaan->update($validated);
+
+        activity()
+            ->performedOn($pengadaan)
+            ->withProperties(['old' => $oldData, 'attributes' => $pengadaan->toArray()])
+            ->event('updated')
+            ->log('Pengadaan bahan diperbarui');
 
         return redirect()->route('pengadaan_bahan.show', $pengadaan)
             ->with('success', 'Pengadaan bahan berhasil diperbarui');
@@ -121,6 +136,8 @@ class PengadaanBahanController extends Controller
             'tanggal_masuk' => ['required', 'date'],
         ]);
 
+        $oldData = $pengadaan->toArray();
+
         DB::transaction(function () use ($pengadaan, $request) {
             $pengadaan->update([
                 'tanggal_masuk' => $request->tanggal_masuk,
@@ -133,6 +150,14 @@ class PengadaanBahanController extends Controller
             );
         });
 
+        $pengadaan->refresh();
+
+        activity()
+            ->performedOn($pengadaan)
+            ->withProperties(['old' => $oldData, 'attributes' => $pengadaan->toArray()])
+            ->event('received')
+            ->log('Bahan berhasil diterima');
+
         return redirect()->route('pengadaan_bahan.show', $pengadaan)
             ->with('success', 'Bahan berhasil diterima dan stok diperbarui');
     }
@@ -141,6 +166,12 @@ class PengadaanBahanController extends Controller
     {
         $pengadaan = PengadaanBahan::findOrFail($id);
         $this->authorize('delete', $pengadaan);
+
+        activity()
+            ->performedOn($pengadaan)
+            ->withProperties(['attributes' => $pengadaan->toArray()])
+            ->event('deleted')
+            ->log('Pengadaan bahan dihapus');
 
         $pengadaan->delete();
 

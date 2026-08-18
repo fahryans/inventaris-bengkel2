@@ -7,6 +7,7 @@ use App\Models\Alat;
 use App\Models\Kategori;
 use App\Models\Laboratorium;
 use Illuminate\Http\Request;
+use Spatie\Activitylog\Facades\Activity;
 
 class AlatController extends Controller
 {
@@ -59,7 +60,13 @@ class AlatController extends Controller
             $validated['foto'] = $request->file('foto')->store('alat', 'public');
         }
 
-        Alat::create($validated);
+        $alat = Alat::create($validated);
+
+        activity()
+            ->performedOn($alat)
+            ->withProperties(['attributes' => $alat->toArray()])
+            ->event('created')
+            ->log('Alat baru ditambahkan');
 
         return redirect()->route('alat.index')
             ->with('success', 'Alat berhasil ditambahkan');
@@ -88,6 +95,8 @@ class AlatController extends Controller
     {
         $this->authorize('update', $alat);
 
+        $oldData = $alat->toArray();
+
         $validated = $request->validated();
 
         if ($request->hasFile('foto')) {
@@ -99,6 +108,12 @@ class AlatController extends Controller
 
         $alat->update($validated);
 
+        activity()
+            ->performedOn($alat)
+            ->withProperties(['old' => $oldData, 'attributes' => $alat->toArray()])
+            ->event('updated')
+            ->log('Alat diperbarui');
+
         return redirect()->route('alat.show', $alat)
             ->with('success', 'Alat berhasil diperbarui');
     }
@@ -106,6 +121,12 @@ class AlatController extends Controller
     public function destroy(Alat $alat)
     {
         $this->authorize('delete', $alat);
+
+        activity()
+            ->performedOn($alat)
+            ->withProperties(['attributes' => $alat->toArray()])
+            ->event('deleted')
+            ->log('Alat dihapus');
 
         $alat->delete();
 

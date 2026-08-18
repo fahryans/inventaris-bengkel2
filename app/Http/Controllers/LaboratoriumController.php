@@ -6,6 +6,7 @@ use App\Http\Requests\LaboratoriumRequest;
 use App\Models\Laboratorium;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Spatie\Activitylog\Facades\Activity;
 
 class LaboratoriumController extends Controller
 {
@@ -37,7 +38,13 @@ class LaboratoriumController extends Controller
     {
         $this->authorize('create', Laboratorium::class);
 
-        Laboratorium::create($request->validated());
+        $laboratorium = Laboratorium::create($request->validated());
+
+        activity()
+            ->performedOn($laboratorium)
+            ->withProperties(['attributes' => $laboratorium->toArray()])
+            ->event('created')
+            ->log('Laboratorium baru ditambahkan');
 
         return redirect()->route('laboratorium.index')
             ->with('success', 'Laboratorium berhasil ditambahkan');
@@ -65,7 +72,14 @@ class LaboratoriumController extends Controller
     {
         $this->authorize('update', $laboratorium);
 
+        $oldData = $laboratorium->toArray();
         $laboratorium->update($request->validated());
+
+        activity()
+            ->performedOn($laboratorium)
+            ->withProperties(['old' => $oldData, 'attributes' => $laboratorium->toArray()])
+            ->event('updated')
+            ->log('Laboratorium diperbarui');
 
         return redirect()->route('laboratorium.show', $laboratorium)
             ->with('success', 'Laboratorium berhasil diperbarui');
@@ -74,6 +88,12 @@ class LaboratoriumController extends Controller
     public function destroy(Laboratorium $laboratorium)
     {
         $this->authorize('delete', $laboratorium);
+
+        activity()
+            ->performedOn($laboratorium)
+            ->withProperties(['attributes' => $laboratorium->toArray()])
+            ->event('deleted')
+            ->log('Laboratorium dihapus');
 
         $laboratorium->delete();
 

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\KategoriRequest;
 use App\Models\Kategori;
 use Illuminate\Http\Request;
+use Spatie\Activitylog\Facades\Activity;
 
 class KategoriController extends Controller
 {
@@ -38,7 +39,13 @@ class KategoriController extends Controller
     {
         $this->authorize('create', Kategori::class);
 
-        Kategori::create($request->validated());
+        $kategori = Kategori::create($request->validated());
+
+        activity()
+            ->performedOn($kategori)
+            ->withProperties(['attributes' => $kategori->toArray()])
+            ->event('created')
+            ->log('Kategori baru ditambahkan');
 
         return redirect()->route('kategori.index')
             ->with('success', 'Kategori berhasil ditambahkan');
@@ -64,7 +71,14 @@ class KategoriController extends Controller
     {
         $this->authorize('update', $kategori);
 
+        $oldData = $kategori->toArray();
         $kategori->update($request->validated());
+
+        activity()
+            ->performedOn($kategori)
+            ->withProperties(['old' => $oldData, 'attributes' => $kategori->toArray()])
+            ->event('updated')
+            ->log('Kategori diperbarui');
 
         return redirect()->route('kategori.show', $kategori)
             ->with('success', 'Kategori berhasil diperbarui');
@@ -73,6 +87,12 @@ class KategoriController extends Controller
     public function destroy(Kategori $kategori)
     {
         $this->authorize('delete', $kategori);
+
+        activity()
+            ->performedOn($kategori)
+            ->withProperties(['attributes' => $kategori->toArray()])
+            ->event('deleted')
+            ->log('Kategori dihapus');
 
         $kategori->delete();
 

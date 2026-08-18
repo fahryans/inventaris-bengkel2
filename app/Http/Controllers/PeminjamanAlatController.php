@@ -8,6 +8,7 @@ use App\Models\UnitAlat;
 use App\Services\PeminjamanService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Spatie\Activitylog\Facades\Activity;
 
 class PeminjamanAlatController extends Controller
 {
@@ -52,7 +53,13 @@ class PeminjamanAlatController extends Controller
 
         $validated['id_user_peminjam'] = Auth::id();
 
-        $this->peminjamanService->createBorrowing($validated);
+        $peminjaman = $this->peminjamanService->createBorrowing($validated);
+
+        activity()
+            ->performedOn($peminjaman)
+            ->withProperties(['attributes' => $peminjaman->toArray()])
+            ->event('created')
+            ->log('Peminjaman alat baru dibuat');
 
         return redirect()->route('peminjaman.index')
             ->with('success', 'Peminjaman berhasil dibuat');
@@ -91,6 +98,8 @@ class PeminjamanAlatController extends Controller
                 ->with('error', 'Tidak dapat mengedit peminjaman yang sudah dikembalikan');
         }
 
+        $oldData = $peminjaman->toArray();
+
         $validated = $request->validate([
             'keperluan' => ['required', 'string', 'max:255'],
             'waktu_pengembalian' => ['nullable', 'date_format:Y-m-d H:i', 'after:waktu_peminjaman'],
@@ -98,6 +107,12 @@ class PeminjamanAlatController extends Controller
         ]);
 
         $peminjaman->update($validated);
+
+        activity()
+            ->performedOn($peminjaman)
+            ->withProperties(['old' => $oldData, 'attributes' => $peminjaman->toArray()])
+            ->event('updated')
+            ->log('Peminjaman alat diperbarui');
 
         return redirect()->route('peminjaman.show', $peminjaman)
             ->with('success', 'Peminjaman berhasil diperbarui');
@@ -107,12 +122,22 @@ class PeminjamanAlatController extends Controller
     {
         $this->authorize('return', $peminjaman);
 
+        $oldData = $peminjaman->toArray();
+
         $validated = $request->validate([
             'waktu_kembali_aktual' => ['required', 'date_format:Y-m-d H:i'],
             'kondisi_saat_pengembalian' => ['required', 'string', 'max:255'],
         ]);
 
         $this->peminjamanService->returnBorrowing($peminjaman, $validated);
+
+        $peminjaman->refresh();
+
+        activity()
+            ->performedOn($peminjaman)
+            ->withProperties(['old' => $oldData, 'attributes' => $peminjaman->toArray()])
+            ->event('returned')
+            ->log('Alat berhasil dikembalikan');
 
         return redirect()->route('peminjaman.show', $peminjaman)
             ->with('success', 'Alat berhasil dikembalikan');
@@ -126,6 +151,12 @@ class PeminjamanAlatController extends Controller
             return redirect()->route('peminjaman.show', $peminjaman)
                 ->with('error', 'Tidak dapat menghapus peminjaman yang masih aktif');
         }
+
+        activity()
+            ->performedOn($peminjaman)
+            ->withProperties(['attributes' => $peminjaman->toArray()])
+            ->event('deleted')
+            ->log('Peminjaman alat dihapus');
 
         $peminjaman->delete();
 

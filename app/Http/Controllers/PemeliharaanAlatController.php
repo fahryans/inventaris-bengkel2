@@ -7,6 +7,7 @@ use App\Models\PemeliharaanAlat;
 use App\Models\UnitAlat;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Spatie\Activitylog\Facades\Activity;
 
 class PemeliharaanAlatController extends Controller
 {
@@ -54,7 +55,13 @@ class PemeliharaanAlatController extends Controller
     {
         $this->authorize('create', PemeliharaanAlat::class);
 
-        PemeliharaanAlat::create($request->validated());
+        $pemeliharaan = PemeliharaanAlat::create($request->validated());
+
+        activity()
+            ->performedOn($pemeliharaan)
+            ->withProperties(['attributes' => $pemeliharaan->toArray()])
+            ->event('created')
+            ->log('Pemeliharaan alat baru dijadwalkan');
 
         return redirect()->route('pemeliharaan.index')
             ->with('success', 'Pemeliharaan alat berhasil dijadwalkan');
@@ -86,7 +93,14 @@ class PemeliharaanAlatController extends Controller
         $pemeliharaan = PemeliharaanAlat::findOrFail($id);
         $this->authorize('update', $pemeliharaan);
 
+        $oldData = $pemeliharaan->toArray();
         $pemeliharaan->update($request->validated());
+
+        activity()
+            ->performedOn($pemeliharaan)
+            ->withProperties(['old' => $oldData, 'attributes' => $pemeliharaan->toArray()])
+            ->event('updated')
+            ->log('Pemeliharaan alat diperbarui');
 
         return redirect()->route('pemeliharaan.show', $pemeliharaan)
             ->with('success', 'Pemeliharaan alat berhasil diperbarui');
@@ -102,6 +116,8 @@ class PemeliharaanAlatController extends Controller
             'hasil_pemeliharaan' => ['nullable', 'string'],
         ]);
 
+        $oldData = $pemeliharaan->toArray();
+
         $pemeliharaan->update([
             'kondisi' => $request->kondisi,
             'hasil_pemeliharaan' => $request->hasil_pemeliharaan,
@@ -109,6 +125,14 @@ class PemeliharaanAlatController extends Controller
         ]);
 
         $pemeliharaan->unitAlat->update(['kondisi_saat_ini' => $request->kondisi]);
+
+        $pemeliharaan->refresh();
+
+        activity()
+            ->performedOn($pemeliharaan)
+            ->withProperties(['old' => $oldData, 'attributes' => $pemeliharaan->toArray()])
+            ->event('completed')
+            ->log('Pemeliharaan alat selesai');
 
         return redirect()->route('pemeliharaan.show', $pemeliharaan)
             ->with('success', 'Pemeliharaan alat berhasil diselesaikan');
@@ -118,6 +142,12 @@ class PemeliharaanAlatController extends Controller
     {
         $pemeliharaan = PemeliharaanAlat::findOrFail($id);
         $this->authorize('delete', $pemeliharaan);
+
+        activity()
+            ->performedOn($pemeliharaan)
+            ->withProperties(['attributes' => $pemeliharaan->toArray()])
+            ->event('deleted')
+            ->log('Pemeliharaan alat dihapus');
 
         $pemeliharaan->delete();
 

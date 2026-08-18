@@ -6,6 +6,7 @@ use App\Http\Requests\UserRequest;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Spatie\Activitylog\Facades\Activity;
 
 class UserController extends Controller
 {
@@ -51,7 +52,17 @@ class UserController extends Controller
         $validated = $request->validated();
         $validated['password'] = Hash::make($validated['password']);
 
-        User::create($validated);
+        $user = User::create($validated);
+
+        $logData = $user->toArray();
+        unset($logData['password']);
+        unset($logData['remember_token']);
+
+        activity()
+            ->performedOn($user)
+            ->withProperties(['attributes' => $logData])
+            ->event('created')
+            ->log('User baru ditambahkan');
 
         return redirect()->route('users.index')
             ->with('success', 'User berhasil ditambahkan');
@@ -80,6 +91,10 @@ class UserController extends Controller
     {
         $this->authorize('update', $user);
 
+        $oldData = $user->toArray();
+        unset($oldData['password']);
+        unset($oldData['remember_token']);
+
         $validated = $request->validated();
 
         if ($request->filled('password')) {
@@ -90,6 +105,16 @@ class UserController extends Controller
 
         $user->update($validated);
 
+        $newData = $user->toArray();
+        unset($newData['password']);
+        unset($newData['remember_token']);
+
+        activity()
+            ->performedOn($user)
+            ->withProperties(['old' => $oldData, 'attributes' => $newData])
+            ->event('updated')
+            ->log('User diperbarui');
+
         return redirect()->route('users.show', $user)
             ->with('success', 'User berhasil diperbarui');
     }
@@ -97,6 +122,16 @@ class UserController extends Controller
     public function destroy(User $user)
     {
         $this->authorize('delete', $user);
+
+        $logData = $user->toArray();
+        unset($logData['password']);
+        unset($logData['remember_token']);
+
+        activity()
+            ->performedOn($user)
+            ->withProperties(['attributes' => $logData])
+            ->event('deleted')
+            ->log('User dihapus');
 
         $user->delete();
 

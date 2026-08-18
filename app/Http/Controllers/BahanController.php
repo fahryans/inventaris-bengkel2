@@ -7,6 +7,7 @@ use App\Models\Bahan;
 use App\Models\Kategori;
 use App\Models\Laboratorium;
 use Illuminate\Http\Request;
+use Spatie\Activitylog\Facades\Activity;
 
 class BahanController extends Controller
 {
@@ -61,7 +62,13 @@ class BahanController extends Controller
             $validated['foto'] = $request->file('foto')->store('bahan', 'public');
         }
 
-        Bahan::create($validated);
+        $bahan = Bahan::create($validated);
+
+        activity()
+            ->performedOn($bahan)
+            ->withProperties(['attributes' => $bahan->toArray()])
+            ->event('created')
+            ->log('Bahan baru ditambahkan');
 
         return redirect()->route('bahan.index')
             ->with('success', 'Bahan berhasil ditambahkan');
@@ -90,6 +97,8 @@ class BahanController extends Controller
     {
         $this->authorize('update', $bahan);
 
+        $oldData = $bahan->toArray();
+
         $validated = $request->validated();
 
         if ($request->hasFile('foto')) {
@@ -101,6 +110,12 @@ class BahanController extends Controller
 
         $bahan->update($validated);
 
+        activity()
+            ->performedOn($bahan)
+            ->withProperties(['old' => $oldData, 'attributes' => $bahan->toArray()])
+            ->event('updated')
+            ->log('Bahan diperbarui');
+
         return redirect()->route('bahan.show', $bahan)
             ->with('success', 'Bahan berhasil diperbarui');
     }
@@ -108,6 +123,12 @@ class BahanController extends Controller
     public function destroy(Bahan $bahan)
     {
         $this->authorize('delete', $bahan);
+
+        activity()
+            ->performedOn($bahan)
+            ->withProperties(['attributes' => $bahan->toArray()])
+            ->event('deleted')
+            ->log('Bahan dihapus');
 
         $bahan->delete();
 

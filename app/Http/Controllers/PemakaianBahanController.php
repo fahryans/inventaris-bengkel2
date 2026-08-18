@@ -11,6 +11,7 @@ use App\Services\StokService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Spatie\Activitylog\Facades\Activity;
 
 class PemakaianBahanController extends Controller
 {
@@ -64,14 +65,22 @@ class PemakaianBahanController extends Controller
         $validated = $request->validated();
         $validated['id_user_pemakai'] = Auth::id();
 
-        DB::transaction(function () use ($validated) {
-            PemakaianBahan::create($validated);
+        $pemakaian = null;
+
+        DB::transaction(function () use ($validated, &$pemakaian) {
+            $pemakaian = PemakaianBahan::create($validated);
 
             $this->fifoService->consumeFromBatches(
                 $validated['id_bahan'],
                 $validated['jumlah_terpakai']
             );
         });
+
+        activity()
+            ->performedOn($pemakaian)
+            ->withProperties(['attributes' => $pemakaian->toArray()])
+            ->event('created')
+            ->log('Pemakaian bahan baru dicatat');
 
         return redirect()->route('pemakaian_bahan.index')
             ->with('success', 'Pemakaian bahan berhasil dicatat');
@@ -105,6 +114,7 @@ class PemakaianBahanController extends Controller
 
         $oldJumlah = $pemakaian->jumlah_terpakai;
         $oldBahanId = $pemakaian->id_bahan;
+        $oldData = $pemakaian->toArray();
         $validated = $request->validated();
         $newJumlah = $validated['jumlah_terpakai'];
         $newBahanId = $validated['id_bahan'];
@@ -125,6 +135,14 @@ class PemakaianBahanController extends Controller
             }
         });
 
+        $pemakaian->refresh();
+
+        activity()
+            ->performedOn($pemakaian)
+            ->withProperties(['old' => $oldData, 'attributes' => $pemakaian->toArray()])
+            ->event('updated')
+            ->log('Pemakaian bahan diperbarui');
+
         return redirect()->route('pemakaian_bahan.show', $pemakaian)
             ->with('success', 'Pemakaian bahan berhasil diperbarui');
     }
@@ -134,9 +152,19 @@ class PemakaianBahanController extends Controller
         $pemakaian = PemakaianBahan::findOrFail($id);
         $this->authorize('verify', $pemakaian);
 
+        $oldData = $pemakaian->toArray();
+
         $pemakaian->update([
             'id_user_verifikasi' => Auth::id(),
         ]);
+
+        $pemakaian->refresh();
+
+        activity()
+            ->performedOn($pemakaian)
+            ->withProperties(['old' => $oldData, 'attributes' => $pemakaian->toArray()])
+            ->event('verified')
+            ->log('Pemakaian bahan berhasil diverifikasi');
 
         return redirect()->route('pemakaian_bahan.show', $pemakaian)
             ->with('success', 'Pemakaian bahan berhasil diverifikasi');
@@ -146,6 +174,12 @@ class PemakaianBahanController extends Controller
     {
         $pemakaian = PemakaianBahan::findOrFail($id);
         $this->authorize('delete', $pemakaian);
+
+        activity()
+            ->performedOn($pemakaian)
+            ->withProperties(['attributes' => $pemakaian->toArray()])
+            ->event('deleted')
+            ->log('Pemakaian bahan dihapus');
 
         DB::transaction(function () use ($pemakaian) {
             $this->fifoService->reverseConsumeFromBatches(
