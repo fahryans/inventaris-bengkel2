@@ -44,6 +44,8 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['role:admin_jurusan,kepala_labor,teknisi,kadep'])->group(function () {
         Route::resource('alat', AlatController::class);
         Route::resource('unit-alat', UnitAlatController::class);
+        Route::get('unit-alat/{unitAlat}/qr', [\App\Http\Controllers\UnitAlatController::class, 'qr'])
+            ->name('unit-alat.qr');
         Route::resource('bahan', BahanController::class);
         Route::resource('kategori', KategoriController::class);
         Route::resource('pemeliharaan', PemeliharaanAlatController::class);

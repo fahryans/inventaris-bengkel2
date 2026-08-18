@@ -6,6 +6,7 @@ use App\Http\Requests\UnitAlatRequest;
 use App\Models\Alat;
 use App\Models\UnitAlat;
 use Illuminate\Http\Request;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Spatie\Activitylog\Facades\Activity;
 
 class UnitAlatController extends Controller
@@ -73,6 +74,13 @@ class UnitAlatController extends Controller
         $unitAlat->load(['alat', 'peminjamanAlat', 'pemeliharaanAlat']);
 
         return view('unit_alat.show', compact('unitAlat'));
+    }
+
+    public function qr(UnitAlat $unitAlat)
+    {
+        $this->authorize('view', $unitAlat);
+
+        return view('unit_alat.qr', compact('unitAlat'));
     }
 
     public function edit(UnitAlat $unitAlat)
