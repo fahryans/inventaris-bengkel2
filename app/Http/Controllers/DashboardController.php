@@ -211,7 +211,7 @@ class DashboardController extends Controller
 
         $activePeminjaman = $myPeminjaman->where('status', 'terpinjam');
 
-        $riwayatPeminjaman = PeminjamanAlat::where('id_user_peminjam', $user->id)
+        $riwayatPeminjaman = PeminjamanAlat::where('id_user_peminjam', Auth::id())
             ->whereYear('created_at', now()->year)
             ->selectRaw('MONTH(created_at) as month, count(*) as total')
             ->groupBy('month')
