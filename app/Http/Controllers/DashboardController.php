@@ -57,6 +57,15 @@ class DashboardController extends Controller
             ->with('laboratorium')
             ->get();
 
+        $labNames = Laboratorium::pluck('nama_labor');
+        $alatCounts = Laboratorium::withCount('alat')->pluck('alat_count');
+        $pengadaanPerBulan = \App\Models\PengadaanAlat::whereYear('created_at', now()->year)
+            ->selectRaw('MONTH(created_at) as month, count(*) as total')
+            ->groupBy('month')
+            ->pluck('total', 'month')
+            ->toArray();
+        $pengadaanPerBulan = collect(range(1, 12))->map(fn($m) => $pengadaanPerBulan[$m] ?? 0)->toArray();
+
         return view('dashboard.admin', compact(
             'totalAlat',
             'totalBahan',
@@ -67,7 +76,10 @@ class DashboardController extends Controller
             'overduePeminjaman',
             'overdueMaintenance',
             'recentPeminjaman',
-            'alatPerLab'
+            'alatPerLab',
+            'labNames',
+            'alatCounts',
+            'pengadaanPerBulan'
         ));
     }
 

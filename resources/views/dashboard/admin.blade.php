@@ -267,7 +267,70 @@
             </div>
         </div>
     </div>
+
+    <div class="row mb-4">
+        <div class="col-xl-6">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-chart-bar me-1"></i>Distribusi Alat per Laboratorium
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="alatPerLabChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-6">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-chart-line me-1"></i>Pengadaan per Bulan ({{ date('Y') }})
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="pengadaanChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+new Chart(document.getElementById('alatPerLabChart'), {
+    type: 'bar',
+    data: {
+        labels: @json($labNames ?? []),
+        datasets: [{
+            label: 'Jumlah Alat',
+            data: @json($alatCounts ?? []),
+            backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b']
+        }]
+    },
+    options: {
+        responsive: true,
+        scales: { y: { beginAtZero: true } }
+    }
+});
+
+new Chart(document.getElementById('pengadaanChart'), {
+    type: 'line',
+    data: {
+        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'],
+        datasets: [{
+            label: 'Pengadaan',
+            data: @json($pengadaanPerBulan ?? []),
+            borderColor: '#4e73df',
+            tension: 0.3
+        }]
+    },
+    options: {
+        responsive: true,
+        scales: { y: { beginAtZero: true } }
+    }
+});
+</script>
 
 @push('js')
 <script>
