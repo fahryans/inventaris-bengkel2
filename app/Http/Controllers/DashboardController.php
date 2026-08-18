@@ -104,13 +104,27 @@ class DashboardController extends Controller
             ->limit(5)
             ->get();
 
+        $peminjamanPerBulan = PeminjamanAlat::whereHas('alat', fn($q) => $q->where('id_labor', $lab->id))
+            ->whereYear('created_at', now()->year)
+            ->selectRaw('MONTH(created_at) as month, count(*) as total')
+            ->groupBy('month')
+            ->pluck('total', 'month')
+            ->toArray();
+        $peminjamanPerBulan = collect(range(1, 12))->map(fn($m) => $peminjamanPerBulan[$m] ?? 0)->toArray();
+
+        $bahanNames = Bahan::where('id_labor', $lab->id)->pluck('nama_bahan');
+        $stokBahan = Bahan::where('id_labor', $lab->id)->pluck('stok_saat_ini');
+
         return view('dashboard.kepala-labor', compact(
             'lab',
             'totalAlat',
             'totalBahan',
             'lowStockBahan',
             'upcomingMaintenance',
-            'activePeminjaman'
+            'activePeminjaman',
+            'peminjamanPerBulan',
+            'bahanNames',
+            'stokBahan'
         ));
     }
 

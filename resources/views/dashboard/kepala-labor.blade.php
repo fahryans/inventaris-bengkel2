@@ -147,6 +147,62 @@
         </div>
     </div>
 </div>
+    <div class="row mb-4">
+        <div class="col-xl-6">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-chart-line me-1"></i>Peminjaman per Bulan
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="peminjamanLabChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-6">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-chart-doughnut me-1"></i>Stok Bahan
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="stokBahanChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+new Chart(document.getElementById('peminjamanLabChart'), {
+    type: 'line',
+    data: {
+        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'],
+        datasets: [{
+            label: 'Peminjaman',
+            data: @json($peminjamanPerBulan ?? []),
+            borderColor: '#1cc88a',
+            tension: 0.3
+        }]
+    },
+    options: { responsive: true, scales: { y: { beginAtZero: true } } }
+});
+
+new Chart(document.getElementById('stokBahanChart'), {
+    type: 'doughnut',
+    data: {
+        labels: @json($bahanNames ?? []),
+        datasets: [{
+            data: @json($stokBahan ?? []),
+            backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b']
+        }]
+    },
+    options: { responsive: true }
+});
+</script>
 @endsection
 
 @push('css')
