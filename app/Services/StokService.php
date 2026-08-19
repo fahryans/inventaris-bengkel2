@@ -83,7 +83,7 @@ class StokService
 
     public function updateUnitStatus(UnitAlat $unit, string $status): bool
     {
-        if (!in_array($status, ['tersedia', 'terpinjam', 'rusak'])) {
+        if (!in_array($status, ['tersedia', 'dipinjam', 'rusak', 'maintenance'])) {
             throw new \Exception('Status unit tidak valid');
         }
 

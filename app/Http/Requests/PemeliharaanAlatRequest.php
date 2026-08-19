@@ -10,7 +10,7 @@ class PemeliharaanAlatRequest extends FormRequest
     {
         $ability = $this->isMethod('PUT') || $this->isMethod('PATCH') ? 'update' : 'create';
 
-        return $this->user()->can($ability, \App\Models\PemeliharaanAlat::class);
+        return $this->user()->can($ability, $this->route('pemeliharaan') ?? \App\Models\PemeliharaanAlat::class);
     }
 
     public function rules(): array

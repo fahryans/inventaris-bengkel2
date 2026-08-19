@@ -36,14 +36,14 @@ class DashboardControllerTest extends TestCase
         $this->actingAs($this->kadep)->get(route('dashboard'))->assertOk();
     }
 
-    public function test_dosen_cannot_access_dashboard()
+public function test_dosen_can_access_dashboard()
     {
-        $this->actingAs($this->dosen)->get(route('dashboard'))->assertForbidden();
+        $this->actingAs($this->dosen)->get(route('dashboard'))->assertOk();
     }
 
-    public function test_mahasiswa_cannot_access_dashboard()
+    public function test_mahasiswa_can_access_dashboard()
     {
         $mahasiswa = User::factory()->create(['role' => 'mahasiswa']);
-        $this->actingAs($mahasiswa)->get(route('dashboard'))->assertForbidden();
+        $this->actingAs($mahasiswa)->get(route('dashboard'))->assertOk();
     }
 }

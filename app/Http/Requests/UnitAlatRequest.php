@@ -10,7 +10,7 @@ class UnitAlatRequest extends FormRequest
     {
         $ability = $this->isMethod('PUT') || $this->isMethod('PATCH') ? 'update' : 'create';
 
-        return $this->user()->can($ability, \App\Models\UnitAlat::class);
+        return $this->user()->can($ability, $this->route('unit_alat') ?? \App\Models\UnitAlat::class);
     }
 
     public function rules(): array

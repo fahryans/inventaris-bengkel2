@@ -10,9 +10,17 @@ use App\Models\PemeliharaanAlat;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
+    private function monthExpression(): string
+    {
+        return DB::getDriverName() === 'sqlite'
+            ? "CAST(strftime('%m', created_at) AS INTEGER) as month"
+            : 'MONTH(created_at) as month';
+    }
+
     public function index(Request $request)
     {
         $user = Auth::user();
@@ -60,7 +68,7 @@ class DashboardController extends Controller
         $labNames = Laboratorium::pluck('nama_labor');
         $alatCounts = Laboratorium::withCount('alat')->pluck('alat_count');
         $pengadaanPerBulan = \App\Models\PengadaanAlat::whereYear('created_at', now()->year)
-            ->selectRaw('MONTH(created_at) as month, count(*) as total')
+            ->selectRaw($this->monthExpression() . ', count(*) as total')
             ->groupBy('month')
             ->pluck('total', 'month')
             ->toArray();
@@ -106,7 +114,7 @@ class DashboardController extends Controller
 
         $peminjamanPerBulan = PeminjamanAlat::whereHas('alat', fn($q) => $q->where('id_labor', $lab->id))
             ->whereYear('created_at', now()->year)
-            ->selectRaw('MONTH(created_at) as month, count(*) as total')
+            ->selectRaw($this->monthExpression() . ', count(*) as total')
             ->groupBy('month')
             ->pluck('total', 'month')
             ->toArray();
@@ -148,7 +156,7 @@ class DashboardController extends Controller
             ->count();
 
         $pemeliharaanPerBulan = PemeliharaanAlat::whereYear('created_at', now()->year)
-            ->selectRaw('MONTH(created_at) as month, count(*) as total')
+            ->selectRaw($this->monthExpression() . ', count(*) as total')
             ->groupBy('month')
             ->pluck('total', 'month')
             ->toArray();
@@ -182,7 +190,11 @@ class DashboardController extends Controller
         $totalPeminjaman = PeminjamanAlat::count();
         $lowStockBahan = Bahan::lowStock()->count();
 
-        $peminjamPerBulan = PeminjamanAlat::selectRaw('MONTH(created_at) as bulan, COUNT(*) as total')
+        $monthExprBulan = DB::getDriverName() === 'sqlite'
+            ? "CAST(strftime('%m', created_at) AS INTEGER) as bulan"
+            : 'MONTH(created_at) as bulan';
+
+        $peminjamPerBulan = PeminjamanAlat::selectRaw($monthExprBulan . ', COUNT(*) as total')
             ->whereBetween('created_at', [now()->startOfYear(), now()->endOfYear()])
             ->groupBy('bulan')
             ->get();
@@ -213,7 +225,7 @@ class DashboardController extends Controller
 
         $riwayatPeminjaman = PeminjamanAlat::where('id_user_peminjam', Auth::id())
             ->whereYear('created_at', now()->year)
-            ->selectRaw('MONTH(created_at) as month, count(*) as total')
+            ->selectRaw($this->monthExpression() . ', count(*) as total')
             ->groupBy('month')
             ->pluck('total', 'month')
             ->toArray();

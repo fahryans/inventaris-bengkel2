@@ -46,7 +46,7 @@ class PeminjamanService
                 $this->stokService->kurangiAlatAgregat($alat, $peminjaman->jumlah);
             } elseif ($idUnitAlat) {
                 $unit = UnitAlat::findOrFail($idUnitAlat);
-                $this->stokService->updateUnitStatus($unit, 'terpinjam');
+                $this->stokService->updateUnitStatus($unit, 'dipinjam');
             }
 
             return $peminjaman;

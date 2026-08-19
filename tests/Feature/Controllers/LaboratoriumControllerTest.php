@@ -30,24 +30,29 @@ class LaboratoriumControllerTest extends TestCase
         $this->actingAs($this->admin)->get(route('laboratorium.index'))->assertOk();
     }
 
-    public function test_update_modifies_laboratorium()
+public function test_update_modifies_laboratorium()
     {
-        $lab = Laboratorium::factory()->create(['nama_labor' => 'Old Name']);
+        $kepala = User::factory()->create(['role' => 'kepala_labor']);
+        $lab = Laboratorium::factory()->create(['nama_labor' => 'Old Name', 'id_user_kalab' => $kepala->id]);
 
         $this->actingAs($this->admin)
-            ->put(route('laboratorium.update', $lab), ['nama_labor' => 'New Name']);
+            ->put(route('laboratorium.update', $lab), [
+                'nama_labor' => 'New Name',
+                'id_user_kalab' => $kepala->id,
+                'lokasi' => $lab->lokasi,
+            ]);
 
         $this->assertDatabaseHas('laboratorium', ['id' => $lab->id, 'nama_labor' => 'New Name']);
     }
 
-    public function test_destroy_deletes_laboratorium()
+public function test_destroy_deletes_laboratorium()
     {
         $lab = Laboratorium::factory()->create();
 
         $this->actingAs($this->admin)
             ->delete(route('laboratorium.destroy', $lab));
 
-        $this->assertSoftDeleted('laboratorium', ['id' => $lab->id]);
+        $this->assertDatabaseMissing('laboratorium', ['id' => $lab->id]);
     }
 
     public function test_dosen_cannot_access_laboratorium()

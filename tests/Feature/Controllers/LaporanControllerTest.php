@@ -58,6 +58,6 @@ class LaporanControllerTest extends TestCase
 
     public function test_admin_can_export_laporan()
     {
-        $this->actingAs($this->admin)->get(route('laporan.export', 'alat'))->assertOk();
+        $this->actingAs($this->admin)->post(route('laporan.export', 'alat'))->assertOk();
     }
 }

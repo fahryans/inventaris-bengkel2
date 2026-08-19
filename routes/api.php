@@ -19,7 +19,7 @@ use Illuminate\Support\Facades\Route;
 Route::post('/login', [AuthController::class, 'login']);
 
 // Protected routes
-Route::middleware('auth:sanctum')->group(function () {
+Route::name('api.')->middleware('auth:sanctum')->group(function () {
     Route::post('/register', [AuthController::class, 'register'])
         ->middleware('api.role:admin_jurusan');
     Route::post('/logout', [AuthController::class, 'logout']);

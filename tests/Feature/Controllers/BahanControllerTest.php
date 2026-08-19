@@ -57,12 +57,25 @@ class BahanControllerTest extends TestCase
         $this->assertDatabaseHas('bahan', ['nama_bahan' => 'Minyak Mesin']);
     }
 
-    public function test_update_modifies_bahan()
+public function test_update_modifies_bahan()
     {
-        $bahan = Bahan::factory()->create(['nama_bahan' => 'Old Name']);
+        $kategori = Kategori::factory()->create(['jenis' => 'bahan']);
+        $lab = Laboratorium::factory()->create();
+        $bahan = Bahan::factory()->create([
+            'nama_bahan' => 'Old Name',
+            'id_kategori' => $kategori->id,
+            'id_labor' => $lab->id,
+        ]);
 
         $this->actingAs($this->admin)
-            ->put(route('bahan.update', $bahan), ['nama_bahan' => 'New Name']);
+            ->put(route('bahan.update', $bahan), [
+                'nama_bahan' => 'New Name',
+                'id_kategori' => $kategori->id,
+                'id_labor' => $lab->id,
+                'stok_saat_ini' => $bahan->stok_saat_ini,
+                'stok_minimum' => $bahan->stok_minimum,
+                'satuan' => $bahan->satuan,
+            ]);
 
         $this->assertDatabaseHas('bahan', ['id' => $bahan->id, 'nama_bahan' => 'New Name']);
     }

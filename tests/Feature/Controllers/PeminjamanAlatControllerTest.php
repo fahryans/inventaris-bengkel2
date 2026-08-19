@@ -53,10 +53,10 @@ class PeminjamanAlatControllerTest extends TestCase
         $this->assertDatabaseHas('peminjaman_alat', ['keperluan' => 'Pengujian']);
     }
 
-    public function test_dosen_cannot_access_peminjaman()
+public function test_dosen_can_access_peminjaman()
     {
         $this->actingAs($this->dosen)
             ->get(route('peminjaman.index'))
-            ->assertForbidden();
+            ->assertOk();
     }
 }

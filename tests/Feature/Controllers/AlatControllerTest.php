@@ -60,13 +60,20 @@ class AlatControllerTest extends TestCase
         $this->assertDatabaseHas('alat', ['nama_alat' => 'Multimeter Digital']);
     }
 
-    public function test_update_modifies_alat()
+public function test_update_modifies_alat()
     {
         $kategori = Kategori::factory()->create(['jenis' => 'alat']);
-        $alat = Alat::factory()->create(['id_kategori' => $kategori->id, 'nama_alat' => 'Old Name']);
+        $laboratorium = Laboratorium::factory()->create(['id_user_kalab' => $this->admin->id]);
+        $alat = Alat::factory()->create(['id_kategori' => $kategori->id, 'id_labor' => $laboratorium->id, 'tipe_pelacakan' => 'agregat', 'jumlah_alat' => 5, 'nama_alat' => 'Old Name']);
 
         $this->actingAs($this->admin)
-            ->put(route('alat.update', $alat), ['nama_alat' => 'New Name']);
+            ->put(route('alat.update', $alat), [
+                'id_kategori' => $kategori->id,
+                'id_labor' => $laboratorium->id,
+                'nama_alat' => 'New Name',
+                'tipe_pelacakan' => 'agregat',
+                'jumlah_alat' => 5,
+            ]);
 
         $this->assertDatabaseHas('alat', ['id' => $alat->id, 'nama_alat' => 'New Name']);
     }

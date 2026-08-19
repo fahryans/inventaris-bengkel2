@@ -53,12 +53,18 @@ class UnitAlatControllerTest extends TestCase
         $this->assertDatabaseHas('unit_alat', ['kode_inventaris' => 'INV-001']);
     }
 
-    public function test_update_modifies_unit_alat()
+public function test_update_modifies_unit_alat()
     {
-        $unitAlat = UnitAlat::factory()->create(['kode_inventaris' => 'INV-002']);
+        $alat = Alat::factory()->create(['tipe_pelacakan' => 'unit']);
+        $unitAlat = UnitAlat::factory()->create(['kode_inventaris' => 'INV-002', 'id_alat' => $alat->id]);
 
         $this->actingAs($this->admin)
-            ->put(route('unit-alat.update', $unitAlat), ['kode_inventaris' => 'INV-003']);
+            ->put(route('unit-alat.update', $unitAlat), [
+                'id_alat' => $alat->id,
+                'kode_inventaris' => 'INV-003',
+                'kondisi_saat_ini' => $unitAlat->kondisi_saat_ini,
+                'status' => $unitAlat->status,
+            ]);
 
         $this->assertDatabaseHas('unit_alat', ['id' => $unitAlat->id, 'kode_inventaris' => 'INV-003']);
     }

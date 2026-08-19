@@ -56,9 +56,8 @@ class PengadaanAlatControllerTest extends TestCase
 
     public function test_mark_received_requires_auth()
     {
-        $pengadaan = PengadaanAlat::factory()->create();
         $this->actingAs($this->dosen)
-            ->post(route('pengadaan_alat.mark_received', $pengadaan))
+            ->post(route('pengadaan_alat.mark_received', 1))
             ->assertForbidden();
     }
 

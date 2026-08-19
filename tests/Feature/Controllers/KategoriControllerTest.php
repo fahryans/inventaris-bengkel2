@@ -48,24 +48,24 @@ class KategoriControllerTest extends TestCase
         $this->assertDatabaseHas('kategori', ['nama_kategori' => 'Alat Berat']);
     }
 
-    public function test_update_modifies_kategori()
+public function test_update_modifies_kategori()
     {
         $kategori = Kategori::factory()->create(['nama_kategori' => 'Old Name', 'jenis' => 'alat']);
 
         $this->actingAs($this->admin)
-            ->put(route('kategori.update', $kategori), ['nama_kategori' => 'New Name']);
+            ->put(route('kategori.update', $kategori), ['nama_kategori' => 'New Name', 'jenis' => 'alat']);
 
         $this->assertDatabaseHas('kategori', ['id' => $kategori->id, 'nama_kategori' => 'New Name']);
     }
 
-    public function test_destroy_deletes_kategori()
+public function test_destroy_deletes_kategori()
     {
         $kategori = Kategori::factory()->create();
 
         $this->actingAs($this->admin)
             ->delete(route('kategori.destroy', $kategori));
 
-        $this->assertSoftDeleted('kategori', ['id' => $kategori->id]);
+        $this->assertDatabaseMissing('kategori', ['id' => $kategori->id]);
     }
 
     public function test_dosen_cannot_access_kategori()

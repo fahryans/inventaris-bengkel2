@@ -16,8 +16,8 @@ class StokServiceTest extends TestCase
     public function test_add_stok_increases_bahan_stock()
     {
         $user = User::factory()->create();
-        $kategori = Kategori::factory()->create();
-        $laboratorium = Laboratorium::factory(['id_user_kalab' => $user->id]);
+        $kategori = Kategori::factory()->create(['jenis' => 'bahan']);
+        $laboratorium = Laboratorium::factory()->create(['id_user_kalab' => $user->id]);
         $bahan = Bahan::factory()->create(['id_kategori' => $kategori->id, 'id_labor' => $laboratorium->id, 'stok_saat_ini' => 50]);
         $service = new StokService();
 
@@ -29,8 +29,8 @@ class StokServiceTest extends TestCase
     public function test_subtract_stok_decreases_bahan_stock()
     {
         $user = User::factory()->create();
-        $kategori = Kategori::factory()->create();
-        $laboratorium = Laboratorium::factory(['id_user_kalab' => $user->id]);
+        $kategori = Kategori::factory()->create(['jenis' => 'bahan']);
+        $laboratorium = Laboratorium::factory()->create(['id_user_kalab' => $user->id]);
         $bahan = Bahan::factory()->create(['id_kategori' => $kategori->id, 'id_labor' => $laboratorium->id, 'stok_saat_ini' => 50]);
         $service = new StokService();
 
@@ -42,8 +42,8 @@ class StokServiceTest extends TestCase
     public function test_subtract_stok_throws_on_insufficient()
     {
         $user = User::factory()->create();
-        $kategori = Kategori::factory()->create();
-        $laboratorium = Laboratorium::factory(['id_user_kalab' => $user->id]);
+        $kategori = Kategori::factory()->create(['jenis' => 'bahan']);
+        $laboratorium = Laboratorium::factory()->create(['id_user_kalab' => $user->id]);
         $bahan = Bahan::factory()->create(['id_kategori' => $kategori->id, 'id_labor' => $laboratorium->id, 'stok_saat_ini' => 10]);
         $service = new StokService();
 
@@ -54,14 +54,14 @@ class StokServiceTest extends TestCase
     public function test_update_unit_status()
     {
         $user = User::factory()->create();
-        $kategori = Kategori::factory()->create();
-        $laboratorium = Laboratorium::factory(['id_user_kalab' => $user->id]);
+        $kategori = Kategori::factory()->create(['jenis' => 'alat']);
+        $laboratorium = Laboratorium::factory()->create(['id_user_kalab' => $user->id]);
         $alat = Alat::factory()->create(['id_kategori' => $kategori->id, 'id_labor' => $laboratorium->id, 'tipe_pelacakan' => 'unit']);
         $unit = UnitAlat::factory()->create(['id_alat' => $alat->id, 'status' => 'tersedia']);
         $service = new StokService();
 
-        $service->updateUnitStatus($unit, 'terpinjam');
+        $service->updateUnitStatus($unit, 'dipinjam');
 
-        $this->assertEquals('terpinjam', $unit->fresh()->status);
+        $this->assertEquals('dipinjam', $unit->fresh()->status);
     }
 }

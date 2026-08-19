@@ -10,7 +10,7 @@ use App\Models\PemakaianBahan;
 use App\Models\PemeliharaanAlat;
 use App\Models\PengadaanAlat;
 use App\Models\PengadaanBahan;
-use Barryvdh\DomPDF\Facades\Pdf;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -135,7 +135,7 @@ class LaporanController extends Controller
             'date' => now()->format('d/m/Y'),
         ]);
 
-        $filename = "laporan_{$tipe}_" . now()->format('d/m/Y') . '.pdf';
+        $filename = "laporan_{$tipe}_" . now()->format('d-m-Y') . '.pdf';
 
         return $pdf->download($filename);
     }

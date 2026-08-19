@@ -10,7 +10,7 @@ class PengadaanAlatRequest extends FormRequest
     {
         $ability = $this->isMethod('PUT') || $this->isMethod('PATCH') ? 'update' : 'create';
 
-        return $this->user()->can($ability, \App\Models\PengadaanAlat::class);
+        return $this->user()->can($ability, $this->route('pengadaan_alat') ?? \App\Models\PengadaanAlat::class);
     }
 
     public function rules(): array

@@ -14,7 +14,7 @@ class UnitAlatFactory extends Factory
     {
         return [
             'id_alat' => Alat::factory(),
-            'kode_inventaris' => fake()->word(),
+            'kode_inventaris' => strtoupper('INV-' . fake()->unique()->bothify('####??????')),
             'kondisi_saat_ini' => 'baik',
             'status' => fake()->randomElement(['tersedia', 'dipinjam', 'rusak', 'maintenance']),
         ];
