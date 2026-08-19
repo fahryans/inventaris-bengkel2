@@ -91,9 +91,9 @@
                                             </td>
                                             <td>
                                                 <a href="{{ route('pemeliharaan.show', $maintenance) }}" class="btn btn-sm btn-info">Detail</a>
-                                                @can('update', $maintenance)
+                                                @can('complete', $maintenance)
                                                 @if(!$maintenance->tanggal_cek)
-                                                    <a href="{{ route('pemeliharaan.edit', $maintenance) }}" class="btn btn-sm btn-warning">Kerjakan</a>
+                                                    <a href="{{ route('pemeliharaan.show', $maintenance) }}" class="btn btn-sm btn-success">Kerjakan</a>
                                                 @endif
                                                 @endcan
                                             </td>

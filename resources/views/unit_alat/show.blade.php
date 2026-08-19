@@ -49,8 +49,10 @@
                             <p>
                                 @if($unitAlat->status == 'tersedia')
                                     <span class="badge bg-success">Tersedia</span>
-                                @elseif($unitAlat->status == 'terpinjam')
+                                @elseif($unitAlat->status == 'dipinjam')
                                     <span class="badge bg-warning">Terpinjam</span>
+                                @elseif($unitAlat->status == 'rusak')
+                                    <span class="badge bg-danger">Rusak</span>
                                 @else
                                     <span class="badge bg-info">Maintenance</span>
                                 @endif

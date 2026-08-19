@@ -97,8 +97,10 @@
                                 <td>
                                     @if($unit->status == 'tersedia')
                                         <span class="badge bg-success">Tersedia</span>
-                                    @elseif($unit->status == 'terpinjam')
+                                    @elseif($unit->status == 'dipinjam')
                                         <span class="badge bg-warning">Terpinjam</span>
+                                    @elseif($unit->status == 'rusak')
+                                        <span class="badge bg-danger">Rusak</span>
                                     @else
                                         <span class="badge bg-info">Maintenance</span>
                                     @endif

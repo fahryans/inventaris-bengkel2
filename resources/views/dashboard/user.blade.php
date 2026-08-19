@@ -17,7 +17,7 @@
             <div class="card border-left-primary shadow h-100 py-2">
                 <div class="card-body">
                     <div class="text-primary text-uppercase mb-1 small font-weight-bold">Sedang Dipinjam</div>
-                    <div class="h3 mb-0">{{ $activePeminjaman->count() }}</div>
+                    <div class="h3 mb-0">{{ $activeCount }}</div>
                 </div>
             </div>
         </div>
@@ -33,7 +33,7 @@
             <div class="card border-left-info shadow h-100 py-2">
                 <div class="card-body">
                     <div class="text-info text-uppercase mb-1 small font-weight-bold">Riwayat Peminjaman</div>
-                    <div class="h3 mb-0">{{ $myPeminjaman->count() }}</div>
+                    <div class="h3 mb-0">{{ $riwayatCount }}</div>
                 </div>
             </div>
         </div>
@@ -100,7 +100,7 @@
     </div>
 
     {{-- Peminjaman Aktif --}}
-    @if($activePeminjaman->count())
+    @if($myPeminjaman->count())
     <div class="row">
         <div class="col-12">
             <div class="card shadow mb-4">
@@ -122,7 +122,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach($activePeminjaman as $peminjaman)
+                                @foreach($myPeminjaman as $peminjaman)
                                     <tr>
                                         <td>{{ $peminjaman->equipment_name }}</td>
                                         <td>{{ $peminjaman->keperluan }}</td>

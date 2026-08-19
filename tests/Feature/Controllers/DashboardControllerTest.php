@@ -41,9 +41,25 @@ public function test_dosen_can_access_dashboard()
         $this->actingAs($this->dosen)->get(route('dashboard'))->assertOk();
     }
 
-    public function test_mahasiswa_can_access_dashboard()
+public function test_mahasiswa_can_access_dashboard()
     {
         $mahasiswa = User::factory()->create(['role' => 'mahasiswa']);
         $this->actingAs($mahasiswa)->get(route('dashboard'))->assertOk();
+    }
+
+    public function test_kepala_labor_without_lab_shows_fallback_not_redirect_loop()
+    {
+        $kalab = User::factory()->create(['role' => 'kepala_labor']);
+        $response = $this->actingAs($kalab)->get(route('dashboard'));
+        $response->assertOk();
+        $response->assertViewIs('dashboard.no-lab');
+    }
+
+    public function test_kepala_labor_with_lab_can_access_dashboard()
+    {
+        $kalab = User::factory()->create(['role' => 'kepala_labor']);
+        \App\Models\Laboratorium::factory()->create(['id_user_kalab' => $kalab->id]);
+
+        $this->actingAs($kalab)->get(route('dashboard'))->assertOk();
     }
 }

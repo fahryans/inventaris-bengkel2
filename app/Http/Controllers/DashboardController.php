@@ -96,7 +96,7 @@ class DashboardController extends Controller
         $lab = Laboratorium::where('id_user_kalab', Auth::id())->first();
 
         if (!$lab) {
-            return view('dashboard.index', ['message' => 'Anda belum ditugaskan sebagai kepala laboratorium']);
+            return view('dashboard.no-lab', ['message' => 'Anda belum ditugaskan sebagai kepala laboratorium']);
         }
 
         $totalAlat = Alat::where('id_labor', $lab->id)->count();
@@ -104,15 +104,24 @@ class DashboardController extends Controller
         $lowStockBahan = Bahan::where('id_labor', $lab->id)->lowStock()->count();
         $upcomingMaintenance = PemeliharaanAlat::whereHas('unitAlat.alat', function ($q) use ($lab) {
             $q->where('id_labor', $lab->id);
-        })->where('tanggal_cek_berikutnya', '<=', now()->addDays(7))->count();
+        })->whereNull('tanggal_cek')
+            ->where('tanggal_cek_berikutnya', '<=', now()->addDays(7))
+            ->count();
 
         $activePeminjaman = PeminjamanAlat::where('status', 'terpinjam')
+            ->where(function ($q) use ($lab) {
+                $q->whereHas('alat', fn($a) => $a->where('id_labor', $lab->id))
+                  ->orWhereHas('unitAlat.alat', fn($a) => $a->where('id_labor', $lab->id));
+            })
             ->with(['userPeminjam', 'alat', 'unitAlat'])
             ->latest()
             ->limit(5)
             ->get();
 
-        $peminjamanPerBulan = PeminjamanAlat::whereHas('alat', fn($q) => $q->where('id_labor', $lab->id))
+        $peminjamanPerBulan = PeminjamanAlat::where(function ($q) use ($lab) {
+            $q->whereHas('alat', fn($a) => $a->where('id_labor', $lab->id))
+              ->orWhereHas('unitAlat.alat', fn($a) => $a->where('id_labor', $lab->id));
+        })
             ->whereYear('created_at', now()->year)
             ->selectRaw($this->monthExpression() . ', count(*) as total')
             ->groupBy('month')
@@ -120,8 +129,9 @@ class DashboardController extends Controller
             ->toArray();
         $peminjamanPerBulan = collect(range(1, 12))->map(fn($m) => $peminjamanPerBulan[$m] ?? 0)->toArray();
 
-        $bahanNames = Bahan::where('id_labor', $lab->id)->pluck('nama_bahan');
-        $stokBahan = Bahan::where('id_labor', $lab->id)->pluck('stok_saat_ini');
+        $bahans = Bahan::where('id_labor', $lab->id)->orderBy('nama_bahan')->get(['nama_bahan', 'stok_saat_ini']);
+        $bahanNames = $bahans->pluck('nama_bahan');
+        $stokBahan = $bahans->pluck('stok_saat_ini');
 
         return view('dashboard.kepala-labor', compact(
             'lab',
@@ -155,7 +165,8 @@ class DashboardController extends Controller
             ->whereBetween('tanggal_cek', [now()->startOfMonth(), now()->endOfMonth()])
             ->count();
 
-        $pemeliharaanPerBulan = PemeliharaanAlat::whereYear('created_at', now()->year)
+        $pemeliharaanPerBulan = PemeliharaanAlat::where('id_teknisi', Auth::id())
+            ->whereYear('created_at', now()->year)
             ->selectRaw($this->monthExpression() . ', count(*) as total')
             ->groupBy('month')
             ->pluck('total', 'month')
@@ -215,13 +226,19 @@ class DashboardController extends Controller
 
         $labs = Laboratorium::withCount(['alat', 'bahan'])->get();
 
+        $activeCount = PeminjamanAlat::where('id_user_peminjam', Auth::id())
+            ->where('status', 'terpinjam')
+            ->count();
+
+        $riwayatCount = PeminjamanAlat::where('id_user_peminjam', Auth::id())
+            ->count();
+
         $myPeminjaman = PeminjamanAlat::where('id_user_peminjam', Auth::id())
+            ->where('status', 'terpinjam')
             ->with(['alat', 'unitAlat'])
             ->latest()
             ->limit(5)
             ->get();
-
-        $activePeminjaman = $myPeminjaman->where('status', 'terpinjam');
 
         $riwayatPeminjaman = PeminjamanAlat::where('id_user_peminjam', Auth::id())
             ->whereYear('created_at', now()->year)
@@ -234,7 +251,8 @@ class DashboardController extends Controller
         return view('dashboard.user', compact(
             'labs',
             'myPeminjaman',
-            'activePeminjaman',
+            'activeCount',
+            'riwayatCount',
             'riwayatPeminjaman'
         ));
     }

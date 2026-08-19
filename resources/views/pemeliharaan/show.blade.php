@@ -69,6 +69,13 @@
                     </div>
 
                     <div class="d-flex gap-2">
+                        @can('complete', $pemeliharaan)
+                        @if(!$pemeliharaan->tanggal_cek)
+                        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#completeModal">
+                            <i class="fas fa-check"></i> Selesaikan Pemeliharaan
+                        </button>
+                        @endif
+                        @endcan
                         @can('update', $pemeliharaan)
                         <a href="{{ route('pemeliharaan.edit', $pemeliharaan) }}" class="btn btn-warning">
                             <i class="fas fa-edit"></i> Edit
@@ -102,6 +109,39 @@
                     <p><strong>Status:</strong><br><span class="badge bg-{{ $pemeliharaan->unitAlat->status == 'tersedia' ? 'success' : 'danger' }}">{{ ucfirst($pemeliharaan->unitAlat->status) }}</span></p>
                 </div>
             </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="completeModal" tabindex="-1" aria-labelledby="completeModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="{{ route('pemeliharaan.complete', $pemeliharaan) }}" method="POST">
+                @csrf
+                <div class="modal-header">
+                    <h5 class="modal-title" id="completeModalLabel">Selesaikan Pemeliharaan</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="kondisi" class="form-label">Kondisi Setelah Pengecekan <span class="text-danger">*</span></label>
+                        <select name="kondisi" id="kondisi" class="form-select" required>
+                            <option value="">Pilih Kondisi</option>
+                            <option value="baik">Baik</option>
+                            <option value="rusak_ringan">Rusak Ringan</option>
+                            <option value="rusak_berat">Rusak Berat</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="hasil_pemeliharaan" class="form-label">Hasil Pemeliharaan</label>
+                        <textarea name="hasil_pemeliharaan" id="hasil_pemeliharaan" class="form-control" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-success">Simpan</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
