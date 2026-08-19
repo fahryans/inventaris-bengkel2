@@ -61,10 +61,48 @@ class PengadaanAlatControllerTest extends TestCase
             ->assertForbidden();
     }
 
-    public function test_dosen_cannot_access_pengadaan_alat()
+public function test_dosen_cannot_access_pengadaan_alat()
     {
         $this->actingAs($this->dosen)
             ->get(route('pengadaan_alat.index'))
             ->assertForbidden();
+    }
+
+    public function test_mark_received_creates_units_for_unit_tracked_alat()
+    {
+        $kategori = \App\Models\Kategori::factory()->create(['jenis' => 'alat']);
+        $alat = Alat::factory()->create(['tipe_pelacakan' => 'unit', 'id_kategori' => $kategori->id, 'jumlah_alat' => 0]);
+        $pengadaan = PengadaanAlat::factory()->create([
+            'id_alat' => $alat->id,
+            'jumlah' => 3,
+            'tanggal_masuk' => null,
+        ]);
+
+        $this->actingAs($this->admin)
+            ->post(route('pengadaan_alat.mark_received', $pengadaan), [
+                'tanggal_masuk' => now()->format('Y-m-d'),
+            ]);
+
+        $this->assertEquals(3, $alat->fresh()->unitAlat()->count());
+        $this->assertEquals(0, $alat->fresh()->jumlah_alat);
+        $this->assertNotNull($pengadaan->fresh()->tanggal_masuk);
+    }
+
+    public function test_mark_received_increments_aggregate_stock_for_aggregate_alat()
+    {
+        $kategori = \App\Models\Kategori::factory()->create(['jenis' => 'alat']);
+        $alat = Alat::factory()->create(['tipe_pelacakan' => 'agregat', 'id_kategori' => $kategori->id, 'jumlah_alat' => 0]);
+        $pengadaan = PengadaanAlat::factory()->create([
+            'id_alat' => $alat->id,
+            'jumlah' => 5,
+            'tanggal_masuk' => null,
+        ]);
+
+        $this->actingAs($this->admin)
+            ->post(route('pengadaan_alat.mark_received', $pengadaan), [
+                'tanggal_masuk' => now()->format('Y-m-d'),
+            ]);
+
+        $this->assertEquals(5, $alat->fresh()->jumlah_alat);
     }
 }

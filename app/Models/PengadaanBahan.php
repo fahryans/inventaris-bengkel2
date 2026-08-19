@@ -56,6 +56,7 @@ class PengadaanBahan extends Model
     public function scopeTersediaUrutExpiry($query, int $idBahan)
     {
         return $query->where('id_bahan', $idBahan)
+            ->whereNotNull('tanggal_masuk')
             ->where('stok_tersisa_batch', '>', 0)
             ->orderByRaw('masa_expire_bahan IS NULL, masa_expire_bahan ASC');
     }

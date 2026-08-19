@@ -88,17 +88,6 @@
                 <div class="row">
                     <div class="col-md-6">
                         <div class="mb-3">
-                            <label for="stok_tersisa_batch" class="form-label">Stok Tersisa Batch <span class="text-danger">*</span></label>
-                            <input type="number" name="stok_tersisa_batch" id="stok_tersisa_batch" class="form-control @error('stok_tersisa_batch') is-invalid @enderror" 
-                                   value="{{ old('stok_tersisa_batch', $pengadaan->stok_tersisa_batch) }}" min="0" required>
-                            @error('stok_tersisa_batch')
-                                <div class="invalid-feedback d-block">{{ $message }}</div>
-                            @enderror
-                        </div>
-                    </div>
-
-                    <div class="col-md-6">
-                        <div class="mb-3">
                             <label for="masa_expire_bahan" class="form-label">Masa Expire Bahan</label>
                             <input type="date" name="masa_expire_bahan" id="masa_expire_bahan" class="form-control @error('masa_expire_bahan') is-invalid @enderror" 
                                    value="{{ old('masa_expire_bahan', $pengadaan->masa_expire_bahan?->format('Y-m-d')) }}">

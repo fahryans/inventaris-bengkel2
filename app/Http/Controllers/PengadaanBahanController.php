@@ -100,7 +100,6 @@ class PengadaanBahanController extends Controller
         $this->authorize('update', $pengadaan);
 
         $oldData = $pengadaan->toArray();
-
         $validated = $request->validated();
 
         if ($request->hasFile('foto_transaksi')) {
@@ -110,7 +109,42 @@ class PengadaanBahanController extends Controller
             $validated['foto_transaksi'] = $request->file('foto_transaksi')->store('pengadaan', 'public');
         }
 
-        $pengadaan->update($validated);
+        if ($pengadaan->tanggal_masuk && (int) $validated['jumlah'] < $pengadaan->jumlah - $pengadaan->stok_tersisa_batch) {
+            return back()->withErrors([
+                'jumlah' => 'Jumlah tidak boleh kurang dari yang sudah terpakai (' . ($pengadaan->jumlah - $pengadaan->stok_tersisa_batch) . ')',
+            ]);
+        }
+
+        DB::transaction(function () use ($pengadaan, $validated) {
+            if ($pengadaan->tanggal_masuk) {
+                $oldJumlah = $pengadaan->jumlah;
+                $oldStok = $pengadaan->stok_tersisa_batch;
+                $oldBahanId = $pengadaan->id_bahan;
+                $used = $oldJumlah - $oldStok;
+                $newJumlah = (int) $validated['jumlah'];
+                $newStok = $newJumlah - $used;
+
+                if ($oldBahanId !== (int) $validated['id_bahan']) {
+                    $this->stokService->kurangiBahan($pengadaan->bahan, $oldStok);
+                    $this->stokService->tambahBahan(Bahan::findOrFail($validated['id_bahan']), $newStok);
+                } else {
+                    $delta = $newStok - $oldStok;
+                    if ($delta > 0) {
+                        $this->stokService->tambahBahan($pengadaan->bahan, $delta);
+                    } elseif ($delta < 0) {
+                        $this->stokService->kurangiBahan($pengadaan->bahan, abs($delta));
+                    }
+                }
+
+                $validated['stok_tersisa_batch'] = $newStok;
+            }
+
+            unset($validated['tanggal_masuk']);
+
+            $pengadaan->update($validated);
+        });
+
+        $pengadaan->refresh();
 
         activity()
             ->performedOn($pengadaan)
@@ -173,7 +207,16 @@ class PengadaanBahanController extends Controller
             ->event('deleted')
             ->log('Pengadaan bahan dihapus');
 
-        $pengadaan->delete();
+        DB::transaction(function () use ($pengadaan) {
+            if ($pengadaan->tanggal_masuk && $pengadaan->stok_tersisa_batch > 0) {
+                $this->stokService->kurangiBahan(
+                    $pengadaan->bahan,
+                    $pengadaan->stok_tersisa_batch
+                );
+            }
+
+            $pengadaan->delete();
+        });
 
         return redirect()->route('pengadaan_bahan.index')
             ->with('success', 'Pengadaan bahan berhasil dihapus');

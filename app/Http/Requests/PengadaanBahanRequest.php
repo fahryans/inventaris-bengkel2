@@ -10,7 +10,12 @@ class PengadaanBahanRequest extends FormRequest
     {
         $ability = $this->isMethod('PUT') || $this->isMethod('PATCH') ? 'update' : 'create';
 
-        return $this->user()->can($ability, $this->route('pengadaan_bahan') ?? \App\Models\PengadaanBahan::class);
+        $model = $this->route('pengadaan_bahan');
+        $model = $model instanceof \App\Models\PengadaanBahan
+            ? $model
+            : (\App\Models\PengadaanBahan::find($model) ?? \App\Models\PengadaanBahan::class);
+
+        return $this->user()->can($ability, $model);
     }
 
     public function rules(): array
@@ -20,7 +25,6 @@ class PengadaanBahanRequest extends FormRequest
             'tanggal_pengadaan' => ['required', 'date'],
             'harga_perolehan' => ['required', 'numeric', 'min:0'],
             'jumlah' => ['required', 'integer', 'min:1'],
-            'stok_tersisa_batch' => ['required', 'integer', 'min:0'],
             'masa_expire_bahan' => ['nullable', 'date'],
             'supplier' => ['required', 'string', 'max:255'],
             'tanggal_masuk' => ['nullable', 'date'],
@@ -35,7 +39,6 @@ class PengadaanBahanRequest extends FormRequest
             'tanggal_pengadaan.required' => 'Tanggal pengadaan tidak boleh kosong',
             'harga_perolehan.required' => 'Harga perolehan tidak boleh kosong',
             'jumlah.required' => 'Jumlah tidak boleh kosong',
-            'stok_tersisa_batch.required' => 'Stok tersisa batch tidak boleh kosong',
             'supplier.required' => 'Supplier tidak boleh kosong',
         ];
     }

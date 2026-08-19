@@ -62,4 +62,17 @@ class FIFOServiceTest extends TestCase
         $this->assertEquals(0, $batch1->fresh()->stok_tersisa_batch);
         $this->assertEquals(40, $batch2->fresh()->stok_tersisa_batch);
     }
+
+    public function test_consume_fifo_ignores_not_yet_received_batches()
+    {
+        [$user, $bahan] = $this->makeBahan();
+        $received = $this->makeBatch($bahan, $user, ['stok_tersisa_batch' => 20, 'tanggal_pengadaan' => now()->subDays(10)]);
+        $pending = $this->makeBatch($bahan, $user, ['tanggal_masuk' => null, 'stok_tersisa_batch' => 50]);
+
+        $service = new FIFOService(new StokService());
+        $service->consumeFromBatches($bahan->id, 10);
+
+        $this->assertEquals(10, $received->fresh()->stok_tersisa_batch);
+        $this->assertEquals(50, $pending->fresh()->stok_tersisa_batch);
+    }
 }

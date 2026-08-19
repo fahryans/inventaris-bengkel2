@@ -101,7 +101,6 @@ class PengadaanAlatController extends Controller
         $this->authorize('update', $pengadaan);
 
         $oldData = $pengadaan->toArray();
-
         $validated = $request->validated();
 
         if ($request->hasFile('foto_transaksi')) {
@@ -111,7 +110,53 @@ class PengadaanAlatController extends Controller
             $validated['foto_transaksi'] = $request->file('foto_transaksi')->store('pengadaan', 'public');
         }
 
-        $pengadaan->update($validated);
+        DB::transaction(function () use ($pengadaan, $validated) {
+            if ($pengadaan->tanggal_masuk) {
+                $oldJumlah = $pengadaan->jumlah;
+
+                if ($pengadaan->alat->isUnitTracked()) {
+                    $delta = (int) $validated['jumlah'] - $oldJumlah;
+                    $existingCount = \App\Models\UnitAlat::where('id_alat', $pengadaan->id_alat)->count();
+
+                    if ($delta > 0) {
+                        for ($i = $existingCount + 1; $i <= $existingCount + $delta; $i++) {
+                            \App\Models\UnitAlat::create([
+                                'id_alat' => $pengadaan->id_alat,
+                                'kode_inventaris' => strtoupper('INV-' . $pengadaan->id_alat . '-' . str_pad($i, 3, '0', STR_PAD_LEFT)),
+                                'kondisi_saat_ini' => 'baik',
+                                'status' => 'tersedia',
+                            ]);
+                        }
+                    } elseif ($delta < 0) {
+                        $removed = \App\Models\UnitAlat::where('id_alat', $pengadaan->id_alat)
+                            ->where('status', 'tersedia')
+                            ->latest()
+                            ->limit(abs($delta))
+                            ->get();
+
+                        if ($removed->count() < abs($delta)) {
+                            throw new \Exception('Tidak dapat mengurangi jumlah karena unit yang tersedia kurang dari selisihnya');
+                        }
+
+                        \App\Models\UnitAlat::whereIn('id', $removed->pluck('id'))->delete();
+                    }
+                } else {
+                    $delta = (int) $validated['jumlah'] - $oldJumlah;
+
+                    if ($delta > 0) {
+                        $this->stokService->tambahAlatAgregat($pengadaan->alat, $delta);
+                    } elseif ($delta < 0) {
+                        $this->stokService->kurangiAlatAgregat($pengadaan->alat, abs($delta));
+                    }
+                }
+            }
+
+            unset($validated['tanggal_masuk']);
+
+            $pengadaan->update($validated);
+        });
+
+        $pengadaan->refresh();
 
         activity()
             ->performedOn($pengadaan)
@@ -144,10 +189,22 @@ class PengadaanAlatController extends Controller
                 'tanggal_masuk' => $request->tanggal_masuk,
             ]);
 
-            $this->stokService->tambahAlatAgregat(
-                $pengadaan->alat,
-                $pengadaan->jumlah
-            );
+            if ($pengadaan->alat->isUnitTracked()) {
+                $existingCount = \App\Models\UnitAlat::where('id_alat', $pengadaan->id_alat)->count();
+                for ($i = 1; $i <= $pengadaan->jumlah; $i++) {
+                    \App\Models\UnitAlat::create([
+                        'id_alat' => $pengadaan->id_alat,
+                        'kode_inventaris' => strtoupper('INV-' . $pengadaan->id_alat . '-' . str_pad($existingCount + $i, 3, '0', STR_PAD_LEFT)),
+                        'kondisi_saat_ini' => 'baik',
+                        'status' => 'tersedia',
+                    ]);
+                }
+            } else {
+                $this->stokService->tambahAlatAgregat(
+                    $pengadaan->alat,
+                    $pengadaan->jumlah
+                );
+            }
         });
 
         $pengadaan->refresh();
@@ -173,7 +230,16 @@ class PengadaanAlatController extends Controller
             ->event('deleted')
             ->log('Pengadaan alat dihapus');
 
-        $pengadaan->delete();
+        DB::transaction(function () use ($pengadaan) {
+            if ($pengadaan->tanggal_masuk && !$pengadaan->alat->isUnitTracked()) {
+                $this->stokService->kurangiAlatAgregat(
+                    $pengadaan->alat,
+                    $pengadaan->jumlah
+                );
+            }
+
+            $pengadaan->delete();
+        });
 
         return redirect()->route('pengadaan_alat.index')
             ->with('success', 'Pengadaan alat berhasil dihapus');
