@@ -40,7 +40,7 @@
                         </div>
                         <div class="col-md-6">
                             <p><strong>Waktu Pengembalian (Rencana):</strong></p>
-                            <p>{{ $peminjaman->waktu_pengembalian->format('d/m/Y H:i') }}</p>
+                            <p>{{ $peminjaman->waktu_pengembalian?->format('d/m/Y H:i') ?? '-' }}</p>
                         </div>
                     </div>
 
@@ -75,7 +75,7 @@
                     <div class="d-flex gap-2">
                         @can('return', $peminjaman)
                         @if($peminjaman->status == 'terpinjam')
-                            <a href="{{ route('peminjaman.return', $peminjaman) }}" class="btn btn-success">
+                            <a href="{{ route('peminjaman.return-form', $peminjaman) }}" class="btn btn-success">
                                 <i class="fas fa-undo"></i> Kembalikan
                             </a>
                         @endif

@@ -87,8 +87,8 @@
                                 @if($tipe === 'alat')
                                     <td><strong>{{ $item->nama_alat }}</strong></td>
                                     <td>{{ $item->merek ?? '-' }}</td>
-                                    <td><span class="badge bg-info">{{ $item->kategori->nama_kategori }}</span></td>
-                                    <td>{{ $item->laboratorium->nama_labor }}</td>
+                                    <td><span class="badge bg-info">{{ $item->kategori?->nama_kategori ?? '-' }}</span></td>
+                                    <td>{{ $item->laboratorium?->nama_labor ?? '-' }}</td>
                                     <td>
                                         <span class="badge bg-{{ $item->tipe_pelacakan == 'unit' ? 'warning' : 'success' }}">
                                             {{ ucfirst($item->tipe_pelacakan) }}
@@ -97,7 +97,7 @@
                                     <td>{{ $item->jumlah_alat }}</td>
                                 @elseif($tipe === 'bahan')
                                     <td><strong>{{ $item->nama_bahan }}</strong></td>
-                                    <td><span class="badge bg-info">{{ $item->kategori->nama_kategori }}</span></td>
+                                    <td><span class="badge bg-info">{{ $item->kategori?->nama_kategori ?? '-' }}</span></td>
                                     <td>
                                         <span class="badge bg-{{ $item->stok_saat_ini <= $item->stok_minimum ? 'danger' : 'success' }}">
                                             {{ $item->stok_saat_ini }}
@@ -108,7 +108,7 @@
                                 @elseif($tipe === 'peminjaman')
                                     <td><strong>{{ $item->alat->nama_alat ?? '-' }}</strong></td>
                                     <td>{{ $item->unitAlat->kode_inventaris ?? '-' }}</td>
-                                    <td>{{ $item->userPeminjam->nama ?? '-' }}</td>
+                                    <td>{{ $item->userPeminjam?->nama ?? '-' }}</td>
                                     <td><small>{{ $item->waktu_peminjaman?->format('d-m-Y') }}</small></td>
                                     <td><small>{{ $item->waktu_pengembalian?->format('d-m-Y') }}</small></td>
                                     <td>

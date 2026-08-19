@@ -14,14 +14,17 @@ class PemakaianBahanFactory extends Factory
 
     public function definition(): array
     {
+        $bahan = Bahan::factory()->create();
+        $pengadaan = PengadaanBahan::factory()->create(['id_bahan' => $bahan->id]);
+
         return [
-            'id_bahan' => Bahan::factory(),
-            'id_pengadaan_bahan' => PengadaanBahan::factory(),
+            'id_bahan' => $bahan->id,
+            'id_pengadaan_bahan' => $pengadaan->id,
             'id_user_pemakai' => User::factory(),
-            'id_user_verifikasi' => User::factory(),
+            'id_user_verifikasi' => null,
             'keperluan' => fake()->sentence(),
-            'jumlah_pengambilan' => fake()->numberBetween(1, 50),
-            'jumlah_terpakai' => fake()->numberBetween(1, 50),
+            'jumlah_pengambilan' => fake()->numberBetween(1, 10),
+            'jumlah_terpakai' => fake()->numberBetween(1, 10),
             'jumlah_pengembalian' => 0,
             'waktu_pemakaian' => now(),
         ];

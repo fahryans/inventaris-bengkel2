@@ -23,10 +23,10 @@ class PemakaianBahanController extends Controller
         if ($request->has('id_bahan')) {
             $query->where('id_bahan', $request->id_bahan);
         }
-        if ($request->has('verified')) {
-            if ($request->verified === 'yes' || $request->verified === true || $request->verified === '1') {
+        if ($request->has('verified') && $request->verified !== '') {
+            if (in_array($request->verified, ['yes', '1', 1, true], true)) {
                 $query->whereNotNull('id_user_verifikasi');
-            } elseif ($request->verified === 'no' || $request->verified === false || $request->verified === '0') {
+            } else {
                 $query->whereNull('id_user_verifikasi');
             }
         }

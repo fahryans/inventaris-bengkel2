@@ -158,7 +158,7 @@ class DatabaseSeeder extends Seeder
             'merek' => 'Fluke',
             'spesifikasi' => 'Digital Multimeter 87 V',
             'tipe_pelacakan' => 'agregat',
-            'jumlah_alat' => 5,
+            'jumlah_alat' => 0,
         ]);
 
         Alat::create([
@@ -191,7 +191,7 @@ class DatabaseSeeder extends Seeder
             'id_kategori' => $katBahan[0],
             'id_labor' => $lab1->id,
             'nama_bahan' => 'Resistor 1K',
-            'stok_saat_ini' => 100,
+            'stok_saat_ini' => 60,
             'stok_minimum' => 50,
             'satuan' => 'pcs',
             'merek' => 'Generic',
@@ -226,7 +226,7 @@ class DatabaseSeeder extends Seeder
         $user = User::where('no_induk', 'ADM001')->first();
         $alat = Alat::first();
 
-        PengadaanAlat::create([
+        $pengadaan = PengadaanAlat::create([
             'id_alat' => $alat->id,
             'id_user_input' => $user->id,
             'tanggal_pengadaan' => now()->subMonths(2),
@@ -235,6 +235,8 @@ class DatabaseSeeder extends Seeder
             'supplier' => 'PT Elektronik Indonesia',
             'tanggal_masuk' => now()->subMonths(2)->addDays(5),
         ]);
+
+        $alat->update(['jumlah_alat' => $alat->jumlah_alat + $pengadaan->jumlah]);
     }
 
     private function seedPengadaanBahan(): void
@@ -248,7 +250,7 @@ class DatabaseSeeder extends Seeder
             'tanggal_pengadaan' => now()->subMonth(),
             'harga_perolehan' => 50000,
             'jumlah' => 500,
-            'stok_tersisa_batch' => 100,
+            'stok_tersisa_batch' => 60,
             'masa_expire_bahan' => now()->addYears(2),
             'supplier' => 'CV Komponen Elektronik',
             'tanggal_masuk' => now()->subMonth()->addDays(3),
@@ -264,7 +266,7 @@ class DatabaseSeeder extends Seeder
                 'id_alat' => $alat->id,
                 'kode_inventaris' => 'OS-' . str_pad($i, 3, '0', STR_PAD_LEFT),
                 'kondisi_saat_ini' => 'Baik',
-                'status' => $i === 1 ? 'dipinjam' : 'tersedia',
+                'status' => 'tersedia',
             ]);
         }
     }
@@ -273,7 +275,6 @@ class DatabaseSeeder extends Seeder
     {
         $mahasiswa = User::where('no_induk', 'MH001')->first();
         $alatAgregat = Alat::where('tipe_pelacakan', 'agregat')->first();
-        $unitAlat = UnitAlat::first();
 
         PeminjamanAlat::create([
             'id_alat' => $alatAgregat->id,
@@ -289,18 +290,23 @@ class DatabaseSeeder extends Seeder
             'status' => 'terpinjam',
         ]);
 
+        $alatAgregat->update(['jumlah_alat' => $alatAgregat->jumlah_alat - 2]);
+
+        $unitAlat = UnitAlat::first();
+        $unitAlat->update(['status' => 'dipinjam']);
+
         PeminjamanAlat::create([
             'id_alat' => null,
             'id_unit_alat' => $unitAlat->id,
             'id_user_peminjam' => $mahasiswa->id,
             'keperluan' => 'Praktik Pengukuran Sinyal',
             'waktu_peminjaman' => now()->subDays(5),
-            'waktu_pengembalian' => now()->subDays(1),
-            'waktu_kembali_aktual' => now(),
+            'waktu_pengembalian' => now()->addDays(2),
+            'waktu_kembali_aktual' => null,
             'jumlah' => 1,
             'kondisi_saat_peminjaman' => 'Baik',
-            'kondisi_saat_pengembalian' => 'Baik',
-            'status' => 'sudah_dikembalikan',
+            'kondisi_saat_pengembalian' => null,
+            'status' => 'terpinjam',
         ]);
     }
 

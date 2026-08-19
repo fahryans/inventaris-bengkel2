@@ -20,8 +20,18 @@ class AlatFactory extends Factory
             'merek' => fake()->company(),
             'spesifikasi' => fake()->text(),
             'tipe_pelacakan' => fake()->randomElement(['unit', 'agregat']),
-            'jumlah_alat' => fake()->numberBetween(1, 100),
+            'jumlah_alat' => fn (array $attributes) => $attributes['tipe_pelacakan'] === 'unit' ? 0 : fake()->numberBetween(1, 100),
             'foto' => null,
         ];
+    }
+
+    public function agregat(): static
+    {
+        return $this->state(fn () => ['tipe_pelacakan' => 'agregat', 'jumlah_alat' => fake()->numberBetween(1, 100)]);
+    }
+
+    public function unit(): static
+    {
+        return $this->state(fn () => ['tipe_pelacakan' => 'unit', 'jumlah_alat' => 0]);
     }
 }

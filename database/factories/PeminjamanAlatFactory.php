@@ -15,8 +15,8 @@ class PeminjamanAlatFactory extends Factory
     public function definition(): array
     {
         return [
-            'id_alat' => Alat::factory(),
-            'id_unit_alat' => UnitAlat::factory(),
+            'id_alat' => Alat::factory()->create(['tipe_pelacakan' => 'agregat', 'jumlah_alat' => 5]),
+            'id_unit_alat' => null,
             'id_user_peminjam' => User::factory(),
             'keperluan' => fake()->sentence(),
             'waktu_peminjaman' => now(),
@@ -27,5 +27,13 @@ class PeminjamanAlatFactory extends Factory
             'kondisi_saat_pengembalian' => null,
             'status' => 'terpinjam',
         ];
+    }
+
+    public function forUnit(UnitAlat $unit): static
+    {
+        return $this->state(fn () => [
+            'id_alat' => null,
+            'id_unit_alat' => $unit->id,
+        ]);
     }
 }

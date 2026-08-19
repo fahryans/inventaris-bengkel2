@@ -110,6 +110,10 @@ class LaporanController extends Controller
             'pengadaan_alat' => PengadaanAlat::with(['alat', 'userInput'])->latest()->get(),
             'pengadaan_bahan' => PengadaanBahan::with(['bahan', 'userInput'])->latest()->get(),
             'pemakaian_bahan' => PemakaianBahan::with(['bahan', 'userPemakai', 'userVerifikasi'])->latest()->get(),
+            'peminjaman_saya' => PeminjamanAlat::where('id_user_peminjam', Auth::id())
+                ->with(['alat', 'unitAlat', 'userPeminjam'])->latest()->get(),
+            'pemakaian_saya' => PemakaianBahan::where('id_user_pemakai', Auth::id())
+                ->with(['bahan', 'userPemakai', 'userVerifikasi'])->latest()->get(),
             default => null,
         };
 
@@ -126,10 +130,18 @@ class LaporanController extends Controller
             'pengadaan_alat' => 'Laporan Pengadaan Alat',
             'pengadaan_bahan' => 'Laporan Pengadaan Bahan',
             'pemakaian_bahan' => 'Laporan Pemakaian Bahan',
+            'peminjaman_saya' => 'Riwayat Peminjaman Saya',
+            'pemakaian_saya' => 'Riwayat Pemakaian Saya',
             default => 'Laporan',
         };
 
-        $pdf = Pdf::loadView("laporan.pdf.{$tipe}", [
+        $template = match($tipe) {
+            'peminjaman_saya' => 'laporan.pdf.peminjaman',
+            'pemakaian_saya' => 'laporan.pdf.pemakaian_bahan',
+            default => "laporan.pdf.{$tipe}",
+        };
+
+        $pdf = Pdf::loadView($template, [
             'data' => $data,
             'title' => $title,
             'date' => now()->format('d/m/Y'),

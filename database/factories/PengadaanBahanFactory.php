@@ -13,13 +13,15 @@ class PengadaanBahanFactory extends Factory
 
     public function definition(): array
     {
+        $jumlah = fake()->numberBetween(1, 50);
+
         return [
             'id_bahan' => Bahan::factory(),
             'id_user_input' => User::factory(),
             'tanggal_pengadaan' => now(),
             'harga_perolehan' => fake()->randomNumber(4),
-            'jumlah' => fake()->numberBetween(1, 50),
-            'stok_tersisa_batch' => fake()->numberBetween(1, 100),
+            'jumlah' => $jumlah,
+            'stok_tersisa_batch' => $jumlah,
             'masa_expire_bahan' => now()->addMonths(6),
             'supplier' => fake()->company(),
             'tanggal_masuk' => now(),

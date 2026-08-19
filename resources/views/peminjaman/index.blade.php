@@ -68,7 +68,7 @@
                                 <td>{{ $pem->userPeminjam->nama }}</td>
                                 <td>{{ $pem->keperluan }}</td>
                                 <td>{{ $pem->waktu_peminjaman->format('d/m/Y H:i') }}</td>
-                                <td>{{ $pem->waktu_pengembalian->format('d/m/Y H:i') }}</td>
+                                <td>{{ $pem->waktu_pengembalian?->format('d/m/Y H:i') ?? '-' }}</td>
                                 <td>
                                     <span class="badge bg-{{ $pem->status == 'terpinjam' ? 'warning' : 'success' }}">
                                         {{ ucfirst(str_replace('_', ' ', $pem->status)) }}

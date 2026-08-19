@@ -19,7 +19,7 @@
             <td>{{ $index + 1 }}</td>
             <td>{{ $item->unitAlat->kode_inventaris }}</td>
             <td>{{ $item->teknisi->nama }}</td>
-            <td>{{ $item->tanggal_cek->format('d/m/Y') }}</td>
+            <td>{{ $item->tanggal_cek?->format('d/m/Y') ?? '-' }}</td>
             <td>{{ $item->kondisi ?? '-' }}</td>
             <td>Rp {{ number_format($item->biaya ?? 0, 0, ',', '.') }}</td>
             <td>{{ $item->hasil_pemeliharaan ?? '-' }}</td>

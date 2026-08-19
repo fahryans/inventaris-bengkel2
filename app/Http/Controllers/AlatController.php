@@ -25,8 +25,8 @@ class AlatController extends Controller
             $query->where('id_labor', $request->labor);
         }
 
-        if ($request->filled('tipe')) {
-            $query->where('tipe_pelacakan', $request->tipe);
+        if ($request->filled('tipe_pelacakan')) {
+            $query->where('tipe_pelacakan', $request->tipe_pelacakan);
         }
 
         if ($request->filled('search')) {

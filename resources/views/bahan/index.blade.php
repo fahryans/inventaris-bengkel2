@@ -58,9 +58,9 @@
                 </div>
                 <div class="col-md-2">
                     <form method="GET" action="{{ route('bahan.index') }}" class="d-flex gap-2">
-                        <select name="lowstock" class="form-select form-select-sm" onchange="this.form.submit()">
+                        <select name="stock_status" class="form-select form-select-sm" onchange="this.form.submit()">
                             <option value="">Semua Stok</option>
-                            <option value="1" {{ request('lowstock') == '1' ? 'selected' : '' }}>Stok Menipis</option>
+                            <option value="low" {{ request('stock_status') == 'low' ? 'selected' : '' }}>Stok Menipis</option>
                         </select>
                     </form>
                 </div>

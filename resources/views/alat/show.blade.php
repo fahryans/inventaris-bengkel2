@@ -23,11 +23,11 @@
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <p><strong>Kategori:</strong></p>
-                            <p><span class="badge bg-info">{{ $alat->kategori->nama_kategori }}</span></p>
+                            <p><span class="badge bg-info">{{ $alat->kategori?->nama_kategori ?? '-' }}</span></p>
                         </div>
                         <div class="col-md-6">
                             <p><strong>Laboratorium:</strong></p>
-                            <p>{{ $alat->laboratorium->nama_labor }}</p>
+                            <p>{{ $alat->laboratorium?->nama_labor ?? '-' }}</p>
                         </div>
                     </div>
 
@@ -134,7 +134,7 @@
                     @forelse($alat->peminjamanAlat()->latest()->limit(5)->get() as $peminjaman)
                         <div class="mb-2 pb-2 border-bottom">
                             <small class="text-muted">{{ $peminjaman->waktu_peminjaman->format('d/m/Y') }}</small><br>
-                            <small>{{ $peminjaman->userPeminjam->nama }}</small><br>
+                            <small>{{ $peminjaman->userPeminjam?->nama ?? '-' }}</small><br>
                             <small class="badge bg-{{ $peminjaman->status == 'terpinjam' ? 'danger' : 'success' }}">
                                 {{ ucfirst(str_replace('_', ' ', $peminjaman->status)) }}
                             </small>

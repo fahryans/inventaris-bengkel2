@@ -16,13 +16,25 @@ class PeminjamanAlatController extends Controller
         protected PeminjamanService $peminjamanService,
     ) {}
 
-    public function index()
+    public function index(Request $request)
     {
         $this->authorize('viewAny', PeminjamanAlat::class);
 
-        $peminjaman = PeminjamanAlat::with(['alat', 'unitAlat', 'userPeminjam'])
-            ->latest('waktu_peminjaman')
-            ->paginate(15);
+        $query = PeminjamanAlat::with(['alat', 'unitAlat', 'userPeminjam']);
+
+        if (in_array(Auth::user()->role, ['dosen', 'mahasiswa'])) {
+            $query->where('id_user_peminjam', Auth::id());
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('search')) {
+            $query->where('keperluan', 'like', '%' . $request->search . '%');
+        }
+
+        $peminjaman = $query->latest('waktu_peminjaman')->paginate(15);
 
         return view('peminjaman.index', compact('peminjaman'));
     }
@@ -116,6 +128,15 @@ class PeminjamanAlatController extends Controller
 
         return redirect()->route('peminjaman.show', $peminjaman)
             ->with('success', 'Peminjaman berhasil diperbarui');
+    }
+
+    public function returnForm(PeminjamanAlat $peminjaman)
+    {
+        $this->authorize('return', $peminjaman);
+
+        $peminjaman->load(['alat', 'unitAlat', 'userPeminjam']);
+
+        return view('peminjaman.return', compact('peminjaman'));
     }
 
     public function return(Request $request, PeminjamanAlat $peminjaman)

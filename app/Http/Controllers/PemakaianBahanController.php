@@ -30,8 +30,8 @@ class PemakaianBahanController extends Controller
             $query->where('id_bahan', $request->bahan);
         }
 
-        if ($request->filled('verified')) {
-            if ($request->verified === 'yes') {
+        if ($request->has('verified') && $request->verified !== '') {
+            if (in_array($request->verified, ['yes', '1', 1, true], true)) {
                 $query->whereNotNull('id_user_verifikasi');
             } else {
                 $query->whereNull('id_user_verifikasi');
