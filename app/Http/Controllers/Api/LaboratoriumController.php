@@ -12,6 +12,8 @@ class LaboratoriumController extends Controller
 {
     public function index(Request $request)
     {
+        $this->authorize('viewAny', Laboratorium::class);
+
         $query = Laboratorium::latest();
 
         if ($request->has('search')) {

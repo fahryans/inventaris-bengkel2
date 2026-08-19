@@ -3,10 +3,13 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\UserResource;
 use App\Models\User;
+use Illuminate\Cache\RateLimiter;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
 
 class AuthController extends Controller
@@ -18,15 +21,29 @@ class AuthController extends Controller
             'password' => 'required',
         ]);
 
-        if (!Auth::attempt($credentials)) {
-            return response()->json(['message' => 'Email atau password salah'], 401);
+        $limiter = app(RateLimiter::class);
+        $throttleKey = 'api-login:' . Str::lower($credentials['email']) . '|' . $request->ip();
+
+        if ($limiter->tooManyAttempts($throttleKey, 5)) {
+            $seconds = $limiter->availableIn($throttleKey);
+            return response()->json([
+                'message' => "Terlalu banyak percobaan login. Coba lagi dalam {$seconds} detik.",
+            ], 429);
         }
 
-        $user = Auth::user();
+        $user = User::where('email', $credentials['email'])->first();
+
+        if (!$user || !Hash::check($credentials['password'], $user->password) || $user->status === 'tidak_aktif') {
+            $limiter->hit($throttleKey, 300);
+            return response()->json(['message' => 'Email atau password salah, atau akun tidak aktif'], 401);
+        }
+
+        $limiter->clear($throttleKey);
+
         $token = $user->createToken('api-token')->plainTextToken;
 
         return response()->json([
-            'user' => $user,
+            'user' => new UserResource($user),
             'token' => $token,
         ]);
     }
@@ -39,15 +56,16 @@ class AuthController extends Controller
             'nama' => 'required|string|max:255',
             'email' => 'required|email|unique:users',
             'password' => ['required', 'confirmed', Password::min(8)],
-            'role' => 'required|in:admin_jurusan,kadep,kepala_labor,teknisi,dosen,mahasiswa',
+            'role' => 'required|in:mahasiswa,dosen,teknisi',
         ]);
 
         $validated['password'] = Hash::make($validated['password']);
+        $validated['status'] = 'aktif';
         $user = User::create($validated);
         $token = $user->createToken('api-token')->plainTextToken;
 
         return response()->json([
-            'user' => $user,
+            'user' => new UserResource($user),
             'token' => $token,
         ], 201);
     }
@@ -60,6 +78,6 @@ class AuthController extends Controller
 
     public function user(Request $request)
     {
-        return response()->json($request->user());
+        return new UserResource($request->user());
     }
 }

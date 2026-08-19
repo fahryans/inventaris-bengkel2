@@ -41,13 +41,18 @@ Route::name('api.')->middleware('auth:sanctum')->group(function () {
         Route::apiResource('bahan', BahanController::class);
         Route::apiResource('kategori', KategoriController::class);
         Route::apiResource('pengadaan-alat', PengadaanAlatController::class);
+        Route::post('pengadaan-alat/{pengadaan_alat}/mark-received', [PengadaanAlatController::class, 'markReceived']);
         Route::apiResource('pengadaan-bahan', PengadaanBahanController::class);
+        Route::post('pengadaan-bahan/{pengadaan_bahan}/mark-received', [PengadaanBahanController::class, 'markReceived']);
         Route::apiResource('pemakaian-bahan', PemakaianBahanController::class);
+        Route::post('pemakaian-bahan/{pemakaian_bahan}/verify', [PemakaianBahanController::class, 'verify']);
         Route::apiResource('pemeliharaan', PemeliharaanAlatController::class);
+        Route::post('pemeliharaan/{pemeliharaan}/complete', [PemeliharaanAlatController::class, 'complete']);
     });
 
     // Borrowing (all roles)
     Route::apiResource('peminjaman', PeminjamanAlatController::class);
+    Route::post('peminjaman/{peminjaman}/return', [PeminjamanAlatController::class, 'return']);
 
     // Reports
     Route::get('/laporan/{tipe}', [LaporanController::class, 'show']);

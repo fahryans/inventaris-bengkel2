@@ -3,13 +3,19 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\PengadaanBahanRequest;
 use App\Http\Resources\PengadaanBahanResource;
 use App\Models\PengadaanBahan;
+use App\Services\StokService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class PengadaanBahanController extends Controller
 {
+    public function __construct(
+        protected StokService $stokService,
+    ) {}
+
     public function index(Request $request)
     {
         $query = PengadaanBahan::with(['bahan', 'userInput']);
@@ -24,30 +30,140 @@ class PengadaanBahanController extends Controller
         return PengadaanBahanResource::collection($query->latest()->paginate(15));
     }
 
-    public function store(PengadaanBahanRequest $request)
+    public function store(Request $request)
     {
         $this->authorize('create', PengadaanBahan::class);
-        $pengadaan = PengadaanBahan::create($request->validated());
+
+        $validated = $request->validate([
+            'id_bahan' => ['required', 'exists:bahan,id'],
+            'tanggal_pengadaan' => ['required', 'date'],
+            'harga_perolehan' => ['required', 'numeric', 'min:0'],
+            'jumlah' => ['required', 'integer', 'min:1'],
+            'masa_expire_bahan' => ['nullable', 'date'],
+            'supplier' => ['required', 'string', 'max:255'],
+            'tanggal_masuk' => ['nullable', 'date'],
+            'foto_transaksi' => ['nullable', 'image', 'max:2048'],
+        ]);
+
+        $validated['id_user_input'] = Auth::id();
+        $validated['stok_tersisa_batch'] = 0;
+
+        if ($request->hasFile('foto_transaksi')) {
+            $validated['foto_transaksi'] = $request->file('foto_transaksi')->store('pengadaan', 'public');
+        }
+
+        $pengadaan = PengadaanBahan::create($validated);
+
         return new PengadaanBahanResource($pengadaan->load(['bahan', 'userInput']));
     }
 
-    public function show(PengadaanBahan $pengadaan)
+    public function show(PengadaanBahan $pengadaanBahan)
     {
-        $this->authorize('view', $pengadaan);
-        return new PengadaanBahanResource($pengadaan->load(['bahan', 'userInput']));
+        $this->authorize('view', $pengadaanBahan);
+        return new PengadaanBahanResource($pengadaanBahan->load(['bahan', 'userInput']));
     }
 
-    public function update(PengadaanBahanRequest $request, PengadaanBahan $pengadaan)
+    public function markReceived(Request $request, PengadaanBahan $pengadaanBahan)
     {
-        $this->authorize('update', $pengadaan);
-        $pengadaan->update($request->validated());
-        return new PengadaanBahanResource($pengadaan->load(['bahan', 'userInput']));
+        $this->authorize('update', $pengadaanBahan);
+
+        if ($pengadaanBahan->tanggal_masuk) {
+            return response()->json(['message' => 'Pengadaan ini sudah pernah diterima'], 422);
+        }
+
+        $validated = $request->validate([
+            'tanggal_masuk' => ['required', 'date'],
+        ]);
+
+        try {
+            DB::transaction(function () use ($pengadaanBahan, $validated) {
+                $pengadaanBahan->update([
+                    'tanggal_masuk' => $validated['tanggal_masuk'],
+                    'stok_tersisa_batch' => $pengadaanBahan->jumlah,
+                ]);
+
+                $this->stokService->tambahBahan($pengadaanBahan->bahan, $pengadaanBahan->jumlah);
+            });
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
+
+        $pengadaanBahan->refresh();
+
+        return new PengadaanBahanResource($pengadaanBahan->load(['bahan', 'userInput']));
     }
 
-    public function destroy(PengadaanBahan $pengadaan)
+    public function update(Request $request, PengadaanBahan $pengadaanBahan)
     {
-        $this->authorize('delete', $pengadaan);
-        $pengadaan->delete();
-        return response()->json(['message' => 'Pengadaan bahan berhasil dibatalkan']);
+        $this->authorize('update', $pengadaanBahan);
+
+        $validated = $request->validate([
+            'id_bahan' => ['required', 'exists:bahan,id'],
+            'tanggal_pengadaan' => ['required', 'date'],
+            'harga_perolehan' => ['required', 'numeric', 'min:0'],
+            'jumlah' => ['required', 'integer', 'min:1'],
+            'masa_expire_bahan' => ['nullable', 'date'],
+            'supplier' => ['required', 'string', 'max:255'],
+            'foto_transaksi' => ['nullable', 'image', 'max:2048'],
+        ]);
+
+        if ($pengadaanBahan->tanggal_masuk && (int) $validated['jumlah'] < $pengadaanBahan->jumlah - $pengadaanBahan->stok_tersisa_batch) {
+            return response()->json(['message' => 'Jumlah tidak boleh kurang dari yang sudah terpakai'], 422);
+        }
+
+        if ($request->hasFile('foto_transaksi')) {
+            $validated['foto_transaksi'] = $request->file('foto_transaksi')->store('pengadaan', 'public');
+        }
+
+        try {
+            DB::transaction(function () use ($pengadaanBahan, $validated) {
+                if ($pengadaanBahan->tanggal_masuk) {
+                    $oldStok = $pengadaanBahan->stok_tersisa_batch;
+                    $used = $pengadaanBahan->jumlah - $oldStok;
+                    $newStok = (int) $validated['jumlah'] - $used;
+
+                    if ($pengadaanBahan->id_bahan !== (int) $validated['id_bahan']) {
+                        $this->stokService->kurangiBahan($pengadaanBahan->bahan, $oldStok);
+                        $this->stokService->tambahBahan(\App\Models\Bahan::findOrFail($validated['id_bahan']), $newStok);
+                    } else {
+                        $delta = $newStok - $oldStok;
+                        if ($delta > 0) {
+                            $this->stokService->tambahBahan($pengadaanBahan->bahan, $delta);
+                        } elseif ($delta < 0) {
+                            $this->stokService->kurangiBahan($pengadaanBahan->bahan, abs($delta));
+                        }
+                    }
+
+                    $validated['stok_tersisa_batch'] = $newStok;
+                }
+
+                $pengadaanBahan->update($validated);
+            });
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
+
+        $pengadaanBahan->refresh();
+
+        return new PengadaanBahanResource($pengadaanBahan->load(['bahan', 'userInput']));
+    }
+
+    public function destroy(PengadaanBahan $pengadaanBahan)
+    {
+        $this->authorize('delete', $pengadaanBahan);
+
+        try {
+            DB::transaction(function () use ($pengadaanBahan) {
+                if ($pengadaanBahan->tanggal_masuk && $pengadaanBahan->stok_tersisa_batch > 0) {
+                    $this->stokService->kurangiBahan($pengadaanBahan->bahan, $pengadaanBahan->stok_tersisa_batch);
+                }
+
+                $pengadaanBahan->delete();
+            });
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
+
+        return response()->json(['message' => 'Pengadaan bahan berhasil dihapus']);
     }
 }

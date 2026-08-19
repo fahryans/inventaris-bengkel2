@@ -12,6 +12,8 @@ class AlatController extends Controller
 {
     public function index(Request $request)
     {
+        $this->authorize('viewAny', Alat::class);
+
         $query = Alat::with(['kategori', 'laboratorium']);
 
         if ($request->has('search')) {

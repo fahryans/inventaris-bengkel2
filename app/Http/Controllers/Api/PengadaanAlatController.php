@@ -3,13 +3,20 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\PengadaanAlatRequest;
 use App\Http\Resources\PengadaanAlatResource;
 use App\Models\PengadaanAlat;
+use App\Models\UnitAlat;
+use App\Services\StokService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class PengadaanAlatController extends Controller
 {
+    public function __construct(
+        protected StokService $stokService,
+    ) {}
+
     public function index(Request $request)
     {
         $query = PengadaanAlat::with(['alat', 'userInput']);
@@ -24,30 +31,162 @@ class PengadaanAlatController extends Controller
         return PengadaanAlatResource::collection($query->latest()->paginate(15));
     }
 
-    public function store(PengadaanAlatRequest $request)
+    public function store(Request $request)
     {
         $this->authorize('create', PengadaanAlat::class);
-        $pengadaan = PengadaanAlat::create($request->validated());
+
+        $validated = $request->validate([
+            'id_alat' => ['required', 'exists:alat,id'],
+            'tanggal_pengadaan' => ['required', 'date'],
+            'harga_perolehan' => ['required', 'numeric', 'min:0'],
+            'jumlah' => ['required', 'integer', 'min:1'],
+            'supplier' => ['required', 'string', 'max:255'],
+            'tanggal_masuk' => ['nullable', 'date'],
+            'foto_transaksi' => ['nullable', 'image', 'max:2048'],
+        ]);
+
+        $validated['id_user_input'] = Auth::id();
+
+        if ($request->hasFile('foto_transaksi')) {
+            $validated['foto_transaksi'] = $request->file('foto_transaksi')->store('pengadaan', 'public');
+        }
+
+        $pengadaan = PengadaanAlat::create($validated);
+
         return new PengadaanAlatResource($pengadaan->load(['alat', 'userInput']));
     }
 
-    public function show(PengadaanAlat $pengadaan)
+    public function show(PengadaanAlat $pengadaanAlat)
     {
-        $this->authorize('view', $pengadaan);
-        return new PengadaanAlatResource($pengadaan->load(['alat', 'userInput']));
+        $this->authorize('view', $pengadaanAlat);
+        return new PengadaanAlatResource($pengadaanAlat->load(['alat', 'userInput']));
     }
 
-    public function update(PengadaanAlatRequest $request, PengadaanAlat $pengadaan)
+    public function markReceived(Request $request, PengadaanAlat $pengadaanAlat)
     {
-        $this->authorize('update', $pengadaan);
-        $pengadaan->update($request->validated());
-        return new PengadaanAlatResource($pengadaan->load(['alat', 'userInput']));
+        $this->authorize('update', $pengadaanAlat);
+
+        if ($pengadaanAlat->tanggal_masuk) {
+            return response()->json(['message' => 'Pengadaan ini sudah pernah diterima'], 422);
+        }
+
+        $validated = $request->validate([
+            'tanggal_masuk' => ['required', 'date'],
+        ]);
+
+        try {
+            DB::transaction(function () use ($pengadaanAlat, $validated) {
+                $pengadaanAlat->update(['tanggal_masuk' => $validated['tanggal_masuk']]);
+
+                if ($pengadaanAlat->alat->isUnitTracked()) {
+                    $existingCount = UnitAlat::where('id_alat', $pengadaanAlat->id_alat)->count();
+                    for ($i = 1; $i <= $pengadaanAlat->jumlah; $i++) {
+                        UnitAlat::create([
+                            'id_alat' => $pengadaanAlat->id_alat,
+                            'kode_inventaris' => strtoupper('INV-' . $pengadaanAlat->id_alat . '-' . str_pad($existingCount + $i, 3, '0', STR_PAD_LEFT)),
+                            'kondisi_saat_ini' => 'baik',
+                            'status' => 'tersedia',
+                        ]);
+                    }
+                } else {
+                    $this->stokService->tambahAlatAgregat($pengadaanAlat->alat, $pengadaanAlat->jumlah);
+                }
+            });
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
+
+        $pengadaanAlat->refresh();
+
+        return new PengadaanAlatResource($pengadaanAlat->load(['alat', 'userInput']));
     }
 
-    public function destroy(PengadaanAlat $pengadaan)
+    public function update(Request $request, PengadaanAlat $pengadaanAlat)
     {
-        $this->authorize('delete', $pengadaan);
-        $pengadaan->delete();
-        return response()->json(['message' => 'Pengadaan alat berhasil dibatalkan']);
+        $this->authorize('update', $pengadaanAlat);
+
+        $validated = $request->validate([
+            'id_alat' => ['required', 'exists:alat,id'],
+            'tanggal_pengadaan' => ['required', 'date'],
+            'harga_perolehan' => ['required', 'numeric', 'min:0'],
+            'jumlah' => ['required', 'integer', 'min:1'],
+            'supplier' => ['required', 'string', 'max:255'],
+            'foto_transaksi' => ['nullable', 'image', 'max:2048'],
+        ]);
+
+        if ($request->hasFile('foto_transaksi')) {
+            $validated['foto_transaksi'] = $request->file('foto_transaksi')->store('pengadaan', 'public');
+        }
+
+        try {
+            DB::transaction(function () use ($pengadaanAlat, $validated) {
+                if ($pengadaanAlat->tanggal_masuk) {
+                    $oldJumlah = $pengadaanAlat->jumlah;
+
+                    if ($pengadaanAlat->alat->isUnitTracked()) {
+                        $delta = (int) $validated['jumlah'] - $oldJumlah;
+                        $existingCount = UnitAlat::where('id_alat', $pengadaanAlat->id_alat)->count();
+
+                        if ($delta > 0) {
+                            for ($i = $existingCount + 1; $i <= $existingCount + $delta; $i++) {
+                                UnitAlat::create([
+                                    'id_alat' => $pengadaanAlat->id_alat,
+                                    'kode_inventaris' => strtoupper('INV-' . $pengadaanAlat->id_alat . '-' . str_pad($i, 3, '0', STR_PAD_LEFT)),
+                                    'kondisi_saat_ini' => 'baik',
+                                    'status' => 'tersedia',
+                                ]);
+                            }
+                        } elseif ($delta < 0) {
+                            $removed = UnitAlat::where('id_alat', $pengadaanAlat->id_alat)
+                                ->where('status', 'tersedia')
+                                ->latest()
+                                ->limit(abs($delta))
+                                ->get();
+
+                            if ($removed->count() < abs($delta)) {
+                                throw new \Exception('Tidak dapat mengurangi jumlah karena unit yang tersedia kurang dari selisihnya');
+                            }
+
+                            UnitAlat::whereIn('id', $removed->pluck('id'))->delete();
+                        }
+                    } else {
+                        $delta = (int) $validated['jumlah'] - $oldJumlah;
+
+                        if ($delta > 0) {
+                            $this->stokService->tambahAlatAgregat($pengadaanAlat->alat, $delta);
+                        } elseif ($delta < 0) {
+                            $this->stokService->kurangiAlatAgregat($pengadaanAlat->alat, abs($delta));
+                        }
+                    }
+                }
+
+                $pengadaanAlat->update($validated);
+            });
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
+
+        $pengadaanAlat->refresh();
+
+        return new PengadaanAlatResource($pengadaanAlat->load(['alat', 'userInput']));
+    }
+
+    public function destroy(PengadaanAlat $pengadaanAlat)
+    {
+        $this->authorize('delete', $pengadaanAlat);
+
+        try {
+            DB::transaction(function () use ($pengadaanAlat) {
+                if ($pengadaanAlat->tanggal_masuk && !$pengadaanAlat->alat->isUnitTracked()) {
+                    $this->stokService->kurangiAlatAgregat($pengadaanAlat->alat, $pengadaanAlat->jumlah);
+                }
+
+                $pengadaanAlat->delete();
+            });
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
+
+        return response()->json(['message' => 'Pengadaan alat berhasil dihapus']);
     }
 }

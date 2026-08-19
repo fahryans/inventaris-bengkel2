@@ -13,6 +13,31 @@ use Illuminate\Http\Request;
 
 class LaporanController extends Controller
 {
+    public function show(Request $request, string $tipe)
+    {
+        $this->authorize('viewAny', PeminjamanAlat::class);
+
+        return match ($tipe) {
+            'peminjaman' => $this->laporanPeminjaman($request),
+            'pengadaan' => $this->laporanPengadaan($request),
+            'pemeliharaan' => $this->laporanPemeliharaan($request),
+            'pemakaian' => $this->laporanPemakaian($request),
+            default => response()->json(['message' => 'Tipe laporan tidak valid'], 422),
+        };
+    }
+
+    public function dashboard()
+    {
+        return response()->json([
+            'total_alat' => \App\Models\Alat::count(),
+            'total_bahan' => \App\Models\Bahan::count(),
+            'total_laboratorium' => \App\Models\Laboratorium::count(),
+            'total_peminjaman' => PeminjamanAlat::count(),
+            'peminjaman_aktif' => PeminjamanAlat::where('status', 'terpinjam')->count(),
+            'low_stock_bahan' => \App\Models\Bahan::lowStock()->count(),
+        ]);
+    }
+
     public function index(Request $request)
     {
         $peminjaman = PeminjamanAlat::with(['alat', 'userPeminjam']);

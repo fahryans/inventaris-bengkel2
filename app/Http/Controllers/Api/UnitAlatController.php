@@ -32,7 +32,9 @@ class UnitAlatController extends Controller
     public function store(UnitAlatRequest $request)
     {
         $this->authorize('create', UnitAlat::class);
-        $unitAlat = UnitAlat::create($request->validated());
+        $validated = $request->validated();
+        $validated['status'] = 'tersedia';
+        $unitAlat = UnitAlat::create($validated);
         return new UnitAlatResource($unitAlat);
     }
 

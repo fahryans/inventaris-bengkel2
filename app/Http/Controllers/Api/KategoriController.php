@@ -12,6 +12,8 @@ class KategoriController extends Controller
 {
     public function index(Request $request)
     {
+        $this->authorize('viewAny', Kategori::class);
+
         $query = Kategori::latest();
 
         if ($request->has('search')) {

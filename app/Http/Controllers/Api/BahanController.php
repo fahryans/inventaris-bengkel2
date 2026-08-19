@@ -12,6 +12,8 @@ class BahanController extends Controller
 {
     public function index(Request $request)
     {
+        $this->authorize('viewAny', Bahan::class);
+
         $query = Bahan::with(['kategori', 'laboratorium']);
 
         if ($request->has('search')) {
