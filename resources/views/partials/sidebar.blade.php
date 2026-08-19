@@ -199,7 +199,7 @@
 
     width:260px;
 
-    background:#1e3a8a;
+    background:#B45F06;
 
     position:fixed;
 
@@ -225,7 +225,11 @@
 
     font-weight:600;
 
-    border-bottom:1px solid rgba(255,255,255,.1);
+    border-bottom:1px solid rgba(255,255,255,.2);
+
+    background:#78350F;
+
+    color:#f5f0e9;
 
 }
 
@@ -253,7 +257,7 @@
 
     gap:15px;
 
-    color:#dbeafe;
+    color:#f5f0e9;
 
     text-decoration:none;
 
@@ -265,19 +269,19 @@
 
 .sidebar-menu li a:hover{
 
-    background:#2563eb;
+    background:#78350F;
 
-    color:white;
+    color:#f5f0e9;
 
 }
 
 .sidebar-menu li a.active{
 
-    background:#2563eb;
+    background:#78350F;
 
-    color:white;
+    color:#f5f0e9;
 
-    border-left:4px solid white;
+    border-left:4px solid #B45F06;
 
 }
 
@@ -287,7 +291,7 @@
 
     font-size:12px;
 
-    color:#93c5fd;
+    color:#f5f0e9;
 
     text-transform:uppercase;
 

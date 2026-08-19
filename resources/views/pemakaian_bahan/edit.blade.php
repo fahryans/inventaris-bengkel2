@@ -13,7 +13,7 @@
     </nav>
 
     <div class="card shadow-sm">
-        <div class="card-header bg-primary text-white">
+        <div class="card-header bg-[#5b202f] text-[#f5f0e9]">
             <h5 class="mb-0">Form Edit Pemakaian Bahan</h5>
         </div>
 

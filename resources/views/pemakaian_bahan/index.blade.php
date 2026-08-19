@@ -12,7 +12,7 @@
     </nav>
 
     <div class="card shadow-sm">
-        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <div class="card-header bg-[#5b202f] text-[#f5f0e9] d-flex justify-content-between align-items-center">
             <h5 class="mb-0">Daftar Pemakaian Bahan</h5>
             @can('create', App\Models\PemakaianBahan::class)
             <a href="{{ route('pemakaian_bahan.create') }}" class="btn btn-sm btn-light">

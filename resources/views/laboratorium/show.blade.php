@@ -15,8 +15,8 @@
     <div class="row">
         <div class="col-md-8">
             <div class="card shadow-sm">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">{{ $laboratorium->nama_labor }}</h5>
+<div class="card-header bg-[#5b202f] text-[#f5f0e9]">
+                <h5 class="mb-0">{{ $laboratorium->nama_labor }}</h5>
                 </div>
 
                 <div class="card-body">
