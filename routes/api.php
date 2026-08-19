@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\PengadaanAlatController;
 use App\Http\Controllers\Api\PengadaanBahanController;
 use App\Http\Controllers\Api\PemakaianBahanController;
 use App\Http\Controllers\Api\PemeliharaanAlatController;
+use App\Http\Controllers\Api\LaporanController;
 use App\Http\Controllers\Api\UserController;
 use Illuminate\Support\Facades\Route;
 

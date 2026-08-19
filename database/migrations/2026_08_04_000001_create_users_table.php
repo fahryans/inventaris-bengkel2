@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('password');
             $table->string('foto')->nullable();
             $table->enum('status', ['aktif', 'tidak_aktif'])->default('aktif');
+            $table->timestamp('email_verified_at')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });
