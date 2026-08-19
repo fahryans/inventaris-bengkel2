@@ -46,7 +46,15 @@ class PeminjamanService
                 $this->stokService->kurangiAlatAgregat($alat, $peminjaman->jumlah);
             } elseif ($idUnitAlat) {
                 $unit = UnitAlat::findOrFail($idUnitAlat);
-                $this->stokService->updateUnitStatus($unit, 'dipinjam');
+
+                $taken = DB::table('unit_alat')
+                    ->where('id', $unit->id)
+                    ->where('status', 'tersedia')
+                    ->update(['status' => 'dipinjam']);
+
+                if (!$taken) {
+                    throw new \Exception('Unit alat sedang tidak tersedia');
+                }
             }
 
             return $peminjaman;

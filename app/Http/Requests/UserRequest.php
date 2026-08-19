@@ -11,6 +11,10 @@ class UserRequest extends FormRequest
 {
     public function authorize(): bool
     {
+        if ($this->route('user')) {
+            return $this->user()->can('update', $this->route('user'));
+        }
+
         return $this->user()->can('create', User::class);
     }
 
@@ -28,7 +32,9 @@ class UserRequest extends FormRequest
                 'max:255',
                 Rule::unique(User::class)->ignore($userId),
             ],
-            'role' => ['required', 'in:admin_jurusan,kepala_labor,kadep,teknisi,dosen,mahasiswa'],
+            'role' => ['required', $this->user()->role === 'admin_jurusan'
+                ? 'in:admin_jurusan,kepala_labor,kadep,teknisi,dosen,mahasiswa'
+                : 'in:kepala_labor,teknisi,dosen,mahasiswa'],
             'status' => ['required', 'in:aktif,tidak_aktif'],
             'no_hp' => ['nullable', 'string', 'max:20'],
             'no_induk' => ['nullable', 'string', 'max:50', Rule::unique(User::class)->ignore($userId)],
