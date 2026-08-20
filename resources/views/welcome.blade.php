@@ -13,10 +13,10 @@
     <div class="min-h-screen relative overflow-hidden"
          style="background-image: url('{{ asset('images/bgbengkel.png') }}'); background-size: cover; background-position: center;">
 
-        <div class="absolute inset-0 bg-black/60"></div>
+        <div class="absolute inset-0 bg-black/60 z-0"></div>
 
         <a href="{{ route('login') }}"
-           class="absolute top-6 left-6 z-10 bg-primary hover:bg-orange-600 text-white font-bold px-8 py-3 rounded-lg shadow-lg transition">
+           class="absolute top-6 left-6 z-20 bg-primary hover:bg-orange-600 text-white font-bold px-8 py-3 rounded-lg shadow-lg transition">
             LOGIN
         </a>
 
