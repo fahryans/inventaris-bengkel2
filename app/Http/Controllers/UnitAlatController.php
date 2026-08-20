@@ -17,8 +17,17 @@ class UnitAlatController extends Controller
 
         $query = UnitAlat::with(['alat', 'spesifikasiAlat']);
 
-        if ($request->filled('alat')) {
-            $query->where('id_alat', $request->alat);
+        if ($request->filled('search')) {
+            // Saat search digunakan, abaikan filter id_alat, search mencari di semua alat
+            $query->where(function ($q) use ($request) {
+                $q->where('kode_investaris', 'like', '%' . $request->search . '%')
+                  ->orWhereHas('alat', function ($subq) use ($request) {
+                      $subq->where('nama_alat', 'like', '%' . $request->search . '%');
+                  });
+            });
+        } elseif ($request->filled('id_alat')) {
+            // Hanya aplikasikan filter id_alat jika search BUKADEH AKTIF
+            $query->where('id_alat', $request->id_alat);
         }
 
         if ($request->filled('status')) {
@@ -27,10 +36,6 @@ class UnitAlatController extends Controller
 
         if ($request->filled('kondisi')) {
             $query->where('kondisi_saat_ini', $request->kondisi);
-        }
-
-        if ($request->filled('search')) {
-            $query->where('kode_inventaris', 'like', '%' . $request->search . '%');
         }
 
         // Sorting
