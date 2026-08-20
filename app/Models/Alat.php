@@ -18,10 +18,7 @@ class Alat extends Model
         'id_kategori',
         'id_labor',
         'nama_alat',
-        'merek',
-        'spesifikasi',
         'tipe_pelacakan',
-        'jumlah_alat',
         'foto',
     ];
 
@@ -33,6 +30,11 @@ class Alat extends Model
     public function laboratorium(): BelongsTo
     {
         return $this->belongsTo(Laboratorium::class, 'id_labor');
+    }
+
+    public function spesifikasiAlat(): HasMany
+    {
+        return $this->hasMany(SpesifikasiAlat::class, 'id_alat');
     }
 
     public function unitAlat(): HasMany
@@ -60,6 +62,6 @@ class Alat extends Model
         if ($this->isUnitTracked()) {
             return $this->unitAlat()->where('status', 'tersedia')->count();
         }
-        return $this->jumlah_alat;
+        return $this->pengadaanAlat()->sum('jumlah');
     }
 }

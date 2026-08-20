@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\PengadaanAlatRequest;
 use App\Models\Alat;
 use App\Models\PengadaanAlat;
+use App\Models\UnitAlat;
 use App\Services\StokService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -20,7 +21,7 @@ class PengadaanAlatController extends Controller
     {
         $this->authorize('viewAny', PengadaanAlat::class);
 
-        $query = PengadaanAlat::with(['alat', 'userInput'])->latest();
+        $query = PengadaanAlat::with(['alat', 'spesifikasiAlat', 'userInput'])->latest();
 
         if ($request->filled('alat')) {
             $query->where('id_alat', $request->alat);
@@ -37,7 +38,7 @@ class PengadaanAlatController extends Controller
         }
 
         $pengadaans = $query->paginate(15);
-        $alats = Alat::all();
+        $alats = Alat::with('spesifikasiAlat')->get();
 
         return view('pengadaan_alat.index', compact('pengadaans', 'alats'));
     }
@@ -46,7 +47,7 @@ class PengadaanAlatController extends Controller
     {
         $this->authorize('create', PengadaanAlat::class);
 
-        $alats = Alat::all();
+        $alats = Alat::with('spesifikasiAlat')->get();
 
         return view('pengadaan_alat.create', compact('alats'));
     }
@@ -58,11 +59,33 @@ class PengadaanAlatController extends Controller
         $validated = $request->validated();
         $validated['id_user_input'] = Auth::id();
 
+        // Validasi manual: kode_inventaris required untuk agregat
+        $alat = Alat::find($validated['id_alat']);
+        if ($alat && $alat->tipe_pelacakan === 'agregat' && empty($validated['kode_inventaris'])) {
+            return back()->withErrors(['kode_inventaris' => 'Kode inventaris wajib diisi untuk alat agregat'])
+                ->withInput();
+        }
+
         if ($request->hasFile('foto_transaksi')) {
             $validated['foto_transaksi'] = $request->file('foto_transaksi')->store('pengadaan', 'public');
         }
 
-        $pengadaan = PengadaanAlat::create($validated);
+        DB::transaction(function () use ($validated, $alat, &$pengadaan) {
+            $pengadaan = PengadaanAlat::create($validated);
+
+            // Auto-create unit alat records for tipe unit
+            if ($alat && $alat->tipe_pelacakan === 'unit') {
+                for ($i = 1; $i <= $pengadaan->jumlah; $i++) {
+                    UnitAlat::create([
+                        'id_alat' => $pengadaan->id_alat,
+                        'id_spesifikasi_alat' => $pengadaan->id_spesifikasi_alat,
+                        'kode_inventaris' => null,
+                        'kondisi_saat_ini' => 'baik',
+                        'status' => 'tersedia',
+                    ]);
+                }
+            }
+        });
 
         activity()
             ->performedOn($pengadaan)
@@ -79,7 +102,7 @@ class PengadaanAlatController extends Controller
         $pengadaan = PengadaanAlat::findOrFail($id);
         $this->authorize('view', $pengadaan);
 
-        $pengadaan->load(['alat', 'userInput']);
+        $pengadaan->load(['alat', 'spesifikasiAlat', 'userInput']);
 
         return view('pengadaan_alat.show', compact('pengadaan'));
     }
@@ -90,7 +113,7 @@ class PengadaanAlatController extends Controller
         $this->authorize('update', $pengadaan);
 
         $pengadaan->load('alat');
-        $alats = Alat::all();
+        $alats = Alat::with('spesifikasiAlat')->get();
 
         return view('pengadaan_alat.edit', compact('pengadaan', 'alats'));
     }
@@ -103,6 +126,13 @@ class PengadaanAlatController extends Controller
         $oldData = $pengadaan->toArray();
         $validated = $request->validated();
 
+        // Validasi manual: kode_inventaris required untuk agregat
+        $alat = $pengadaan->alat;
+        if ($alat && $alat->tipe_pelacakan === 'agregat' && empty($validated['kode_inventaris'])) {
+            return back()->withErrors(['kode_inventaris' => 'Kode inventaris wajib diisi untuk alat agregat'])
+                ->withInput();
+        }
+
         if ($request->hasFile('foto_transaksi')) {
             if ($pengadaan->foto_transaksi) {
                 \Storage::disk('public')->delete($pengadaan->foto_transaksi);
@@ -110,51 +140,7 @@ class PengadaanAlatController extends Controller
             $validated['foto_transaksi'] = $request->file('foto_transaksi')->store('pengadaan', 'public');
         }
 
-        DB::transaction(function () use ($pengadaan, $validated) {
-            if ($pengadaan->tanggal_masuk) {
-                $oldJumlah = $pengadaan->jumlah;
-
-                if ($pengadaan->alat->isUnitTracked()) {
-                    $delta = (int) $validated['jumlah'] - $oldJumlah;
-                    $existingCount = \App\Models\UnitAlat::where('id_alat', $pengadaan->id_alat)->count();
-
-                    if ($delta > 0) {
-                        for ($i = $existingCount + 1; $i <= $existingCount + $delta; $i++) {
-                            \App\Models\UnitAlat::create([
-                                'id_alat' => $pengadaan->id_alat,
-                                'kode_inventaris' => strtoupper('INV-' . $pengadaan->id_alat . '-' . str_pad($i, 3, '0', STR_PAD_LEFT)),
-                                'kondisi_saat_ini' => 'baik',
-                                'status' => 'tersedia',
-                            ]);
-                        }
-                    } elseif ($delta < 0) {
-                        $removed = \App\Models\UnitAlat::where('id_alat', $pengadaan->id_alat)
-                            ->where('status', 'tersedia')
-                            ->latest()
-                            ->limit(abs($delta))
-                            ->get();
-
-                        if ($removed->count() < abs($delta)) {
-                            throw new \Exception('Tidak dapat mengurangi jumlah karena unit yang tersedia kurang dari selisihnya');
-                        }
-
-                        \App\Models\UnitAlat::whereIn('id', $removed->pluck('id'))->delete();
-                    }
-                } else {
-                    $delta = (int) $validated['jumlah'] - $oldJumlah;
-
-                    if ($delta > 0) {
-                        $this->stokService->tambahAlatAgregat($pengadaan->alat, $delta);
-                    } elseif ($delta < 0) {
-                        $this->stokService->kurangiAlatAgregat($pengadaan->alat, abs($delta));
-                    }
-                }
-            }
-
-            unset($validated['tanggal_masuk']);
-
-            $pengadaan->update($validated);
-        });
+        $pengadaan->update($validated);
 
         $pengadaan->refresh();
 
@@ -190,15 +176,10 @@ class PengadaanAlatController extends Controller
             ]);
 
             if ($pengadaan->alat->isUnitTracked()) {
-                $existingCount = \App\Models\UnitAlat::where('id_alat', $pengadaan->id_alat)->count();
-                for ($i = 1; $i <= $pengadaan->jumlah; $i++) {
-                    \App\Models\UnitAlat::create([
-                        'id_alat' => $pengadaan->id_alat,
-                        'kode_inventaris' => strtoupper('INV-' . $pengadaan->id_alat . '-' . str_pad($existingCount + $i, 3, '0', STR_PAD_LEFT)),
-                        'kondisi_saat_ini' => 'baik',
-                        'status' => 'tersedia',
-                    ]);
-                }
+                // Unit alat already created on pengadaan store, just update status if needed
+                $pengadaan->alat->unitAlat()
+                    ->where('kode_inventaris', null)
+                    ->update(['status' => 'tersedia']);
             } else {
                 $this->stokService->tambahAlatAgregat(
                     $pengadaan->alat,
@@ -230,16 +211,12 @@ class PengadaanAlatController extends Controller
             ->event('deleted')
             ->log('Pengadaan alat dihapus');
 
-        DB::transaction(function () use ($pengadaan) {
-            if ($pengadaan->tanggal_masuk && !$pengadaan->alat->isUnitTracked()) {
-                $this->stokService->kurangiAlatAgregat(
-                    $pengadaan->alat,
-                    $pengadaan->jumlah
-                );
-            }
+        // Hapus unit alat yang terkait jika tipe unit
+        if ($pengadaan->alat && $pengadaan->alat->tipe_pelacakan === 'unit') {
+            $pengadaan->alat->unitAlat()->where('kode_inventaris', null)->delete();
+        }
 
-            $pengadaan->delete();
-        });
+        $pengadaan->delete();
 
         return redirect()->route('pengadaan_alat.index')
             ->with('success', 'Pengadaan alat berhasil dihapus');

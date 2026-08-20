@@ -184,4 +184,31 @@ class LaporanController extends Controller
 
         return view('laporan.my-report', compact('peminjaman', 'pemakaian', 'labs'));
     }
-}
+
+    /**
+     * Breakdown Alat per Merek & Supplier
+     */
+    public function breakdownMerekAlat()
+    {
+        $this->authorize('viewAny', \App\Models\PeminjamanAlat::class);
+
+        $pengadaanAlat = PengadaanAlat::with(['alat'])
+            ->latest('tanggal_pengadaan')
+            ->get();
+
+        return view('laporan.breakdown_merek_alat', compact('pengadaanAlat'));
+    }
+
+    /**
+     * Breakdown Bahan per Merek & Supplier
+     */
+    public function breakdownMerekBahan()
+    {
+        $this->authorize('viewAny', \App\Models\PeminjamanAlat::class);
+
+        $pengadaanBahan = PengadaanBahan::with(['bahan'])
+            ->latest('tanggal_pengadaan')
+            ->get();
+
+        return view('laporan.breakdown_merek_bahan', compact('pengadaanBahan'));
+    }

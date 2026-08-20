@@ -12,13 +12,8 @@
     </nav>
 
     <div class="card shadow-sm">
-        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <div class="card-header bg-primary text-white">
             <h5 class="mb-0">Daftar Unit Alat</h5>
-            @can('create', \App\Models\UnitAlat::class)
-            <a href="{{ route('unit-alat.create') }}" class="btn btn-sm btn-light">
-                <i class="fas fa-plus"></i> Tambah Unit
-            </a>
-            @endcan
         </div>
 
         <div class="card-body">
@@ -65,6 +60,24 @@
                         </select>
                     </form>
                 </div>
+                <div class="col-md-2">
+                    <form method="GET" action="{{ route('unit-alat.index') }}">
+                        <select name="sort" class="form-select form-select-sm" onchange="this.form.submit()">
+                            <option value="kode_inventaris" {{ request('sort') == 'kode_inventaris' ? 'selected' : '' }}>Kode A-Z</option>
+                            <option value="kode_inventaris|desc" {{ request('sort') == 'kode_inventaris|desc' ? 'selected' : '' }}>Kode Z-A</option>
+                            <option value="alat" {{ request('sort') == 'alat' ? 'selected' : '' }}>Nama Alat A-Z</option>
+                            <option value="alat|desc" {{ request('sort') == 'alat|desc' ? 'selected' : '' }}>Nama Alat Z-A</option>
+                            <option value="spesifikasi" {{ request('sort') == 'spesifikasi' ? 'selected' : '' }}>Spesifikasi A-Z</option>
+                            <option value="spesifikasi|desc" {{ request('sort') == 'spesifikasi|desc' ? 'selected' : '' }}>Spesifikasi Z-A</option>
+                            <option value="created_at|desc" {{ request('sort') == 'created_at|desc' ? 'selected' : '' }}>Terbaru</option>
+                        </select>
+                        @foreach(['id_alat' => request('id_alat'), 'status' => request('status'), 'kondisi' => request('kondisi'), 'search' => request('search')] as $key => $val)
+                            @if($val)
+                                <input type="hidden" name="{{ $key }}" value="{{ $val }}">
+                            @endif
+                        @endforeach
+                    </form>
+                </div>
             </div>
 
             <div class="table-responsive">
@@ -73,6 +86,7 @@
                         <tr>
                             <th>Kode Inventaris</th>
                             <th>Nama Alat</th>
+                            <th>Spesifikasi</th>
                             <th>Kondisi</th>
                             <th>Status</th>
                             <th>Aksi</th>
@@ -85,6 +99,14 @@
                                     <strong>{{ $unit->kode_inventaris }}</strong>
                                 </td>
                                 <td>{{ $unit->alat->nama_alat }}</td>
+                                <td>
+                                    @if($unit->spesifikasiAlat)
+                                        <span class="badge bg-secondary">{{ $unit->spesifikasiAlat->kode_spesifikasi }}</span>
+                                        <br><small>{{ $unit->spesifikasiAlat->nama_spesifikasi }}</small>
+                                    @else
+                                        <span class="text-muted">-</span>
+                                    @endif
+                                </td>
                                 <td>
                                     @if($unit->kondisi_saat_ini == 'baik')
                                         <span class="badge bg-success">Baik</span>
@@ -133,7 +155,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5" class="text-center text-muted py-4">
+                                <td colspan="6" class="text-center text-muted py-4">
                                     <i class="fas fa-inbox"></i> Tidak ada data unit alat
                                 </td>
                             </tr>

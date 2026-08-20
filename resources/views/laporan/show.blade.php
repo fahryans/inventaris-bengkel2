@@ -38,16 +38,15 @@
                         <tr>
                             @if($tipe === 'alat')
                                 <th>Nama Alat</th>
-                                <th>Merek</th>
                                 <th>Kategori</th>
                                 <th>Laboratorium</th>
                                 <th>Tipe Pelacakan</th>
-                                <th>Jumlah</th>
+                                <th>Spesifikasi</th>
+                                <th>Total</th>
                             @elseif($tipe === 'bahan')
                                 <th>Nama Bahan</th>
                                 <th>Kategori</th>
-                                <th>Stok Saat Ini</th>
-                                <th>Stok Minimum</th>
+                                <th>Total Stok</th>
                                 <th>Satuan</th>
                             @elseif($tipe === 'peminjaman')
                                 <th>Alat</th>
@@ -64,12 +63,20 @@
                                 <th>Status</th>
                             @elseif($tipe === 'pengadaan_alat')
                                 <th>Alat</th>
+                                <th>Spesifikasi</th>
+                                <th>Kode Inv</th>
+                                <th>Merek</th>
                                 <th>Jumlah</th>
+                                <th>Harga</th>
+                                <th>Supplier</th>
                                 <th>Tanggal</th>
                                 <th>Status</th>
                             @elseif($tipe === 'pengadaan_bahan')
                                 <th>Bahan</th>
+                                <th>Merek</th>
                                 <th>Jumlah</th>
+                                <th>Harga</th>
+                                <th>Supplier</th>
                                 <th>Tanggal</th>
                                 <th>Status</th>
                             @elseif($tipe === 'pemakaian_bahan')
@@ -86,7 +93,6 @@
                             <tr>
                                 @if($tipe === 'alat')
                                     <td><strong>{{ $item->nama_alat }}</strong></td>
-                                    <td>{{ $item->merek ?? '-' }}</td>
                                     <td><span class="badge bg-info">{{ $item->kategori?->nama_kategori ?? '-' }}</span></td>
                                     <td>{{ $item->laboratorium?->nama_labor ?? '-' }}</td>
                                     <td>
@@ -94,16 +100,23 @@
                                             {{ ucfirst($item->tipe_pelacakan) }}
                                         </span>
                                     </td>
-                                    <td>{{ $item->jumlah_alat }}</td>
+                                    <td>
+                                        @foreach($item->spesifikasiAlat as $spec)
+                                            <span class="badge bg-secondary">{{ $spec->kode_spesifikasi }}</span>
+                                        @endforeach
+                                    </td>
+                                    <td>{{ $item->getAvailableQuantity() }}</td>
                                 @elseif($tipe === 'bahan')
                                     <td><strong>{{ $item->nama_bahan }}</strong></td>
                                     <td><span class="badge bg-info">{{ $item->kategori?->nama_kategori ?? '-' }}</span></td>
                                     <td>
-                                        <span class="badge bg-{{ $item->stok_saat_ini <= $item->stok_minimum ? 'danger' : 'success' }}">
-                                            {{ $item->stok_saat_ini }}
+                                        @php
+                                            $totalStok = \App\Models\PengadaanBahan::where('id_bahan', $item->id)->sum('stok_tersisa_batch');
+                                        @endphp
+                                        <span class="badge bg-{{ $totalStok > 0 ? 'success' : 'danger' }}">
+                                            {{ $totalStok }} {{ $item->satuan }}
                                         </span>
                                     </td>
-                                    <td>{{ $item->stok_minimum }}</td>
                                     <td>{{ $item->satuan }}</td>
                                 @elseif($tipe === 'peminjaman')
                                     <td><strong>{{ $item->alat->nama_alat ?? '-' }}</strong></td>
@@ -128,7 +141,12 @@
                                     </td>
                                 @elseif($tipe === 'pengadaan_alat')
                                     <td><strong>{{ $item->alat->nama_alat ?? '-' }}</strong></td>
+                                    <td><span class="badge bg-secondary">{{ $item->spesifikasiAlat->kode_spesifikasi ?? '-' }}</span></td>
+                                    <td><strong>{{ $item->kode_inventaris ?? '-' }}</strong></td>
+                                    <td>{{ $item->merek }}</td>
                                     <td>{{ $item->jumlah }}</td>
+                                    <td>Rp {{ number_format($item->harga_perolehan, 0, ',', '.') }}</td>
+                                    <td>{{ $item->supplier }}</td>
                                     <td><small>{{ $item->tanggal_pengadaan?->format('d-m-Y') ?? '-' }}</small></td>
                                     <td>
                                         <span class="badge bg-{{ $item->tanggal_masuk ? 'success' : 'warning' }}">
@@ -137,7 +155,10 @@
                                     </td>
                                 @elseif($tipe === 'pengadaan_bahan')
                                     <td><strong>{{ $item->bahan->nama_bahan ?? '-' }}</strong></td>
+                                    <td>{{ $item->merek }}</td>
                                     <td>{{ $item->jumlah }}</td>
+                                    <td>Rp {{ number_format($item->harga_perolehan, 0, ',', '.') }}</td>
+                                    <td>{{ $item->supplier }}</td>
                                     <td><small>{{ $item->tanggal_pengadaan?->format('d-m-Y') ?? '-' }}</small></td>
                                     <td>
                                         <span class="badge bg-{{ $item->tanggal_masuk ? 'success' : 'warning' }}">

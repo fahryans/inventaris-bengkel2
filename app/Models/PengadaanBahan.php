@@ -19,6 +19,7 @@ class PengadaanBahan extends Model
         'tanggal_pengadaan',
         'harga_perolehan',
         'jumlah',
+        'merek',
         'stok_tersisa_batch',
         'masa_expire_bahan',
         'supplier',

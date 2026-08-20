@@ -16,6 +16,7 @@ class UnitAlat extends Model
 
     protected $fillable = [
         'id_alat',
+        'id_spesifikasi_alat',
         'kode_inventaris',
         'kondisi_saat_ini',
         'status',
@@ -24,6 +25,11 @@ class UnitAlat extends Model
     public function alat(): BelongsTo
     {
         return $this->belongsTo(Alat::class, 'id_alat');
+    }
+
+    public function spesifikasiAlat(): BelongsTo
+    {
+        return $this->belongsTo(SpesifikasiAlat::class, 'id_spesifikasi_alat');
     }
 
     public function peminjamanAlat(): HasMany

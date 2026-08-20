@@ -15,7 +15,7 @@ class BahanController extends Controller
     {
         $this->authorize('viewAny', Bahan::class);
 
-        $query = Bahan::with(['kategori', 'laboratorium'])->latest();
+        $query = Bahan::with(['kategori', 'laboratorium']);
 
         if ($request->filled('kategori')) {
             $query->where('id_kategori', $request->kategori);
@@ -25,17 +25,24 @@ class BahanController extends Controller
             $query->where('id_labor', $request->labor);
         }
 
-        if ($request->filled('stock_status')) {
-            if ($request->stock_status === 'low') {
-                $query->whereColumn('stok_saat_ini', '<=', 'stok_minimum');
-            }
-        }
-
         if ($request->filled('search')) {
             $query->where('nama_bahan', 'like', '%' . $request->search . '%');
         }
 
-        $bahans = $query->paginate(15);
+        // Sorting
+        $sortParam = $request->get('sort', 'nama_bahan');
+        $parts = explode('|', $sortParam);
+        $sortBy = $parts[0] ?? 'nama_bahan';
+        $sortDir = $parts[1] ?? 'asc';
+
+        $allowedSorts = ['nama_bahan', 'created_at'];
+        if (in_array($sortBy, $allowedSorts)) {
+            $query->orderBy($sortBy, $sortDir === 'desc' ? 'desc' : 'asc');
+        } else {
+            $query->orderBy('nama_bahan', 'asc');
+        }
+
+        $bahans = $query->paginate(15)->withQueryString();
         $kategoris = Kategori::where('jenis', 'bahan')->get();
         $laboratoriums = Laboratorium::all();
 

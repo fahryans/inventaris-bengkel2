@@ -85,13 +85,28 @@
                     </div>
                 </div>
 
-                <div class="mb-3">
-                    <label for="supplier" class="form-label">Supplier <span class="text-danger">*</span></label>
-                    <input type="text" name="supplier" id="supplier" class="form-control @error('supplier') is-invalid @enderror" 
-                           value="{{ old('supplier', $pengadaan->supplier) }}" required>
-                    @error('supplier')
-                        <div class="invalid-feedback d-block">{{ $message }}</div>
-                    @enderror
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="merek" class="form-label">Merek <span class="text-danger">*</span></label>
+                            <input type="text" name="merek" id="merek" class="form-control @error('merek') is-invalid @enderror" 
+                                   value="{{ old('merek', $pengadaan->merek) }}" required>
+                            @error('merek')
+                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="supplier" class="form-label">Supplier <span class="text-danger">*</span></label>
+                            <input type="text" name="supplier" id="supplier" class="form-control @error('supplier') is-invalid @enderror" 
+                                   value="{{ old('supplier', $pengadaan->supplier) }}" required>
+                            @error('supplier')
+                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
                 </div>
 
                 <div class="mb-3">

@@ -16,6 +16,7 @@ class PeminjamanAlat extends Model
     protected $fillable = [
         'id_alat',
         'id_unit_alat',
+        'id_spesifikasi_alat',
         'id_user_peminjam',
         'keperluan',
         'waktu_peminjaman',
@@ -62,6 +63,11 @@ class PeminjamanAlat extends Model
         return $this->belongsTo(Alat::class, 'id_alat');
     }
 
+    public function spesifikasiAlat(): BelongsTo
+    {
+        return $this->belongsTo(SpesifikasiAlat::class, 'id_spesifikasi_alat');
+    }
+
     public function unitAlat(): BelongsTo
     {
         return $this->belongsTo(UnitAlat::class, 'id_unit_alat');
@@ -105,4 +111,3 @@ class PeminjamanAlat extends Model
         return now()->diffInDays($this->waktu_pengembalian);
     }
 }
-

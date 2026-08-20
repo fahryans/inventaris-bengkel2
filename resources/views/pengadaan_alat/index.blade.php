@@ -51,12 +51,13 @@
                     <thead class="table-light">
                         <tr>
                             <th>Alat</th>
+                            <th>Spesifikasi</th>
+                            <th>Kode Inv</th>
+                            <th>Merek</th>
                             <th>Supplier</th>
-                            <th>Tanggal Pengadaan</th>
-                            <th>Tanggal Masuk</th>
+                            <th>Tanggal</th>
                             <th>Jumlah</th>
-                            <th>Harga/Unit</th>
-                            <th>Total</th>
+                            <th>Harga</th>
                             <th>Aksi</th>
                         </tr>
                     </thead>
@@ -64,11 +65,12 @@
                         @forelse($pengadaans as $pad)
                             <tr>
                                 <td><strong>{{ $pad->alat->nama_alat ?? '-' }}</strong></td>
+                                <td><span class="badge bg-secondary">{{ $pad->spesifikasiAlat->kode_spesifikasi ?? '-' }}</span></td>
+                                <td><strong>{{ $pad->kode_inventaris ?? '-' }}</strong></td>
+                                <td>{{ $pad->merek }}</td>
                                 <td>{{ $pad->supplier }}</td>
                                 <td>{{ $pad->tanggal_pengadaan?->format('d/m/Y') ?? '-' }}</td>
-                                <td>{{ $pad->tanggal_masuk?->format('d/m/Y') ?? '-' }}</td>
                                 <td>{{ $pad->jumlah }}</td>
-                                <td>Rp {{ number_format($pad->harga_perolehan, 0, ',', '.') }}</td>
                                 <td>Rp {{ number_format($pad->harga_perolehan * $pad->jumlah, 0, ',', '.') }}</td>
                                 <td>
                                     <div class="btn-group btn-group-sm" role="group">

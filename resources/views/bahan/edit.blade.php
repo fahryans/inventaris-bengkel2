@@ -68,47 +68,12 @@
                 </div>
 
                 <div class="row">
-                    <div class="col-md-4">
-                        <div class="mb-3">
-                            <label for="stok_saat_ini" class="form-label">Stok Saat Ini <span class="text-danger">*</span></label>
-                            <input type="number" name="stok_saat_ini" id="stok_saat_ini" class="form-control @error('stok_saat_ini') is-invalid @enderror" 
-                                   value="{{ old('stok_saat_ini', $bahan->stok_saat_ini) }}" min="0" required>
-                            @error('stok_saat_ini')
-                                <div class="invalid-feedback d-block">{{ $message }}</div>
-                            @enderror
-                        </div>
-                    </div>
-
-                    <div class="col-md-4">
-                        <div class="mb-3">
-                            <label for="stok_minimum" class="form-label">Stok Minimum <span class="text-danger">*</span></label>
-                            <input type="number" name="stok_minimum" id="stok_minimum" class="form-control @error('stok_minimum') is-invalid @enderror" 
-                                   value="{{ old('stok_minimum', $bahan->stok_minimum) }}" min="0" required>
-                            @error('stok_minimum')
-                                <div class="invalid-feedback d-block">{{ $message }}</div>
-                            @enderror
-                        </div>
-                    </div>
-
-                    <div class="col-md-4">
+                    <div class="col-md-6">
                         <div class="mb-3">
                             <label for="satuan" class="form-label">Satuan <span class="text-danger">*</span></label>
                             <input type="text" name="satuan" id="satuan" class="form-control @error('satuan') is-invalid @enderror" 
                                    value="{{ old('satuan', $bahan->satuan) }}" required>
                             @error('satuan')
-                                <div class="invalid-feedback d-block">{{ $message }}</div>
-                            @enderror
-                        </div>
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label for="merek" class="form-label">Merek</label>
-                            <input type="text" name="merek" id="merek" class="form-control @error('merek') is-invalid @enderror" 
-                                   value="{{ old('merek', $bahan->merek) }}">
-                            @error('merek')
                                 <div class="invalid-feedback d-block">{{ $message }}</div>
                             @enderror
                         </div>

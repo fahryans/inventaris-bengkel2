@@ -65,6 +65,21 @@
                         </select>
                     </form>
                 </div>
+                <div class="col-md-2">
+                    <form method="GET" action="{{ route('alat.index') }}">
+                        <select name="sort" class="form-select form-select-sm" onchange="this.form.submit()">
+                            <option value="nama_alat" {{ request('sort') == 'nama_alat' ? 'selected' : '' }}>Nama A-Z</option>
+                            <option value="nama_alat|desc" {{ request('sort') == 'nama_alat|desc' ? 'selected' : '' }}>Nama Z-A</option>
+                            <option value="created_at|desc" {{ request('sort') == 'created_at|desc' ? 'selected' : '' }}>Terbaru</option>
+                            <option value="created_at" {{ request('sort') == 'created_at' ? 'selected' : '' }}>Terlama</option>
+                        </select>
+                        @foreach(['kategori' => request('kategori'), 'labor' => request('labor'), 'tipe_pelacakan' => request('tipe_pelacakan'), 'search' => request('search')] as $key => $val)
+                            @if($val)
+                                <input type="hidden" name="{{ $key }}" value="{{ $val }}">
+                            @endif
+                        @endforeach
+                    </form>
+                </div>
             </div>
 
             <div class="table-responsive">
@@ -74,9 +89,9 @@
                             <th>Nama Alat</th>
                             <th>Kategori</th>
                             <th>Lab</th>
-                            <th>Merek</th>
-                            <th>Tipe Pelacakan</th>
-                            <th>Jumlah</th>
+                            <th>Tipe</th>
+                            <th>Spesifikasi</th>
+                            <th>Total</th>
                             <th>Aksi</th>
                         </tr>
                     </thead>
@@ -88,13 +103,21 @@
                                 </td>
                                 <td><span class="badge bg-info">{{ $alat->kategori->nama_kategori }}</span></td>
                                 <td>{{ $alat->laboratorium->nama_labor }}</td>
-                                <td>{{ $alat->merek ?? '-' }}</td>
                                 <td>
                                     <span class="badge bg-{{ $alat->tipe_pelacakan == 'unit' ? 'warning' : 'success' }}">
                                         {{ ucfirst($alat->tipe_pelacakan) }}
                                     </span>
                                 </td>
-                                <td>{{ $alat->jumlah_alat }}</td>
+                                <td>
+                                    @forelse($alat->spesifikasiAlat as $spesifikasi)
+                                        <span class="badge bg-secondary">{{ $spesifikasi->kode_spesifikasi }}</span>
+                                    @empty
+                                        <span class="text-muted">-</span>
+                                    @endforelse
+                                </td>
+                                <td>
+                                    <strong>{{ $alat->getAvailableQuantity() }}</strong>
+                                </td>
                                 <td>
                                     <div class="btn-group btn-group-sm" role="group">
                                         <a href="{{ route('alat.show', $alat) }}" class="btn btn-outline-info" title="Lihat">

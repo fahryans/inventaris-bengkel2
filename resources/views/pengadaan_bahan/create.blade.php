@@ -87,6 +87,17 @@
                 <div class="row">
                     <div class="col-md-6">
                         <div class="mb-3">
+                            <label for="merek" class="form-label">Merek <span class="text-danger">*</span></label>
+                            <input type="text" name="merek" id="merek" class="form-control @error('merek') is-invalid @enderror" 
+                                   value="{{ old('merek') }}" required>
+                            @error('merek')
+                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="mb-3">
                             <label for="masa_expire_bahan" class="form-label">Masa Expire Bahan</label>
                             <input type="date" name="masa_expire_bahan" id="masa_expire_bahan" class="form-control @error('masa_expire_bahan') is-invalid @enderror" 
                                    value="{{ old('masa_expire_bahan') }}">

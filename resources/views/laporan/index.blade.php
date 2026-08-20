@@ -133,7 +133,46 @@
         </div>
         @endif
     </div>
-</div>
+
+    @if($user->role !== 'mahasiswa')
+    <div class="row mt-5">
+        <div class="col-12">
+            <h4 class="mb-4">
+                <i class="fas fa-chart-bar"></i> Laporan Breakdown per Merek & Supplier
+            </h4>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <a href="{{ route('laporan.breakdown_alat') }}" class="text-decoration-none">
+                <div class="card border-left-info shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="text-info text-uppercase mb-1 small font-weight-bold">
+                            <i class="fas fa-tools"></i> Breakdown Alat per Merek
+                        </div>
+                        <p class="mb-0">Lihat detail pengadaan alat berdasarkan merek & supplier</p>
+                        <small class="text-muted">Klik untuk lihat laporan</small>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-md-6 mb-4">
+            <a href="{{ route('laporan.breakdown_bahan') }}" class="text-decoration-none">
+                <div class="card border-left-success shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="text-success text-uppercase mb-1 small font-weight-bold">
+                            <i class="fas fa-flask"></i> Breakdown Bahan per Merek
+                        </div>
+                        <p class="mb-0">Lihat detail pengadaan bahan berdasarkan merek & supplier</p>
+                        <small class="text-muted">Klik untuk lihat laporan</small>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+    @endif
 
 @push('css')
 <style>

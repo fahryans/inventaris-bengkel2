@@ -19,6 +19,7 @@ class UnitAlatRequest extends FormRequest
 
         return [
             'id_alat' => ['required', 'exists:alat,id'],
+            'id_spesifikasi_alat' => ['required', 'exists:spesifikasi_alat,id'],
             'kode_inventaris' => [
                 'required',
                 'string',
@@ -35,6 +36,8 @@ class UnitAlatRequest extends FormRequest
         return [
             'id_alat.required' => 'Alat harus dipilih',
             'id_alat.exists' => 'Alat tidak valid',
+            'id_spesifikasi_alat.required' => 'Spesifikasi harus dipilih',
+            'id_spesifikasi_alat.exists' => 'Spesifikasi tidak valid',
             'kode_inventaris.required' => 'Kode inventaris tidak boleh kosong',
             'kode_inventaris.unique' => 'Kode inventaris sudah digunakan',
             'kondisi_saat_ini.required' => 'Kondisi harus dipilih',

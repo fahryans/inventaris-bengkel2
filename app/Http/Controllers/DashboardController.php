@@ -49,7 +49,7 @@ class DashboardController extends Controller
         $totalUser = User::count();
         $totalPeminjaman = PeminjamanAlat::count();
 
-        $lowStockBahan = Bahan::lowStock()->count();
+        $lowStockBahan = 0; // Stok dihitung dari pengadaan_bahan
         $overduePeminjaman = PeminjamanAlat::where('status', 'terpinjam')
             ->where('waktu_pengembalian', '<', now())
             ->count();
@@ -101,7 +101,7 @@ class DashboardController extends Controller
 
         $totalAlat = Alat::where('id_labor', $lab->id)->count();
         $totalBahan = Bahan::where('id_labor', $lab->id)->count();
-        $lowStockBahan = Bahan::where('id_labor', $lab->id)->lowStock()->count();
+        $lowStockBahan = 0; // Stok dihitung dari pengadaan_bahan
         $upcomingMaintenance = PemeliharaanAlat::whereHas('unitAlat.alat', function ($q) use ($lab) {
             $q->where('id_labor', $lab->id);
         })->whereNull('tanggal_cek')
@@ -129,9 +129,12 @@ class DashboardController extends Controller
             ->toArray();
         $peminjamanPerBulan = collect(range(1, 12))->map(fn($m) => $peminjamanPerBulan[$m] ?? 0)->toArray();
 
-        $bahans = Bahan::where('id_labor', $lab->id)->orderBy('nama_bahan')->get(['nama_bahan', 'stok_saat_ini']);
+        $bahans = Bahan::where('id_labor', $lab->id)->orderBy('nama_bahan')->get(['id', 'nama_bahan']);
         $bahanNames = $bahans->pluck('nama_bahan');
-        $stokBahan = $bahans->pluck('stok_saat_ini');
+        // Hitung stok dari pengadaan_bahan
+        $stokBahan = $bahans->map(function ($bahan) {
+            return \App\Models\PengadaanBahan::where('id_bahan', $bahan->id)->sum('stok_tersisa_batch');
+        });
 
         return view('dashboard.kepala-labor', compact(
             'lab',
@@ -199,7 +202,7 @@ class DashboardController extends Controller
         $totalBahan = Bahan::count();
         $totalLaboratorium = Laboratorium::count();
         $totalPeminjaman = PeminjamanAlat::count();
-        $lowStockBahan = Bahan::lowStock()->count();
+        $lowStockBahan = 0; // Stok dihitung dari pengadaan_bahan
 
         $monthExprBulan = DB::getDriverName() === 'sqlite'
             ? "CAST(strftime('%m', created_at) AS INTEGER) as bulan"

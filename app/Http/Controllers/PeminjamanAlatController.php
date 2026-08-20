@@ -20,7 +20,7 @@ class PeminjamanAlatController extends Controller
     {
         $this->authorize('viewAny', PeminjamanAlat::class);
 
-        $query = PeminjamanAlat::with(['alat', 'unitAlat', 'userPeminjam']);
+        $query = PeminjamanAlat::with(['alat', 'spesifikasiAlat', 'unitAlat', 'userPeminjam']);
 
         if (in_array(Auth::user()->role, ['dosen', 'mahasiswa'])) {
             $query->where('id_user_peminjam', Auth::id());
@@ -43,8 +43,8 @@ class PeminjamanAlatController extends Controller
     {
         $this->authorize('create', PeminjamanAlat::class);
 
-        $alats = Alat::where('tipe_pelacakan', 'agregat')->get();
-        $units = UnitAlat::with('alat')->get();
+        $alats = Alat::with('spesifikasiAlat')->where('tipe_pelacakan', 'agregat')->get();
+        $units = UnitAlat::with('alat', 'spesifikasiAlat')->get();
 
         return view('peminjaman.create', compact('alats', 'units'));
     }
@@ -56,6 +56,7 @@ class PeminjamanAlatController extends Controller
         $validated = $request->validate([
             'id_alat' => ['nullable', 'exists:alat,id'],
             'id_unit_alat' => ['nullable', 'exists:unit_alat,id'],
+            'id_spesifikasi_alat' => ['nullable', 'exists:spesifikasi_alat,id'],
             'keperluan' => ['required', 'string', 'max:255'],
             'waktu_peminjaman' => ['required', 'date_format:Y-m-d H:i'],
             'waktu_pengembalian' => ['nullable', 'date_format:Y-m-d H:i', 'after:waktu_peminjaman'],
@@ -81,7 +82,7 @@ class PeminjamanAlatController extends Controller
     {
         $this->authorize('view', $peminjaman);
 
-        $peminjaman->load(['alat', 'unitAlat', 'userPeminjam']);
+        $peminjaman->load(['alat', 'spesifikasiAlat', 'unitAlat', 'userPeminjam']);
 
         return view('peminjaman.show', compact('peminjaman'));
     }
@@ -95,8 +96,8 @@ class PeminjamanAlatController extends Controller
                 ->with('error', 'Tidak dapat mengedit peminjaman yang sudah dikembalikan');
         }
 
-        $alats = Alat::where('tipe_pelacakan', 'agregat')->get();
-        $units = UnitAlat::with('alat')->get();
+        $alats = Alat::with('spesifikasiAlat')->where('tipe_pelacakan', 'agregat')->get();
+        $units = UnitAlat::with('alat', 'spesifikasiAlat')->get();
 
         return view('peminjaman.edit', compact('peminjaman', 'alats', 'units'));
     }
@@ -134,7 +135,7 @@ class PeminjamanAlatController extends Controller
     {
         $this->authorize('return', $peminjaman);
 
-        $peminjaman->load(['alat', 'unitAlat', 'userPeminjam']);
+        $peminjaman->load(['alat', 'spesifikasiAlat', 'unitAlat', 'userPeminjam']);
 
         return view('peminjaman.return', compact('peminjaman'));
     }

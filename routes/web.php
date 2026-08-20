@@ -43,6 +43,15 @@ Route::middleware(['auth'])->group(function () {
 
     Route::middleware(['role:admin_jurusan,kepala_labor,teknisi,kadep'])->group(function () {
         Route::resource('alat', AlatController::class);
+
+        // Spesifikasi Alat Management
+        Route::post('alat/{alat}/spesifikasi', [AlatController::class, 'storeSpesifikasi'])
+            ->name('alat.spesifikasi.store');
+        Route::put('alat/{alat}/spesifikasi/{spesifikasi}', [AlatController::class, 'updateSpesifikasi'])
+            ->name('alat.spesifikasi.update');
+        Route::delete('alat/{alat}/spesifikasi/{spesifikasi}', [AlatController::class, 'destroySpesifikasi'])
+            ->name('alat.spesifikasi.destroy');
+
         Route::resource('unit-alat', UnitAlatController::class);
         Route::get('unit-alat/{unitAlat}/qr', [\App\Http\Controllers\UnitAlatController::class, 'qr'])
             ->name('unit-alat.qr');
@@ -72,14 +81,16 @@ Route::middleware(['auth'])->group(function () {
         Route::get('peminjaman/{peminjaman}/return', [PeminjamanAlatController::class, 'returnForm'])
             ->name('peminjaman.return-form');
         Route::post('peminjaman/{peminjaman}/return', [PeminjamanAlatController::class, 'return'])
-            ->middleware('throttle:10,1')
-            ->name('peminjaman.return');
-        Route::get('laporan/saya', [LaporanController::class, 'myReport'])->name('laporan.saya');
-        Route::get('laporan', [LaporanController::class, 'index'])->name('laporan.index');
-        Route::get('laporan/{tipe}', [LaporanController::class, 'show'])->name('laporan.show');
-        Route::post('laporan/{tipe}/export', [LaporanController::class, 'export'])
-            ->middleware('throttle:5,1')
-            ->name('laporan.export');
+             ->middleware('throttle:10,1')
+             ->name('peminjaman.return');
+         Route::get('laporan/saya', [LaporanController::class, 'myReport'])->name('laporan.saya');
+         Route::get('laporan/breakdown/alat', [LaporanController::class, 'breakdownMerekAlat'])->name('laporan.breakdown_alat');
+         Route::get('laporan/breakdown/bahan', [LaporanController::class, 'breakdownMerekBahan'])->name('laporan.breakdown_bahan');
+         Route::get('laporan', [LaporanController::class, 'index'])->name('laporan.index');
+         Route::get('laporan/{tipe}', [LaporanController::class, 'show'])->name('laporan.show');
+         Route::post('laporan/{tipe}/export', [LaporanController::class, 'export'])
+             ->middleware('throttle:5,1')
+             ->name('laporan.export');
     });
 
     Route::get('/activity-log', [ActivityLogController::class, 'index'])

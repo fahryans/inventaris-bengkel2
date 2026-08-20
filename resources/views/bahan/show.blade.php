@@ -33,33 +33,23 @@
 
                     <div class="row mb-3">
                         <div class="col-md-6">
-                            <p><strong>Merek:</strong></p>
-                            <p>{{ $bahan->merek ?? '-' }}</p>
-                        </div>
-                        <div class="col-md-6">
                             <p><strong>Spesifikasi:</strong></p>
                             <p>{{ $bahan->spesifikasi ?? '-' }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Satuan:</strong></p>
+                            <p>{{ $bahan->satuan }}</p>
                         </div>
                     </div>
 
                     <div class="row mb-3">
-                        <div class="col-md-4">
-                            <p><strong>Stok Saat Ini:</strong></p>
-                            <p><strong>{{ $bahan->stok_saat_ini }} {{ $bahan->satuan }}</strong></p>
+                        <div class="col-md-6">
+                            <p><strong>Total Stok:</strong></p>
+                            <p><strong class="text-success">{{ $bahan->getTotalStock() }} {{ $bahan->satuan }}</strong></p>
                         </div>
-                        <div class="col-md-4">
-                            <p><strong>Stok Minimum:</strong></p>
-                            <p>{{ $bahan->stok_minimum }} {{ $bahan->satuan }}</p>
-                        </div>
-                        <div class="col-md-4">
-                            <p><strong>Status Stok:</strong></p>
-                            <p>
-                                @if($bahan->isStokMenipis())
-                                    <span class="badge bg-danger">Menipis</span>
-                                @else
-                                    <span class="badge bg-success">Normal</span>
-                                @endif
-                            </p>
+                        <div class="col-md-6">
+                            <p><strong>Total Pengadaan:</strong></p>
+                            <p>{{ $bahan->getTotalAcquired() }} {{ $bahan->satuan }}</p>
                         </div>
                     </div>
 
@@ -102,8 +92,9 @@
                     @forelse($bahan->pengadaanBahan()->latest()->limit(5)->get() as $pengadaan)
                         <div class="mb-2 pb-2 border-bottom">
                             <small class="text-muted">{{ $pengadaan->tanggal_pengadaan->format('d/m/Y') }}</small><br>
-                            <small>Jumlah: {{ $pengadaan->jumlah }} {{ $bahan->satuan }}</small><br>
-                            <small class="text-muted">{{ $pengadaan->supplier }}</small>
+                            <small><strong>Merek:</strong> {{ $pengadaan->merek }}</small><br>
+                            <small><strong>Jumlah:</strong> {{ $pengadaan->jumlah }} {{ $bahan->satuan }}</small><br>
+                            <small class="text-muted"><strong>Supplier:</strong> {{ $pengadaan->supplier }}</small>
                         </div>
                     @empty
                         <p class="text-muted text-center">Belum ada pengadaan</p>

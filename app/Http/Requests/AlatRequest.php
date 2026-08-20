@@ -19,10 +19,7 @@ class AlatRequest extends FormRequest
             'id_kategori' => ['required', 'exists:kategori,id'],
             'id_labor' => ['required', 'exists:laboratorium,id'],
             'nama_alat' => ['required', 'string', 'max:255'],
-            'merek' => ['nullable', 'string', 'max:255'],
-            'spesifikasi' => ['nullable', 'string'],
             'tipe_pelacakan' => ['required', 'in:unit,agregat'],
-            'jumlah_alat' => ['required_if:tipe_pelacakan,agregat', 'nullable', 'integer', 'min:0'],
             'foto' => ['nullable', 'image', 'max:2048'],
         ];
     }
@@ -34,7 +31,6 @@ class AlatRequest extends FormRequest
             'id_labor.required' => 'Laboratorium harus dipilih',
             'nama_alat.required' => 'Nama alat tidak boleh kosong',
             'tipe_pelacakan.required' => 'Tipe pelacakan harus dipilih',
-            'jumlah_alat.required_if' => 'Jumlah alat harus diisi untuk tipe agregat',
         ];
     }
 }

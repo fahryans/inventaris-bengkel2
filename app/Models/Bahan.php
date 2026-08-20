@@ -18,10 +18,7 @@ class Bahan extends Model
         'id_kategori',
         'id_labor',
         'nama_bahan',
-        'stok_saat_ini',
-        'stok_minimum',
         'satuan',
-        'merek',
         'spesifikasi',
         'foto',
     ];
@@ -46,13 +43,19 @@ class Bahan extends Model
         return $this->hasMany(PemakaianBahan::class, 'id_bahan');
     }
 
-    public function isStokMenipis(): bool
+    /**
+     * Hitung total stok dari semua pengadaan
+     */
+    public function getTotalStock(): int
     {
-        return $this->stok_saat_ini <= $this->stok_minimum;
+        return $this->pengadaanBahan()->sum('stok_tersisa_batch');
     }
 
-    public function scopeLowStock($query)
+    /**
+     * Hitung total jumlah yang pernah diadakan (agregat dari semua pengadaan)
+     */
+    public function getTotalAcquired(): int
     {
-        return $query->whereColumn('stok_saat_ini', '<=', 'stok_minimum');
+        return $this->pengadaanBahan()->sum('jumlah');
     }
 }

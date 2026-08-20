@@ -57,11 +57,18 @@
                     </form>
                 </div>
                 <div class="col-md-2">
-                    <form method="GET" action="{{ route('bahan.index') }}" class="d-flex gap-2">
-                        <select name="stock_status" class="form-select form-select-sm" onchange="this.form.submit()">
-                            <option value="">Semua Stok</option>
-                            <option value="low" {{ request('stock_status') == 'low' ? 'selected' : '' }}>Stok Menipis</option>
+                    <form method="GET" action="{{ route('bahan.index') }}">
+                        <select name="sort" class="form-select form-select-sm" onchange="this.form.submit()">
+                            <option value="nama_bahan" {{ request('sort') == 'nama_bahan' ? 'selected' : '' }}>Nama A-Z</option>
+                            <option value="nama_bahan|desc" {{ request('sort') == 'nama_bahan|desc' ? 'selected' : '' }}>Nama Z-A</option>
+                            <option value="created_at|desc" {{ request('sort') == 'created_at|desc' ? 'selected' : '' }}>Terbaru</option>
+                            <option value="created_at" {{ request('sort') == 'created_at' ? 'selected' : '' }}>Terlama</option>
                         </select>
+                        @foreach(['kategori' => request('kategori'), 'labor' => request('labor'), 'search' => request('search')] as $key => $val)
+                            @if($val)
+                                <input type="hidden" name="{{ $key }}" value="{{ $val }}">
+                            @endif
+                        @endforeach
                     </form>
                 </div>
             </div>
@@ -73,31 +80,32 @@
                             <th>Nama Bahan</th>
                             <th>Kategori</th>
                             <th>Lab</th>
-                            <th>Stok Saat Ini</th>
-                            <th>Stok Minimum</th>
+                            <th>Merek Pengadaan</th>
+                            <th>Total Stok</th>
                             <th>Satuan</th>
-                            <th>Status</th>
                             <th>Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse($bahans as $bahan)
-                            <tr class="{{ $bahan->isStokMenipis() ? 'table-warning' : '' }}">
+                            <tr>
                                 <td>
                                     <strong>{{ $bahan->nama_bahan }}</strong>
                                 </td>
                                 <td><span class="badge bg-info">{{ $bahan->kategori->nama_kategori }}</span></td>
                                 <td>{{ $bahan->laboratorium->nama_labor }}</td>
-                                <td>{{ $bahan->stok_saat_ini }}</td>
-                                <td>{{ $bahan->stok_minimum }}</td>
-                                <td>{{ $bahan->satuan }}</td>
                                 <td>
-                                    @if($bahan->isStokMenipis())
-                                        <span class="badge bg-danger">Menipis</span>
-                                    @else
-                                        <span class="badge bg-success">Normal</span>
-                                    @endif
+                                    @php
+                                        $mereks = $bahan->pengadaanBahan->pluck('merek')->unique()->join(', ');
+                                    @endphp
+                                    {{ $mereks ?: '-' }}
                                 </td>
+                                <td>
+                                    <span class="badge bg-{{ $bahan->getTotalStock() > 0 ? 'success' : 'danger' }}">
+                                        {{ $bahan->getTotalStock() }}
+                                    </span>
+                                </td>
+                                <td>{{ $bahan->satuan }}</td>
                                 <td>
                                     <div class="btn-group btn-group-sm" role="group">
                                         <a href="{{ route('bahan.show', $bahan) }}" class="btn btn-outline-info" title="Lihat">
@@ -123,7 +131,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="8" class="text-center text-muted py-4">
+                                <td colspan="7" class="text-center text-muted py-4">
                                     <i class="fas fa-inbox"></i> Tidak ada data bahan
                                 </td>
                             </tr>

@@ -14,10 +14,13 @@ class PengadaanAlat extends Model
 
     protected $fillable = [
         'id_alat',
+        'id_spesifikasi_alat',
         'id_user_input',
+        'kode_inventaris',
         'tanggal_pengadaan',
         'harga_perolehan',
         'jumlah',
+        'merek',
         'supplier',
         'tanggal_masuk',
         'foto_transaksi',
@@ -35,6 +38,11 @@ class PengadaanAlat extends Model
     public function alat(): BelongsTo
     {
         return $this->belongsTo(Alat::class, 'id_alat');
+    }
+
+    public function spesifikasiAlat(): BelongsTo
+    {
+        return $this->belongsTo(SpesifikasiAlat::class, 'id_spesifikasi_alat');
     }
 
     public function userInput(): BelongsTo

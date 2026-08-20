@@ -15,7 +15,7 @@ class UnitAlatController extends Controller
     {
         $this->authorize('viewAny', UnitAlat::class);
 
-        $query = UnitAlat::with('alat')->latest();
+        $query = UnitAlat::with(['alat', 'spesifikasiAlat']);
 
         if ($request->filled('alat')) {
             $query->where('id_alat', $request->alat);
@@ -33,8 +33,35 @@ class UnitAlatController extends Controller
             $query->where('kode_inventaris', 'like', '%' . $request->search . '%');
         }
 
-        $unitAlats = $query->paginate(15);
-        $alats = Alat::where('tipe_pelacakan', 'unit')->get();
+        // Sorting
+        $sortParam = $request->get('sort', 'kode_inventaris');
+        $parts = explode('|', $sortParam);
+        $sortBy = $parts[0] ?? 'kode_inventaris';
+        $sortDir = $parts[1] ?? 'asc';
+
+        // Handle sorting by relationship fields
+        switch ($sortBy) {
+            case 'alat':
+                $query->join('alat', 'unit_alat.id_alat', '=', 'alat.id')
+                    ->select('unit_alat.*')
+                    ->orderBy('alat.nama_alat', $sortDir === 'desc' ? 'desc' : 'asc');
+                break;
+            case 'spesifikasi':
+                $query->join('spesifikasi_alat', 'unit_alat.id_spesifikasi_alat', '=', 'spesifikasi_alat.id')
+                    ->select('unit_alat.*')
+                    ->orderBy('spesifikasi_alat.kode_spesifikasi', $sortDir === 'desc' ? 'desc' : 'asc');
+                break;
+            default:
+                $allowedSorts = ['kode_inventaris', 'status', 'kondisi_saat_ini', 'created_at'];
+                if (in_array($sortBy, $allowedSorts)) {
+                    $query->orderBy($sortBy, $sortDir === 'desc' ? 'desc' : 'asc');
+                } else {
+                    $query->orderBy('kode_inventaris', 'asc');
+                }
+        }
+
+        $unitAlats = $query->paginate(15)->withQueryString();
+        $alats = Alat::with('spesifikasiAlat')->where('tipe_pelacakan', 'unit')->get();
 
         return view('unit_alat.index', compact('unitAlats', 'alats'));
     }
@@ -43,7 +70,7 @@ class UnitAlatController extends Controller
     {
         $this->authorize('create', UnitAlat::class);
 
-        $alats = Alat::where('tipe_pelacakan', 'unit')->get();
+        $alats = Alat::with('spesifikasiAlat')->where('tipe_pelacakan', 'unit')->get();
 
         return view('unit_alat.create', compact('alats'));
     }
@@ -71,7 +98,7 @@ class UnitAlatController extends Controller
     {
         $this->authorize('view', $unitAlat);
 
-        $unitAlat->load(['alat', 'peminjamanAlat', 'pemeliharaanAlat']);
+        $unitAlat->load(['alat', 'spesifikasiAlat', 'peminjamanAlat', 'pemeliharaanAlat']);
 
         return view('unit_alat.show', compact('unitAlat'));
     }
@@ -87,7 +114,7 @@ class UnitAlatController extends Controller
     {
         $this->authorize('update', $unitAlat);
 
-        $alats = Alat::where('tipe_pelacakan', 'unit')->get();
+        $alats = Alat::with('spesifikasiAlat')->where('tipe_pelacakan', 'unit')->get();
 
         return view('unit_alat.edit', compact('unitAlat', 'alats'));
     }

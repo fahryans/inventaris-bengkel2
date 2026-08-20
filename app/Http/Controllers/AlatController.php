@@ -6,7 +6,9 @@ use App\Http\Requests\AlatRequest;
 use App\Models\Alat;
 use App\Models\Kategori;
 use App\Models\Laboratorium;
+use App\Models\SpesifikasiAlat;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Spatie\Activitylog\Facades\Activity;
 
 class AlatController extends Controller
@@ -15,7 +17,7 @@ class AlatController extends Controller
     {
         $this->authorize('viewAny', Alat::class);
 
-        $query = Alat::with(['kategori', 'laboratorium'])->latest();
+        $query = Alat::with(['kategori', 'laboratorium', 'spesifikasiAlat']);
 
         if ($request->filled('kategori')) {
             $query->where('id_kategori', $request->kategori);
@@ -33,7 +35,20 @@ class AlatController extends Controller
             $query->where('nama_alat', 'like', '%' . $request->search . '%');
         }
 
-        $alats = $query->paginate(15);
+        // Sorting
+        $sortParam = $request->get('sort', 'nama_alat');
+        $parts = explode('|', $sortParam);
+        $sortBy = $parts[0] ?? 'nama_alat';
+        $sortDir = $parts[1] ?? 'asc';
+
+        $allowedSorts = ['nama_alat', 'created_at'];
+        if (in_array($sortBy, $allowedSorts)) {
+            $query->orderBy($sortBy, $sortDir === 'desc' ? 'desc' : 'asc');
+        } else {
+            $query->orderBy('nama_alat', 'asc');
+        }
+
+        $alats = $query->paginate(15)->withQueryString();
         $kategoris = Kategori::where('jenis', 'alat')->get();
         $laboratoriums = Laboratorium::all();
 
@@ -68,7 +83,7 @@ class AlatController extends Controller
             ->event('created')
             ->log('Alat baru ditambahkan');
 
-        return redirect()->route('alat.index')
+        return redirect()->route('alat.show', $alat)
             ->with('success', 'Alat berhasil ditambahkan');
     }
 
@@ -76,7 +91,14 @@ class AlatController extends Controller
     {
         $this->authorize('view', $alat);
 
-        $alat->load(['kategori', 'laboratorium', 'unitAlat', 'pengadaanAlat', 'peminjamanAlat']);
+        $alat->load([
+            'kategori',
+            'laboratorium',
+            'spesifikasiAlat',
+            'unitAlat.spesifikasiAlat',
+            'pengadaanAlat.spesifikasiAlat',
+            'peminjamanAlat',
+        ]);
 
         return view('alat.show', compact('alat'));
     }
@@ -132,5 +154,69 @@ class AlatController extends Controller
 
         return redirect()->route('alat.index')
             ->with('success', 'Alat berhasil dihapus');
+    }
+
+    // =====================
+    // SPEKSIFIKASI MANAGEMENT
+    // =====================
+
+    public function storeSpesifikasi(Request $request, Alat $alat)
+    {
+        $validated = $request->validate([
+            'kode_spesifikasi' => ['required', 'string', 'max:255', "unique:spesifikasi_alat,kode_spesifikasi,{$alat->id},id_alat"],
+            'nama_spesifikasi' => ['required', 'string', 'max:255'],
+            'deskripsi' => ['nullable', 'string'],
+        ]);
+
+        $spesifikasi = $alat->spesifikasiAlat()->create($validated);
+
+        activity()
+            ->performedOn($spesifikasi)
+            ->withProperties(['attributes' => $spesifikasi->toArray()])
+            ->event('created')
+            ->log('Spesifikasi alat baru ditambahkan');
+
+        return redirect()->route('alat.show', $alat)
+            ->with('success', 'Spesifikasi berhasil ditambahkan');
+    }
+
+    public function updateSpesifikasi(Request $request, Alat $alat, SpesifikasiAlat $spesifikasi)
+    {
+        $validated = $request->validate([
+            'kode_spesifikasi' => ['required', 'string', 'max:255', "unique:spesifikasi_alat,kode_spesifikasi,{$spesifikasi->id},id"],
+            'nama_spesifikasi' => ['required', 'string', 'max:255'],
+            'deskripsi' => ['nullable', 'string'],
+        ]);
+
+        $spesifikasi->update($validated);
+
+        activity()
+            ->performedOn($spesifikasi)
+            ->withProperties(['attributes' => $spesifikasi->toArray()])
+            ->event('updated')
+            ->log('Spesifikasi alat diperbarui');
+
+        return redirect()->route('alat.show', $alat)
+            ->with('success', 'Spesifikasi berhasil diperbarui');
+    }
+
+    public function destroySpesifikasi(Alat $alat, SpesifikasiAlat $spesifikasi)
+    {
+        // Cek apakah spesifikasi sudah dipakai di pengadaan atau unit
+        if ($spesifikasi->pengadaanAlat()->count() > 0 || $spesifikasi->unitAlat()->count() > 0) {
+            return redirect()->route('alat.show', $alat)
+                ->with('error', 'Spesifikasi tidak bisa dihapus karena sudah ada data pengadaan atau unit alat');
+        }
+
+        activity()
+            ->performedOn($spesifikasi)
+            ->withProperties(['attributes' => $spesifikasi->toArray()])
+            ->event('deleted')
+            ->log('Spesifikasi alat dihapus');
+
+        $spesifikasi->delete();
+
+        return redirect()->route('alat.show', $alat)
+            ->with('success', 'Spesifikasi berhasil dihapus');
     }
 }
