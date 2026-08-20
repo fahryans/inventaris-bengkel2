@@ -14,16 +14,18 @@
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
-    <body class="font-sans text-gray-900 antialiased">
-        <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-gray-100">
-            <div>
-                <a href="/">
-                    <x-application-logo class="w-20 h-20 fill-current text-gray-500" />
-                </a>
-            </div>
+    <body class="font-sans text-white antialiased">
+        <div class="min-h-screen flex items-center justify-center px-6 py-12 relative"
+             style="background-image: url('{{ asset('images/bgbengkel.png') }}'); background-size: cover; background-position: center;">
+            <div class="absolute inset-0 bg-black/60 z-0"></div>
 
-            <div class="w-full sm:max-w-md mt-6 px-6 py-4 bg-white shadow-md overflow-hidden sm:rounded-lg">
-                {{ $slot }}
+            <div class="relative z-10 w-full flex flex-col items-center">
+                <img src="{{ asset('images/unplogo.png') }}" alt="Logo UNP"
+                     class="w-24 h-24 object-contain mb-6 drop-shadow-lg">
+
+                <div class="w-full sm:max-w-md px-8 py-8 bg-white/15 backdrop-blur-md border border-white/25 rounded-2xl shadow-2xl">
+                    {{ $slot }}
+                </div>
             </div>
         </div>
     </body>
