@@ -20,9 +20,8 @@ class UsersTemplateExport
 
         // Style header
         $headerStyle = [
-            'font' => ['bold' => true],
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
             'fill' => ['fillType' => 'solid', 'startColor' => ['rgb' => 'B45F06']],
-            'font' => ['color' => ['rgb' => 'FFFFFF']],
             'alignment' => ['horizontal' => 'center'],
         ];
         $sheet->getStyle('A1:G1')->applyFromArray($headerStyle);

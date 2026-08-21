@@ -56,30 +56,21 @@
 <script>
     let rowIndex = 0;
     const roles = @json($roles);
-    const defaultPassword = 'nama@123';
+
+    function setActive(btn) {
+        btn.closest('.btn-group').querySelectorAll('.btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+    }
 
     function addUserRows(count) {
         const tbody = document.getElementById('user-table-body');
-        const currentRows = tbody.querySelectorAll('tr:not(.empty-row)').length;
-        const targetRows = count === 'custom' ? currentRows : parseInt(count);
+        tbody.innerHTML = '';
+        rowIndex = 0;
 
-        // Remove empty row if exists
-        const emptyRow = tbody.querySelector('.empty-row');
-        if (emptyRow) emptyRow.remove();
-
-        // Add rows
-        const rowsToAdd = count === 'custom' ? 1 : targetRows - currentRows;
-        for (let i = 0; i < Math.abs(rowsToAdd); i++) {
-            if (count !== 'custom' && currentRows + i >= targetRows) break;
+        const total = parseInt(count);
+        for (let i = 0; i < total; i++) {
             addSingleRow();
         }
-
-        // If custom and we need to remove rows
-        if (count === 'custom') {
-            // Do nothing, just add one
-        }
-
-        updateRowNumbers();
     }
 
     function addSingleRow() {
@@ -125,7 +116,7 @@
     }
 
     function updateRowNumbers() {
-        const rows = document.querySelectorAll('#user-table-body tr:not(.empty-row)');
+        const rows = document.querySelectorAll('#user-table-body tr');
         rows.forEach((row, index) => {
             row.querySelector('.row-number').textContent = index + 1;
         });
@@ -143,13 +134,6 @@
         return roleNames[role] || role;
     }
 
-    function updateRowNumbers() {
-        const rows = document.querySelectorAll('#user-table-body tr');
-        rows.forEach((row, index) => {
-            row.querySelector('.row-number').textContent = index + 1;
-        });
-    }
-
     // Manual Submit
     document.getElementById('manual-form').addEventListener('submit', async function(e) {
         e.preventDefault();
@@ -165,7 +149,6 @@
             const formData = new FormData(form);
             const users = [];
 
-            // Collect user data
             for (let [key, value] of formData.entries()) {
                 if (key.startsWith('users[')) {
                     const match = key.match(/users\[(\d+)\]\[(\w+)\]/);
@@ -178,8 +161,14 @@
                 }
             }
 
-            // Remove empty users
             const filteredUsers = users.filter(u => u && u.nama && u.email);
+
+            if (filteredUsers.length === 0) {
+                showToast('error', 'Minimal isi 1 user dengan nama dan email');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+                return;
+            }
 
             const response = await fetch('{{ route("users.bulk-store") }}', {
                 method: 'POST',
@@ -194,13 +183,19 @@
             const result = await response.json();
 
             if (result.success) {
-                showToast('success', result.message);
-                setTimeout(() => window.location.href = '{{ route("users.index") }}', 1500);
+                let msg = result.message;
+                if (result.created_passwords && result.created_passwords.length > 0) {
+                    msg += '<br><br><strong>Password default:</strong><br>';
+                    msg += '<div style="max-height:200px;overflow-y:auto;background:#f8f9fa;padding:8px;border-radius:4px;font-size:13px;">';
+                    result.created_passwords.forEach(p => {
+                        msg += `<code>${p.email}</code> → <code>${p.password}</code><br>`;
+                    });
+                    msg += '</div>';
+                }
+                showToastHTML('success', msg);
+                setTimeout(() => window.location.href = '{{ route("users.index") }}', 8000);
             } else {
                 showToast('error', result.message || 'Gagal menyimpan data');
-                if (result.errors) {
-                    console.error('Errors:', result.errors);
-                }
             }
         } catch (error) {
             showToast('error', 'Terjadi kesalahan: ' + error.message);
@@ -261,8 +256,8 @@
         const saveBtn = document.getElementById('save-import-btn');
 
         previewStats.innerHTML = `
-            <div class="alert ${data.invalid > 0 ? 'alert-warning' : 'alert-success'}">
-                <strong>Total:</strong> ${data.total} user |
+            <div class="alert ${data.invalid > 0 ? 'alert-warning' : 'alert-success'} py-1 mb-0">
+                <strong>Total:</strong> ${data.total} |
                 <strong>Valid:</strong> ${data.valid} |
                 <strong>Invalid:</strong> ${data.invalid}
             </div>
@@ -294,9 +289,7 @@
         previewBody.innerHTML = rows;
         previewSection.style.display = 'block';
 
-        // Store valid data for submission
         window.importData = data.data.filter(item => item.valid);
-
         saveBtn.disabled = data.valid === 0;
     }
 
@@ -321,8 +314,17 @@
             const result = await response.json();
 
             if (result.success) {
-                showToast('success', result.message);
-                setTimeout(() => window.location.href = '{{ route("users.index") }}', 1500);
+                let msg = result.message;
+                if (result.created_passwords && result.created_passwords.length > 0) {
+                    msg += '<br><br><strong>Password default:</strong><br>';
+                    msg += '<div style="max-height:200px;overflow-y:auto;background:#f8f9fa;padding:8px;border-radius:4px;font-size:13px;">';
+                    result.created_passwords.forEach(p => {
+                        msg += `<code>${p.email}</code> → <code>${p.password}</code><br>`;
+                    });
+                    msg += '</div>';
+                }
+                showToastHTML('success', msg);
+                setTimeout(() => window.location.href = '{{ route("users.index") }}', 8000);
             } else {
                 showToast('error', result.message || 'Gagal menyimpan data');
             }
@@ -338,12 +340,22 @@
         const toast = document.createElement('div');
         toast.className = `alert alert-${type === 'success' ? 'success' : 'danger'} position-fixed top-0 end-0 m-3`;
         toast.style.zIndex = '9999';
+        toast.style.maxWidth = '500px';
         toast.innerHTML = message;
         document.body.appendChild(toast);
-        setTimeout(() => toast.remove(), 5000);
+        setTimeout(() => toast.remove(), 7000);
     }
 
-    // Initialize with 5 rows
+    function showToastHTML(type, message) {
+        const toast = document.createElement('div');
+        toast.className = `alert alert-${type === 'success' ? 'success' : 'danger'} position-fixed top-0 end-0 m-3`;
+        toast.style.zIndex = '9999';
+        toast.style.maxWidth = '500px';
+        toast.innerHTML = message;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 10000);
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
         addUserRows(5);
     });

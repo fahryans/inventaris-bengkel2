@@ -17,12 +17,19 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $credentials = $request->validate([
-            'email' => 'required|email',
+            'email' => 'required|string',
             'password' => 'required',
         ]);
 
+        $login = $credentials['email'];
+        $isEmail = filter_var($login, FILTER_VALIDATE_EMAIL);
+
+        $user = $isEmail
+            ? User::where('email', $login)->first()
+            : User::where('no_induk', $login)->first();
+
         $limiter = app(RateLimiter::class);
-        $throttleKey = 'api-login:' . Str::lower($credentials['email']) . '|' . $request->ip();
+        $throttleKey = 'api-login:' . Str::lower($login) . '|' . $request->ip();
 
         if ($limiter->tooManyAttempts($throttleKey, 5)) {
             $seconds = $limiter->availableIn($throttleKey);
@@ -31,11 +38,9 @@ class AuthController extends Controller
             ], 429);
         }
 
-        $user = User::where('email', $credentials['email'])->first();
-
         if (!$user || !Hash::check($credentials['password'], $user->password) || $user->status === 'tidak_aktif') {
             $limiter->hit($throttleKey, 300);
-            return response()->json(['message' => 'Email atau password salah, atau akun tidak aktif'], 401);
+            return response()->json(['message' => 'Email/No. Induk atau password salah, atau akun tidak aktif'], 401);
         }
 
         $limiter->clear($throttleKey);

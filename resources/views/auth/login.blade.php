@@ -5,17 +5,18 @@
     <form method="POST" action="{{ route('login') }}">
         @csrf
 
-        <!-- Email -->
+        <!-- Email / No. Induk -->
         <div>
 
-            <x-input-label for="email" :value="__('Email')" />
+            <x-input-label for="email" :value="__('Email / No. Induk')" />
 
             <x-text-input
                 id="email"
                 class="block mt-1 w-full"
-                type="email"
+                type="text"
                 name="email"
                 :value="old('email')"
+                placeholder="email@unp.ac.id atau No. Induk"
                 required
                 autofocus
                 autocomplete="username" />

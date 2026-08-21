@@ -28,7 +28,7 @@ class LoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email' => ['required', 'string', 'email'],
+            'email' => ['required', 'string'],
             'password' => ['required', 'string'],
         ];
     }
@@ -42,9 +42,14 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
-        $user = \App\Models\User::where('email', $this->email)->first();
+        $login = $this->string('email');
+        $isEmail = filter_var($login, FILTER_VALIDATE_EMAIL);
 
-        if (!$user || $user->status !== 'aktif' || ! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
+        $user = $isEmail
+            ? \App\Models\User::where('email', $login)->first()
+            : \App\Models\User::where('no_induk', $login)->first();
+
+        if (!$user || $user->status !== 'aktif' || ! Auth::attempt(['email' => $user->email, 'password' => $this->password], $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([

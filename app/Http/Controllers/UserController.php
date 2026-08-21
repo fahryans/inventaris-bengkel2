@@ -180,6 +180,7 @@ class UserController extends Controller
         $failed = 0;
         $errors = [];
         $emailsInBatch = [];
+        $createdPasswords = [];
 
         foreach ($request->users as $index => $userData) {
             // Check duplicate email within batch
@@ -217,11 +218,21 @@ class UserController extends Controller
                     ? $userData['password']
                     : $this->generatePassword($userData['nama']);
 
-                $userData['password'] = Hash::make($password);
-                $userData['default_password'] = $password;
+                User::create([
+                    'nama' => $userData['nama'],
+                    'email' => $userData['email'],
+                    'role' => $userData['role'],
+                    'status' => $userData['status'] ?? 'aktif',
+                    'no_hp' => $userData['no_hp'] ?? null,
+                    'no_induk' => $userData['no_induk'] ?? null,
+                    'password' => $password,
+                ]);
 
-                User::create($userData);
                 $emailsInBatch[] = $userData['email'];
+                $createdPasswords[] = [
+                    'email' => $userData['email'],
+                    'password' => $password,
+                ];
                 $created++;
             } catch (\Exception $e) {
                 $failed++;
@@ -238,6 +249,7 @@ class UserController extends Controller
             'created' => $created,
             'failed' => $failed,
             'errors' => $errors,
+            'created_passwords' => $createdPasswords,
         ]);
     }
 
@@ -330,10 +342,31 @@ class UserController extends Controller
         $created = 0;
         $failed = 0;
         $errors = [];
+        $createdPasswords = [];
 
         foreach ($request->users as $index => $userData) {
             // Skip invalid rows
             if (!empty($userData['errors'])) {
+                continue;
+            }
+
+            // Check email uniqueness
+            if (User::where('email', $userData['email'])->exists()) {
+                $failed++;
+                $errors[] = [
+                    'row' => $index + 1,
+                    'message' => 'Email "' . $userData['email'] . '" sudah terdaftar',
+                ];
+                continue;
+            }
+
+            // Check no_induk uniqueness
+            if (!empty($userData['no_induk']) && User::where('no_induk', $userData['no_induk'])->exists()) {
+                $failed++;
+                $errors[] = [
+                    'row' => $index + 1,
+                    'message' => 'No. Induk "' . $userData['no_induk'] . '" sudah terdaftar',
+                ];
                 continue;
             }
 
@@ -342,16 +375,20 @@ class UserController extends Controller
                     ? $userData['password']
                     : $this->generatePassword($userData['nama']);
 
-                $user = User::create([
+                User::create([
                     'nama' => $userData['nama'],
                     'email' => $userData['email'],
                     'role' => $userData['role'],
                     'status' => $userData['status'] ?? 'aktif',
                     'no_hp' => $userData['no_hp'] ?? null,
                     'no_induk' => $userData['no_induk'] ?? null,
-                    'password' => Hash::make($password),
+                    'password' => $password,
                 ]);
 
+                $createdPasswords[] = [
+                    'email' => $userData['email'],
+                    'password' => $password,
+                ];
                 $created++;
             } catch (\Exception $e) {
                 $failed++;
@@ -368,6 +405,7 @@ class UserController extends Controller
             'created' => $created,
             'failed' => $failed,
             'errors' => $errors,
+            'created_passwords' => $createdPasswords,
         ]);
     }
 
