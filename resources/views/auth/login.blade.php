@@ -24,6 +24,22 @@
 
         </div>
 
+        <!-- No Induk -->
+        <div class="mt-4">
+
+            <x-input-label for="no_induk" :value="__('No. Induk')" />
+
+            <x-text-input
+                id="no_induk"
+                class="block mt-1 w-full"
+                type="text"
+                name="no_induk"
+                :value="old('no_induk')" />
+
+            <x-input-error :messages="$errors->get('no_induk')" class="mt-2" />
+
+        </div>
+
         <!-- Kata Sandi -->
         <div class="mt-4">
 

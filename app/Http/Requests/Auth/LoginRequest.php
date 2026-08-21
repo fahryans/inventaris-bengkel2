@@ -28,7 +28,8 @@ class LoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email' => ['required', 'string', 'email'],
+            'no_induk' => ['nullable', 'string', 'max:255'],
+            'email' => ['nullable', 'string', 'email'],
             'password' => ['required', 'string'],
         ];
     }
@@ -42,9 +43,13 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
-        $user = \App\Models\User::where('email', $this->email)->first();
+        $credential = $this->email ?: $this->no_induk;
 
-        if (!$user || $user->status !== 'aktif' || ! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
+        $user = \App\Models\User::where('email', $credential)
+                    ->orWhere('no_induk', $credential)
+                    ->first();
+
+        if (!$user || $user->status !== 'aktif' || ! Auth::attempt($credential === $this->email ? ['email' => $credential, 'password' => $this->password] : ['no_induk' => $credential, 'password' => $this->password], $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
@@ -83,6 +88,7 @@ class LoginRequest extends FormRequest
      */
     public function throttleKey(): string
     {
-        return Str::transliterate(Str::lower($this->string('email')).'|'.$this->ip());
+        $identifier = $this->email ?: $this->no_induk;
+        return Str::transliterate(Str::lower($identifier)).'|'.$this->ip();
     }
 }
