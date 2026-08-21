@@ -20,8 +20,8 @@
             <div class="row g-3 mb-4">
                 <div class="col-md-2">
                     <form method="GET" action="{{ route('unit-alat.index') }}" class="d-flex gap-2">
-                        <input type="text" name="search" class="form-control form-control-sm" 
-                               placeholder="Cari kode inventaris..." value="{{ request('search') }}">
+<input type="text" name="search" class="form-control form-control-sm" 
+                       placeholder="Cari kode inventaris atau nama alat..." value="{{ request('search') }}">
                         <button type="submit" class="btn btn-sm btn-outline-primary">
                             <i class="fas fa-search"></i>
                         </button>
