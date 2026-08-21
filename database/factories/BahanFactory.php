@@ -17,10 +17,8 @@ class BahanFactory extends Factory
             'id_kategori' => Kategori::factory(['jenis' => 'bahan']),
             'id_labor' => Laboratorium::factory(),
             'nama_bahan' => fake()->word(),
-            'stok_saat_ini' => fake()->numberBetween(0, 100),
             'stok_minimum' => fake()->numberBetween(1, 50),
             'satuan' => fake()->randomElement(['pcs', 'kg', 'liter', 'unit']),
-            'merek' => fake()->company(),
             'spesifikasi' => fake()->text(),
             'foto' => null,
         ];

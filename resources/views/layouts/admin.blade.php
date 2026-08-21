@@ -109,6 +109,35 @@
 
         }
 
+        /* Compact Pagination */
+        .pagination{
+            gap:4px;
+        }
+        .pagination .btn{
+            padding:4px 10px;
+            font-size:0.8rem;
+            border-radius:6px;
+            min-width:32px;
+            text-align:center;
+        }
+        .pagination .btn-outline-primary{
+            border-color:#dee2e6;
+            color:#495057;
+        }
+        .pagination .btn-outline-primary:hover{
+            background-color:#B45F06;
+            border-color:#B45F06;
+            color:#fff;
+        }
+        .pagination .btn-primary{
+            background-color:#B45F06;
+            border-color:#B45F06;
+        }
+        .pagination .btn-outline-secondary.disabled{
+            border-color:#e9ecef;
+            color:#adb5bd;
+        }
+
     </style>
 
     @stack('css')

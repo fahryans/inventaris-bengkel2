@@ -36,7 +36,7 @@ class BahanControllerTest extends TestCase
     {
         $this->actingAs($this->admin)
             ->post(route('bahan.store'), [])
-            ->assertSessionHasErrors(['nama_bahan', 'id_kategori', 'id_labor', 'stok_saat_ini', 'stok_minimum', 'satuan']);
+            ->assertSessionHasErrors(['nama_bahan', 'id_kategori', 'id_labor', 'stok_minimum', 'satuan']);
     }
 
     public function test_store_creates_bahan()
@@ -49,7 +49,6 @@ class BahanControllerTest extends TestCase
                 'nama_bahan' => 'Minyak Mesin',
                 'id_kategori' => $kategori->id,
                 'id_labor' => $lab->id,
-                'stok_saat_ini' => 100,
                 'stok_minimum' => 10,
                 'satuan' => 'liter',
             ]);
@@ -72,7 +71,6 @@ public function test_update_modifies_bahan()
                 'nama_bahan' => 'New Name',
                 'id_kategori' => $kategori->id,
                 'id_labor' => $lab->id,
-                'stok_saat_ini' => $bahan->stok_saat_ini,
                 'stok_minimum' => $bahan->stok_minimum,
                 'satuan' => $bahan->satuan,
             ]);

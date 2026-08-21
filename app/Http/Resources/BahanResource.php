@@ -11,10 +11,9 @@ class BahanResource extends JsonResource
         return [
             'id' => $this->id,
             'nama_bahan' => $this->nama_bahan,
-            'stok_saat_ini' => $this->stok_saat_ini,
+            'stok_saat_ini' => $this->getTotalStock(),
             'stok_minimum' => $this->stok_minimum,
             'satuan' => $this->satuan,
-            'merek' => $this->merek,
             'kategori' => new KategoriResource($this->whenLoaded('kategori')),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,

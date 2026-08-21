@@ -25,6 +25,7 @@ use App\Policies\PengadaanAlatPolicy;
 use App\Policies\PengadaanBahanPolicy;
 use App\Policies\UnitAlatPolicy;
 use App\Policies\UserPolicy;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Spatie\Activitylog\Models\Activity;
@@ -53,6 +54,8 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        Paginator::useBootstrapFive();
+
         $this->registerPolicies();
 
         Gate::define('is-admin', function (User $user) {

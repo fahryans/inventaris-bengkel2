@@ -41,6 +41,18 @@ Route::middleware(['auth'])->group(function () {
         ->name('profile.destroy');
 
     Route::middleware(['role:admin_jurusan,kepala_labor,kadep'])->group(function () {
+        // Bulk User Creation (HARUS sebelum resource)
+        Route::get('users/bulk-create', [UserController::class, 'bulkCreate'])
+            ->name('users.bulk-create');
+        Route::post('users/bulk-store', [UserController::class, 'bulkStore'])
+            ->name('users.bulk-store');
+        Route::post('users/import-preview', [UserController::class, 'importPreview'])
+            ->name('users.import-preview');
+        Route::post('users/import-store', [UserController::class, 'importStore'])
+            ->name('users.import-store');
+        Route::get('users/template-excel', [UserController::class, 'downloadTemplate'])
+            ->name('users.template-excel');
+
         Route::resource('users', UserController::class);
         Route::resource('laboratorium', LaboratoriumController::class)->except(['create', 'store']);
     });

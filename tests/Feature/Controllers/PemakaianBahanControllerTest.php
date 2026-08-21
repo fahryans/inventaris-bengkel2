@@ -41,7 +41,7 @@ class PemakaianBahanControllerTest extends TestCase
 
     public function test_store_creates_pemakaian_bahan()
     {
-        $bahan = Bahan::factory()->create(['stok_saat_ini' => 100]);
+        $bahan = Bahan::factory()->create();
         $pengadaan = PengadaanBahan::factory()->create([
             'id_bahan' => $bahan->id,
             'jumlah' => 10,

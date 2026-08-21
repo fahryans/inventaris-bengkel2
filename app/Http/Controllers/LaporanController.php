@@ -13,6 +13,8 @@ use App\Models\PengadaanBahan;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+
 
 class LaporanController extends Controller
 {
@@ -44,7 +46,9 @@ class LaporanController extends Controller
                 'pemeliharaan_overdue' => PemeliharaanAlat::where('tanggal_cek_berikutnya', '<', now())->count(),
                 'pengadaan_alat_pending' => PengadaanAlat::whereNull('tanggal_masuk')->count(),
                 'pengadaan_bahan_pending' => PengadaanBahan::whereNull('tanggal_masuk')->count(),
-                'bahan_low_stock' => Bahan::whereRaw('stok_saat_ini <= stok_minimum')->count(),
+                'bahan_low_stock' => Bahan::whereRaw('
+                    (SELECT COALESCE(SUM(stok_tersisa_batch), 0) FROM pengadaan_bahan WHERE pengadaan_bahan.id_bahan = bahan.id) <= stok_minimum
+                ')->whereNull('deleted_at')->count(),
             ];
         }
 
@@ -212,3 +216,4 @@ class LaporanController extends Controller
 
         return view('laporan.breakdown_merek_bahan', compact('pengadaanBahan'));
     }
+}

@@ -48,6 +48,7 @@ class PengadaanBahanControllerTest extends TestCase
                 'tanggal_pengadaan' => now()->format('Y-m-d'),
                 'harga_perolehan' => 50000,
                 'jumlah' => 10,
+                'merek' => 'Merek A',
                 'supplier' => 'Supplier A',
             ]);
 
@@ -70,25 +71,24 @@ public function test_dosen_cannot_access_pengadaan_bahan()
 
     public function test_destroy_received_pengadaan_reverses_stock()
     {
-        $bahan = Bahan::factory()->create(['stok_saat_ini' => 20]);
+        $bahan = Bahan::factory()->create();
         $pengadaan = PengadaanBahan::factory()->create([
             'id_bahan' => $bahan->id,
             'jumlah' => 10,
             'stok_tersisa_batch' => 10,
             'tanggal_masuk' => now(),
         ]);
-        $bahan->update(['stok_saat_ini' => 30]);
 
         $this->actingAs($this->admin)
             ->delete(route('pengadaan_bahan.destroy', $pengadaan));
 
         $this->assertDatabaseMissing('pengadaan_bahan', ['id' => $pengadaan->id]);
-        $this->assertEquals(20, $bahan->fresh()->stok_saat_ini);
+        $this->assertEquals(0, $bahan->fresh()->getTotalStock());
     }
 
     public function test_update_received_pengadaan_jumlah_adjusts_stock()
     {
-        $bahan = Bahan::factory()->create(['stok_saat_ini' => 30]);
+        $bahan = Bahan::factory()->create();
         $pengadaan = PengadaanBahan::factory()->create([
             'id_bahan' => $bahan->id,
             'jumlah' => 10,
@@ -102,16 +102,17 @@ public function test_dosen_cannot_access_pengadaan_bahan()
                 'tanggal_pengadaan' => now()->format('Y-m-d'),
                 'harga_perolehan' => 50000,
                 'jumlah' => 15,
+                'merek' => 'Merek A',
                 'supplier' => 'Supplier A',
             ]);
 
-        $this->assertEquals(35, $bahan->fresh()->stok_saat_ini);
+        $this->assertEquals(15, $bahan->fresh()->getTotalStock());
         $this->assertEquals(15, $pengadaan->fresh()->stok_tersisa_batch);
     }
 
     public function test_update_received_pengadaan_rejects_below_used_amount()
     {
-        $bahan = Bahan::factory()->create(['stok_saat_ini' => 30]);
+        $bahan = Bahan::factory()->create();
         $pengadaan = PengadaanBahan::factory()->create([
             'id_bahan' => $bahan->id,
             'jumlah' => 10,
@@ -129,11 +130,11 @@ public function test_dosen_cannot_access_pengadaan_bahan()
                 'tanggal_pengadaan' => now()->format('Y-m-d'),
                 'harga_perolehan' => 50000,
                 'jumlah' => 3,
+                'merek' => 'Merek A',
                 'supplier' => 'Supplier A',
             ])
             ->assertSessionHasErrors();
 
-        $this->assertEquals(30, $bahan->fresh()->stok_saat_ini);
         $this->assertEquals(5, $pengadaan->fresh()->stok_tersisa_batch);
     }
 }

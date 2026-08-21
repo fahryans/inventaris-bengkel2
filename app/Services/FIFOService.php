@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use App\Models\Bahan;
 use App\Models\PengadaanBahan;
 use Illuminate\Support\Facades\DB;
 
@@ -67,11 +66,6 @@ class FIFOService
                 throw new \Exception("Stok bahan tidak cukup. Kurang: {$sisaPemakaian}");
             }
 
-            $this->stokService->kurangiBahan(
-                Bahan::findOrFail($idBahan),
-                $jumlahTerpakai
-            );
-
             return $batchesUsed;
         });
     }
@@ -104,11 +98,6 @@ class FIFOService
 
                 $sisaPengembalian -= $kembalikanKeBatch;
             }
-
-            $this->stokService->tambahBahan(
-                Bahan::findOrFail($idBahan),
-                $jumlahDikembalikan
-            );
         });
     }
 

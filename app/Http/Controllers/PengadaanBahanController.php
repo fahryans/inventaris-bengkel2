@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Http\Requests\PengadaanBahanRequest;
 use App\Models\Bahan;
 use App\Models\PengadaanBahan;
-use App\Services\StokService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -13,9 +12,6 @@ use Spatie\Activitylog\Facades\Activity;
 
 class PengadaanBahanController extends Controller
 {
-    public function __construct(
-        protected StokService $stokService,
-    ) {}
     public function index(Request $request)
     {
         $this->authorize('viewAny', PengadaanBahan::class);
@@ -119,22 +115,9 @@ class PengadaanBahanController extends Controller
             if ($pengadaan->tanggal_masuk) {
                 $oldJumlah = $pengadaan->jumlah;
                 $oldStok = $pengadaan->stok_tersisa_batch;
-                $oldBahanId = $pengadaan->id_bahan;
                 $used = $oldJumlah - $oldStok;
                 $newJumlah = (int) $validated['jumlah'];
                 $newStok = $newJumlah - $used;
-
-                if ($oldBahanId !== (int) $validated['id_bahan']) {
-                    $this->stokService->kurangiBahan($pengadaan->bahan, $oldStok);
-                    $this->stokService->tambahBahan(Bahan::findOrFail($validated['id_bahan']), $newStok);
-                } else {
-                    $delta = $newStok - $oldStok;
-                    if ($delta > 0) {
-                        $this->stokService->tambahBahan($pengadaan->bahan, $delta);
-                    } elseif ($delta < 0) {
-                        $this->stokService->kurangiBahan($pengadaan->bahan, abs($delta));
-                    }
-                }
 
                 $validated['stok_tersisa_batch'] = $newStok;
             }
@@ -177,11 +160,6 @@ class PengadaanBahanController extends Controller
                 'tanggal_masuk' => $request->tanggal_masuk,
                 'stok_tersisa_batch' => $pengadaan->jumlah,
             ]);
-
-            $this->stokService->tambahBahan(
-                $pengadaan->bahan,
-                $pengadaan->jumlah
-            );
         });
 
         $pengadaan->refresh();
@@ -208,13 +186,6 @@ class PengadaanBahanController extends Controller
             ->log('Pengadaan bahan dihapus');
 
         DB::transaction(function () use ($pengadaan) {
-            if ($pengadaan->tanggal_masuk && $pengadaan->stok_tersisa_batch > 0) {
-                $this->stokService->kurangiBahan(
-                    $pengadaan->bahan,
-                    $pengadaan->stok_tersisa_batch
-                );
-            }
-
             $pengadaan->delete();
         });
 

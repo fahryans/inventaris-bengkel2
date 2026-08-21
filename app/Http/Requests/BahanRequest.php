@@ -19,6 +19,7 @@ class BahanRequest extends FormRequest
             'id_kategori' => ['required', 'exists:kategori,id'],
             'id_labor' => ['required', 'exists:laboratorium,id'],
             'nama_bahan' => ['required', 'string', 'max:255'],
+            'stok_minimum' => ['required', 'integer', 'min:0'],
             'satuan' => ['required', 'string', 'max:50'],
             'spesifikasi' => ['nullable', 'string'],
             'foto' => ['nullable', 'image', 'max:2048'],
@@ -31,6 +32,9 @@ class BahanRequest extends FormRequest
             'id_kategori.required' => 'Kategori harus dipilih',
             'id_labor.required' => 'Laboratorium harus dipilih',
             'nama_bahan.required' => 'Nama bahan tidak boleh kosong',
+            'stok_minimum.required' => 'Stok minimum harus diisi',
+            'stok_minimum.integer' => 'Stok minimum harus berupa angka',
+            'stok_minimum.min' => 'Stok minimum minimal 0',
             'satuan.required' => 'Satuan tidak boleh kosong',
         ];
     }

@@ -15,9 +15,14 @@
         <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
             <h5 class="mb-0">Daftar User</h5>
             @can('create', \App\Models\User::class)
-            <a href="{{ route('users.create') }}" class="btn btn-sm btn-light">
-                <i class="fas fa-plus"></i> Tambah User
-            </a>
+            <div class="d-flex gap-2">
+                <a href="{{ route('users.bulk-create') }}" class="btn btn-sm btn-warning">
+                    <i class="fas fa-users"></i> Tambah Massal
+                </a>
+                <a href="{{ route('users.create') }}" class="btn btn-sm btn-light">
+                    <i class="fas fa-plus"></i> Tambah User
+                </a>
+            </div>
             @endcan
         </div>
 

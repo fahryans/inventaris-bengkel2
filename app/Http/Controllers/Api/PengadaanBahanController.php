@@ -5,17 +5,12 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\PengadaanBahanResource;
 use App\Models\PengadaanBahan;
-use App\Services\StokService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class PengadaanBahanController extends Controller
 {
-    public function __construct(
-        protected StokService $stokService,
-    ) {}
-
     public function index(Request $request)
     {
         $query = PengadaanBahan::with(['bahan', 'userInput']);
@@ -81,8 +76,6 @@ class PengadaanBahanController extends Controller
                     'tanggal_masuk' => $validated['tanggal_masuk'],
                     'stok_tersisa_batch' => $pengadaanBahan->jumlah,
                 ]);
-
-                $this->stokService->tambahBahan($pengadaanBahan->bahan, $pengadaanBahan->jumlah);
             });
         } catch (\Exception $e) {
             return response()->json(['message' => $e->getMessage()], 422);
@@ -122,18 +115,6 @@ class PengadaanBahanController extends Controller
                     $used = $pengadaanBahan->jumlah - $oldStok;
                     $newStok = (int) $validated['jumlah'] - $used;
 
-                    if ($pengadaanBahan->id_bahan !== (int) $validated['id_bahan']) {
-                        $this->stokService->kurangiBahan($pengadaanBahan->bahan, $oldStok);
-                        $this->stokService->tambahBahan(\App\Models\Bahan::findOrFail($validated['id_bahan']), $newStok);
-                    } else {
-                        $delta = $newStok - $oldStok;
-                        if ($delta > 0) {
-                            $this->stokService->tambahBahan($pengadaanBahan->bahan, $delta);
-                        } elseif ($delta < 0) {
-                            $this->stokService->kurangiBahan($pengadaanBahan->bahan, abs($delta));
-                        }
-                    }
-
                     $validated['stok_tersisa_batch'] = $newStok;
                 }
 
@@ -154,10 +135,6 @@ class PengadaanBahanController extends Controller
 
         try {
             DB::transaction(function () use ($pengadaanBahan) {
-                if ($pengadaanBahan->tanggal_masuk && $pengadaanBahan->stok_tersisa_batch > 0) {
-                    $this->stokService->kurangiBahan($pengadaanBahan->bahan, $pengadaanBahan->stok_tersisa_batch);
-                }
-
                 $pengadaanBahan->delete();
             });
         } catch (\Exception $e) {

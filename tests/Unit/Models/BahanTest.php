@@ -39,10 +39,11 @@ class BahanTest extends TestCase
 
     public function test_bahan_stok_saat_ini_is_cast_to_int()
     {
-        $bahan = Bahan::factory()->create(['stok_saat_ini' => 50]);
+        $bahan = Bahan::factory()->create();
+        PengadaanBahan::factory()->create(['id_bahan' => $bahan->id, 'stok_tersisa_batch' => 50]);
 
-        $this->assertIsInt($bahan->stok_saat_ini);
-        $this->assertEquals(50, $bahan->stok_saat_ini);
+        $this->assertIsInt($bahan->getTotalStock());
+        $this->assertEquals(50, $bahan->getTotalStock());
     }
 
     public function test_bahan_uses_soft_deletes()
@@ -55,20 +56,16 @@ class BahanTest extends TestCase
 
     public function test_bahan_is_stok_menipis()
     {
-        $bahan = Bahan::factory()->create([
-            'stok_saat_ini' => 5,
-            'stok_minimum' => 10,
-        ]);
+        $bahan = Bahan::factory()->create(['stok_minimum' => 10]);
+        PengadaanBahan::factory()->create(['id_bahan' => $bahan->id, 'stok_tersisa_batch' => 5]);
 
         $this->assertTrue($bahan->isStokMenipis());
     }
 
     public function test_bahan_is_not_stok_menipis()
     {
-        $bahan = Bahan::factory()->create([
-            'stok_saat_ini' => 20,
-            'stok_minimum' => 10,
-        ]);
+        $bahan = Bahan::factory()->create(['stok_minimum' => 10]);
+        PengadaanBahan::factory()->create(['id_bahan' => $bahan->id, 'stok_tersisa_batch' => 20]);
 
         $this->assertFalse($bahan->isStokMenipis());
     }

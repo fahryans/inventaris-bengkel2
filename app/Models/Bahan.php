@@ -18,6 +18,7 @@ class Bahan extends Model
         'id_kategori',
         'id_labor',
         'nama_bahan',
+        'stok_minimum',
         'satuan',
         'spesifikasi',
         'foto',
@@ -57,5 +58,13 @@ class Bahan extends Model
     public function getTotalAcquired(): int
     {
         return $this->pengadaanBahan()->sum('jumlah');
+    }
+
+    /**
+     * Cek apakah stok saat ini melebihi stok minimum
+     */
+    public function isStokMenipis(): bool
+    {
+        return $this->getTotalStock() < $this->stok_minimum;
     }
 }
