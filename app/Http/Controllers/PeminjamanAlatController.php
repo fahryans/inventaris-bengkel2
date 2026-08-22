@@ -144,8 +144,6 @@ class PeminjamanAlatController extends Controller
     {
         $this->authorize('return', $peminjaman);
 
-        $request->merge(['waktu_kembali_aktual' => str_replace('T', ' ', $request->waktu_kembali_aktual)]);
-
         $oldData = $peminjaman->toArray();
 
         $validated = $request->validate([

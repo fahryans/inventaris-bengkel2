@@ -41,10 +41,10 @@ class PeminjamanService
 
             $peminjaman = PeminjamanAlat::create($data);
 
-            // Stok agregat tidak dimutasi: jumlah tersedia dihitung dari
-            // pengadaan_alat dikurangi peminjaman berstatus 'terpinjam'.
-
-            if ($idUnitAlat) {
+            if ($idAlat) {
+                $alat = Alat::findOrFail($idAlat);
+                $this->stokService->kurangiAlatAgregat($alat, $peminjaman->jumlah);
+            } elseif ($idUnitAlat) {
                 $unit = UnitAlat::findOrFail($idUnitAlat);
 
                 $taken = DB::table('unit_alat')
@@ -75,7 +75,8 @@ class PeminjamanService
             ]);
 
             if ($peminjaman->id_alat) {
-                // Stok agregat kembali otomatis karena status berubah dari 'terpinjam'.
+                $alat = Alat::findOrFail($peminjaman->id_alat);
+                $this->stokService->tambahAlatAgregat($alat, $peminjaman->jumlah ?? 1);
             } elseif ($peminjaman->id_unit_alat) {
                 $unit = UnitAlat::findOrFail($peminjaman->id_unit_alat);
                 $this->stokService->updateUnitStatus($unit, 'tersedia');
@@ -109,9 +110,7 @@ class PeminjamanService
             if (!$alat) {
                 return ['available' => false, 'message' => 'Alat tidak ditemukan'];
             }
-
-            $terpinjam = $alat->peminjamanAlat()->where('status', 'terpinjam')->sum('jumlah');
-            if ($alat->jumlah_alat - $terpinjam <= 0) {
+            if ($alat->jumlah_alat <= 0) {
                 return ['available' => false, 'message' => 'Stok alat tidak tersedia'];
             }
         } elseif ($idUnitAlat) {
