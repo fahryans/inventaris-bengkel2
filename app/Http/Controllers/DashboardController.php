@@ -6,6 +6,7 @@ use App\Models\Alat;
 use App\Models\Bahan;
 use App\Models\Laboratorium;
 use App\Models\PeminjamanAlat;
+use App\Models\PemakaianBahan;
 use App\Models\PemeliharaanAlat;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -251,12 +252,42 @@ class DashboardController extends Controller
             ->toArray();
         $riwayatPeminjaman = collect(range(1, 12))->map(fn($m) => $riwayatPeminjaman[$m] ?? 0)->toArray();
 
+        $myPemakaianBahan = \App\Models\PemakaianBahan::where('id_user_pemakai', Auth::id())
+            ->whereNull('jumlah_pengembalian')
+            ->with(['bahan', 'pengadaanBahan'])
+            ->latest()
+            ->limit(5)
+            ->get();
+
+        $allBahans = \App\Models\PengadaanBahan::where('stok_tersisa_batch', '>', 0)
+            ->whereNotNull('tanggal_masuk')
+            ->with('bahan')
+            ->get()
+            ->groupBy('id_bahan')
+            ->map(function ($batches) {
+                $bahan = $batches->first()->bahan;
+                $totalStok = $batches->sum('stok_tersisa_batch');
+                return [
+                    'id' => $bahan->id,
+                    'nama' => $bahan->nama_bahan,
+                    'satuan' => $bahan->satuan,
+                    'stok' => $totalStok,
+                    'pengadaan_options' => $batches->map(fn($b) => [
+                        'id' => $b->id,
+                        'label' => $b->supplier . ' (' . $b->stok_tersisa_batch . ' ' . $bahan->satuan . ')',
+                    ])->values(),
+                ];
+            })
+            ->values();
+
         return view('dashboard.user', compact(
             'labs',
             'myPeminjaman',
             'activeCount',
             'riwayatCount',
-            'riwayatPeminjaman'
+            'riwayatPeminjaman',
+            'myPemakaianBahan',
+            'allBahans'
         ));
     }
 }

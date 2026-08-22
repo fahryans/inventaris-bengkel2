@@ -14,16 +14,25 @@
     <div class="card shadow-sm">
         <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
             <h5 class="mb-0">Daftar User</h5>
-            @can('create', \App\Models\User::class)
             <div class="d-flex gap-2">
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-light dropdown-toggle" data-bs-toggle="dropdown">
+                        <i class="fas fa-download"></i> Export
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="{{ route('export', 'users') }}?format=pdf"><i class="fas fa-file-pdf text-danger me-2"></i>PDF</a></li>
+                        <li><a class="dropdown-item" href="{{ route('export', 'users') }}?format=excel"><i class="fas fa-file-excel text-success me-2"></i>Excel</a></li>
+                    </ul>
+                </div>
+                @can('create', \App\Models\User::class)
                 <a href="{{ route('users.bulk-create') }}" class="btn btn-sm btn-warning">
                     <i class="fas fa-users"></i> Tambah Massal
                 </a>
                 <a href="{{ route('users.create') }}" class="btn btn-sm btn-light">
                     <i class="fas fa-plus"></i> Tambah User
                 </a>
+                @endcan
             </div>
-            @endcan
         </div>
 
         <div class="card-body">

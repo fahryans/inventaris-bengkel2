@@ -188,6 +188,10 @@ class PeminjamanAlatController extends Controller
             ->event('returned')
             ->log('Alat berhasil dikembalikan');
 
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json(['message' => 'Alat berhasil dikembalikan']);
+        }
+
         return redirect()->back()
             ->with('success', 'Alat berhasil dikembalikan');
     }

@@ -16,6 +16,7 @@ use App\Http\Controllers\PengadaanBahanController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UnitAlatController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\ExportController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -57,7 +58,7 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('laboratorium', LaboratoriumController::class)->except(['create', 'store']);
     });
 
-    Route::middleware(['role:admin_jurusan,kepala_labor,teknisi,kadep'])->group(function () {
+    Route::middleware(['role:admin_jurusan,kepala_labor,teknisi,kadep,mahasiswa'])->group(function () {
         Route::resource('alat', AlatController::class);
 
         // Spesifikasi Alat Management
@@ -89,6 +90,9 @@ Route::middleware(['auth'])->group(function () {
         Route::post('pemakaian_bahan/{pemakaian}/verify', [PemakaianBahanController::class, 'verify'])
             ->middleware('throttle:10,1')
             ->name('pemakaian_bahan.verify');
+        Route::post('pemakaian_bahan/{pemakaian}/return', [PemakaianBahanController::class, 'returnBahan'])
+            ->middleware('throttle:10,1')
+            ->name('pemakaian_bahan.return');
     });
 
     Route::middleware(['role:admin_jurusan,kepala_labor,teknisi,dosen,mahasiswa,kadep'])->group(function () {
@@ -115,6 +119,13 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/activity-log', [ActivityLogController::class, 'index'])
         ->name('activity-log.index')
         ->middleware('role:admin_jurusan');
+
+    // Export routes
+    Route::middleware(['role:admin_jurusan,kepala_labor,teknisi,kadep,dosen,mahasiswa'])->group(function () {
+        Route::get('export/{tipe}', [ExportController::class, 'export'])
+            ->middleware('throttle:10,1')
+            ->name('export');
+    });
 
 });
 

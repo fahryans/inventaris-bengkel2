@@ -30,7 +30,28 @@
     <div class="title">{{ $title }}</div>
     <div class="period">Periode: {{ $date }}</div>
 
-    @yield('content')
+    @if(isset($headers) && isset($rows))
+    <table>
+        <thead>
+            <tr>
+                @foreach($headers as $header)
+                <th>{{ $header }}</th>
+                @endforeach
+            </tr>
+        </thead>
+        <tbody>
+            @foreach($rows as $row)
+            <tr>
+                @foreach($row as $cell)
+                <td>{{ $cell }}</td>
+                @endforeach
+            </tr>
+            @endforeach
+        </tbody>
+    </table>
+    @else
+        @yield('content')
+    @endif
 
     <div class="signature">
         <p>Dicetak pada: {{ now()->format('d/m/Y H:i') }}</p>

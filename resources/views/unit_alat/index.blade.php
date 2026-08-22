@@ -12,8 +12,19 @@
     </nav>
 
     <div class="card shadow-sm">
-        <div class="card-header bg-primary text-white">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
             <h5 class="mb-0">Daftar Unit Alat</h5>
+            <div class="d-flex gap-2">
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-light dropdown-toggle" data-bs-toggle="dropdown">
+                        <i class="fas fa-download"></i> Export
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="{{ route('export', 'unit_alat') }}?format=pdf"><i class="fas fa-file-pdf text-danger me-2"></i>PDF</a></li>
+                        <li><a class="dropdown-item" href="{{ route('export', 'unit_alat') }}?format=excel"><i class="fas fa-file-excel text-success me-2"></i>Excel</a></li>
+                    </ul>
+                </div>
+            </div>
         </div>
 
         <div class="card-body">

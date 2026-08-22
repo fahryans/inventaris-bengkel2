@@ -64,6 +64,11 @@
                     </div>
 
                     <div class="d-flex gap-2">
+                        @can('return', $pemakaian)
+                            <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#returnBahanModal">
+                                <i class="fas fa-undo"></i> Kembalikan Sisa
+                            </button>
+                        @endcan
                         @can('verify', $pemakaian)
                         @if(!$pemakaian->id_user_verifikasi)
                             <form action="{{ route('pemakaian_bahan.verify', $pemakaian) }}" method="POST" style="display:inline;">
@@ -112,3 +117,102 @@
     </div>
 </div>
 @endsection
+
+@can('return', $pemakaian)
+<div class="modal fade" id="returnBahanModal" tabindex="-1" aria-labelledby="returnBahanModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="returnBahanForm" action="{{ route('pemakaian_bahan.return', $pemakaian) }}" method="POST">
+                @csrf
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title" id="returnBahanModalLabel">
+                        <i class="fas fa-undo"></i> Kembalikan Sisa Bahan
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info mb-3">
+                        <strong>Bahan:</strong> {{ $pemakaian->bahan->nama_bahan ?? '-' }}<br>
+                        <strong>Jumlah Diambil:</strong> {{ $pemakaian->jumlah_pengambilan }} {{ $pemakaian->bahan->satuan ?? '-' }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="jumlah_terpakai" class="form-label">Jumlah Terpakai <span class="text-danger">*</span></label>
+                        <input type="number" name="jumlah_terpakai" id="jumlah_terpakai"
+                               class="form-control" value="{{ $pemakaian->jumlah_terpakai ?? $pemakaian->jumlah_pengambilan }}"
+                               min="1" max="{{ $pemakaian->jumlah_pengambilan }}" required>
+                        <small class="text-muted">Berapa yang benar-benar terpakai</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Sisa (Otomatis)</label>
+                        <input type="text" id="sisaDisplay" class="form-control" readonly
+                               value="{{ ($pemakaian->jumlah_pengambilan - ($pemakaian->jumlah_terpakai ?? $pemakaian->jumlah_pengambilan)) }} {{ $pemakaian->bahan->satuan ?? '-' }}">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="jumlah_pengembalian" class="form-label">Jumlah Dikembalikan <span class="text-danger">*</span></label>
+                        <input type="number" name="jumlah_pengembalian" id="jumlah_pengembalian"
+                               class="form-control" value="0"
+                               min="0" max="{{ $pemakaian->jumlah_pengambilan }}" required>
+                        <small class="text-muted">Berapa yang dikembalikan ke stok</small>
+                    </div>
+
+                    <div id="returnBahanError" class="alert alert-danger d-none"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-success" id="btnReturnBahanSubmit">
+                        <i class="fas fa-check"></i> Konfirmasi Pengembalian
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('jumlah_terpakai')?.addEventListener('input', function() {
+    const ambil = {{ $pemakaian->jumlah_pengambilan }};
+    const pakai = parseInt(this.value) || 0;
+    const sisa = ambil - pakai;
+    const satuan = '{{ $pemakaian->bahan->satuan ?? "" }}';
+    document.getElementById('sisaDisplay').value = sisa + ' ' + satuan;
+    const inputKembali = document.getElementById('jumlah_pengembalian');
+    inputKembali.max = sisa;
+    if (parseInt(inputKembali.value) > sisa) inputKembali.value = sisa;
+});
+
+document.getElementById('returnBahanForm')?.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const form = this;
+    const btn = document.getElementById('btnReturnBahanSubmit');
+    const errorDiv = document.getElementById('returnBahanError');
+
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
+    errorDiv.classList.add('d-none');
+
+    fetch(form.action, {
+        method: 'POST',
+        body: new FormData(form),
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(response => {
+        if (response.ok) {
+            window.location.reload();
+        } else {
+            return response.json().then(data => {
+                throw new Error(data.message || Object.values(data.errors || {}).flat().join(', '));
+            });
+        }
+    })
+    .catch(err => {
+        errorDiv.textContent = err.message;
+        errorDiv.classList.remove('d-none');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-check"></i> Konfirmasi Pengembalian';
+    });
+});
+</script>
+@endcan

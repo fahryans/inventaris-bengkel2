@@ -55,7 +55,8 @@ class PeminjamanAlatPolicy
             'kepala_labor',
             'teknisi',
             'dosen',
-            'mahasiswa'
+            'mahasiswa',
+            'kadep'
         ]) || $user->id === $peminjaman->id_user_peminjam) && $peminjaman->status === 'terpinjam';
     }
 

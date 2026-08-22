@@ -14,11 +14,22 @@
     <div class="card shadow-sm">
         <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
             <h5 class="mb-0">Daftar Pengadaan Bahan</h5>
-            @can('create', App\Models\PengadaanBahan::class)
-            <a href="{{ route('pengadaan_bahan.create') }}" class="btn btn-sm btn-light">
-                <i class="fas fa-plus"></i> Tambah Pengadaan
-            </a>
-            @endcan
+            <div class="d-flex gap-2">
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-light dropdown-toggle" data-bs-toggle="dropdown">
+                        <i class="fas fa-download"></i> Export
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="{{ route('export', 'pengadaan_bahan') }}?format=pdf"><i class="fas fa-file-pdf text-danger me-2"></i>PDF</a></li>
+                        <li><a class="dropdown-item" href="{{ route('export', 'pengadaan_bahan') }}?format=excel"><i class="fas fa-file-excel text-success me-2"></i>Excel</a></li>
+                    </ul>
+                </div>
+                @can('create', App\Models\PengadaanBahan::class)
+                <a href="{{ route('pengadaan_bahan.create') }}" class="btn btn-sm btn-light">
+                    <i class="fas fa-plus"></i> Tambah Pengadaan
+                </a>
+                @endcan
+            </div>
         </div>
 
         <div class="card-body">

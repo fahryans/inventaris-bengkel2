@@ -70,10 +70,13 @@ class PemakaianBahanController extends Controller
         DB::transaction(function () use ($validated, &$pemakaian) {
             $pemakaian = PemakaianBahan::create($validated);
 
-            $this->fifoService->consumeFromBatches(
-                $validated['id_bahan'],
-                $validated['jumlah_terpakai']
-            );
+            // Hanya konsumsi stok jika jumlah_terpakai diisi dan > 0
+            if ($validated['jumlah_terpakai'] ?? 0 > 0) {
+                $this->fifoService->consumeFromBatches(
+                    $validated['id_bahan'],
+                    $validated['jumlah_terpakai']
+                );
+            }
         });
 
         activity()
@@ -192,5 +195,57 @@ class PemakaianBahanController extends Controller
 
         return redirect()->route('pemakaian_bahan.index')
             ->with('success', 'Pemakaian bahan berhasil dihapus');
+    }
+
+    public function returnBahan(Request $request, $id)
+    {
+        $pemakaian = PemakaianBahan::findOrFail($id);
+        $this->authorize('return', $pemakaian);
+
+        $validated = $request->validate([
+            'jumlah_terpakai' => ['required', 'integer', 'min:1', 'lte:' . $pemakaian->jumlah_pengambilan],
+            'jumlah_pengembalian' => ['required', 'integer', 'min:0'],
+        ]);
+
+        $sisa = $pemakaian->jumlah_pengambilan - $validated['jumlah_terpakai'];
+
+        if ($validated['jumlah_pengembalian'] > $sisa) {
+            return back()->withErrors(['jumlah_pengembalian' => 'Jumlah pengembalian melebihi sisa (maksimal ' . $sisa . ')']);
+        }
+
+        if ($validated['jumlah_pengembalian'] < 0) {
+            return back()->withErrors(['jumlah_pengembalian' => 'Jumlah pengembalian tidak boleh negatif']);
+        }
+
+        $oldData = $pemakaian->toArray();
+
+        DB::transaction(function () use ($pemakaian, $validated) {
+            $pemakaian->update([
+                'jumlah_terpakai' => $validated['jumlah_terpakai'],
+                'jumlah_pengembalian' => $validated['jumlah_pengembalian'],
+            ]);
+
+            if ($validated['jumlah_pengembalian'] > 0) {
+                $this->fifoService->reverseConsumeFromBatches(
+                    $pemakaian->id_bahan,
+                    $validated['jumlah_pengembalian']
+                );
+            }
+        });
+
+        $pemakaian->refresh();
+
+        activity()
+            ->performedOn($pemakaian)
+            ->withProperties(['old' => $oldData, 'attributes' => $pemakaian->toArray()])
+            ->event('returned')
+            ->log('Pengembalian sisa bahan dicatat');
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json(['message' => 'Pengembalian sisa bahan berhasil dicatat']);
+        }
+
+        return redirect()->route('pemakaian_bahan.show', $pemakaian)
+            ->with('success', 'Pengembalian sisa bahan berhasil dicatat');
     }
 }

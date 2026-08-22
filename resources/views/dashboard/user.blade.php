@@ -178,6 +178,75 @@
     </div>
     @endif
 
+    {{-- Pemakaian Bahan Aktif --}}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0">Pemakaian Bahan</h5>
+                <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#pakaiBahanModal">
+                    <i class="fas fa-flask me-1"></i> Pakai Bahan
+                </button>
+            </div>
+
+            <div class="card shadow">
+                <div class="card-body">
+                    @if($myPemakaianBahan->count())
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Bahan</th>
+                                        <th>Dihat</th>
+                                        <th>Diambil</th>
+                                        <th>Terpakai</th>
+                                        <th>Sisa</th>
+                                        <th>Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($myPemakaianBahan as $pemakaian)
+@php
+                                            $terpakai = $pemakaian->jumlah_terpakai ?? $pemakaian->jumlah_pengambilan;
+                                            $sisa = $pemakaian->jumlah_pengambilan - $terpakai;
+                                            $canReturn = $pemakaian->jumlah_pengembalian == null;
+                                        @endphp>
+                                            <td>{{ $pemakaian->bahan->nama_bahan ?? '-' }}</td>
+                                            <td>{{ $pemakaian->pengadaanBahan->supplier ?? '-' }}</td>
+                                            <td>{{ $pemakaian->jumlah_pengambilan }} {{ $pemakaian->bahan->satuan ?? '-' }}</td>
+                                            <td>{{ $terpakai }} {{ $pemakaian->bahan->satuan ?? '-' }}</td>
+                                            <td><span class="badge bg-info">{{ $sisa }} {{ $pemakaian->bahan->satuan ?? '-' }}</span></td>
+                                            <td>
+                                                @can('return', $pemakaian)
+                                                    <button type="button" class="btn btn-sm btn-warning btn-return-bahan"
+                                                            data-id="{{ $pemakaian->id }}"
+                                                            data-name="{{ $pemakaian->bahan->nama_bahan ?? '-' }}"
+                                                            data-ambil="{{ $pemakaian->jumlah_pengambilan }}"
+                                                            data-satuan="{{ $pemakaian->bahan->satuan ?? '-' }}">
+                                                        <i class="fas fa-undo"></i> Kembalikan Sisa
+                                                    </button>
+                                                @endcan
+                                                @can('view', $pemakaian)
+                                                    <a href="{{ route('pemakaian_bahan.show', $pemakaian) }}" class="btn btn-sm btn-info" title="Lihat Detail">
+                                                        <i class="fas fa-eye"></i> Lihat
+                                                    </a>
+                                                @endcan
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @else
+                        <div class="text-center text-muted py-3">
+                            <i class="fas fa-flask fa-2x mb-2"></i>
+                            <p>Belum ada pemakaian bahan aktif.</p>
+                        </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+    </div>
+
     {{-- Riwayat Peminjaman Chart --}}
     <div class="row mb-4">
         <div class="col-xl-12">
@@ -212,6 +281,106 @@
         options: { responsive: true, scales: { y: { beginAtZero: true } } }
     });
     </script>
+
+    <!-- Modal Pakai Bahan -->
+    <div class="modal fade" id="pakaiBahanModal" tabindex="-1" aria-labelledby="pakaiBahanModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form id="pakaiBahanForm" action="{{ route('pemakaian_bahan.store') }}" method="POST">
+                    @csrf
+                    <div class="modal-header bg-success text-white">
+                        <h5 class="modal-title" id="pakaiBahanModalLabel">
+                            <i class="fas fa-flask me-2"></i>Pakai Bahan
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="id_bahan" class="form-label">Pilih Bahan <span class="text-danger">*</span></label>
+                            <select name="id_bahan" id="id_bahan" class="form-select" required>
+                                <option value="">-- Pilih Bahan --</option>
+                                @foreach($allBahans as $bahan)
+                                    <option value="{{ $bahan['id'] }}" data-stok="{{ $bahan['stok'] }}" data-satuan="{{ $bahan['satuan'] }}"
+                                            data-pengadaan='@json($bahan['pengadaan_options'])'>
+                                        {{ $bahan['nama'] }} (Stok: {{ $bahan['stok'] }} {{ $bahan['satuan'] }})
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="id_pengadaan_bahan" class="form-label">Batch Pengadaan <span class="text-danger">*</span></label>
+                            <select name="id_pengadaan_bahan" id="id_pengadaan_bahan" class="form-select" required>
+                                <option value="">-- Pilih Bahan Dulu --</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="jumlah_pengambilan" class="form-label">Jumlah Diambil <span class="text-danger">*</span></label>
+                            <input type="number" name="jumlah_pengambilan" id="jumlah_pengambilan" class="form-control"
+                                   min="1" required>
+                            <small class="text-muted" id="stokInfo">Stok tersedia: -</small>
+                        </div>
+                        <div class="mb-3">
+                            <label for="keperluan_pakai" class="form-label">Keperluan <span class="text-danger">*</span></label>
+                            <input type="text" name="keperluan" id="keperluan_pakai" class="form-control"
+                                   placeholder="Contoh: Praktikum TIG Welding" required>
+                        </div>
+
+                        <div id="pakaiBahanError" class="alert alert-danger d-none"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-success" id="btnPakaiBahanSubmit">
+                            <i class="fas fa-check"></i> Pakai Bahan
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Return Sisa Bahan -->
+    <div class="modal fade" id="returnBahanDashModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form id="returnBahanDashForm" method="POST">
+                    @csrf
+                    <div class="modal-header bg-warning text-dark">
+                        <h5 class="modal-title">
+                            <i class="fas fa-undo me-2"></i>Kembalikan Sisa Bahan
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="alert alert-info mb-3">
+                            <strong>Bahan:</strong> <span id="returnBahanName">-</span><br>
+                            <strong>Jumlah Diambil:</strong> <span id="returnBahanAmbil">-</span>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Jumlah Terpakai <span class="text-danger">*</span></label>
+                            <input type="number" name="jumlah_terpakai" id="returnTerpakai" class="form-control" min="1" required>
+                            <small class="text-muted">Berapa yang benar-benar terpakai</small>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Sisa (Otomatis)</label>
+                            <input type="text" id="returnSisaDisplay" class="form-control" readonly value="0">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Jumlah Dikembalikan <span class="text-danger">*</span></label>
+                            <input type="number" name="jumlah_pengembalian" id="returnJumlahKembali" class="form-control" min="0" value="0" required>
+                            <small class="text-muted">Sisa yang dikembalikan ke stok</small>
+                        </div>
+                        <div id="returnBahanDashError" class="alert alert-danger d-none"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-warning" id="btnReturnBahanDashSubmit">
+                            <i class="fas fa-check"></i> Konfirmasi Pengembalian
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
     <!-- Modal Quick Return -->
     <div class="modal fade" id="modalReturn" tabindex="-1" aria-labelledby="modalReturnLabel" aria-hidden="true">
@@ -276,11 +445,128 @@
                 modal.show();
                 setTimeout(() => inputKondisi.focus(), 300);
             });
+});
+    });
+    </script>
+
+    <script>
+    // Handle Bahan selection to show batches
+    document.getElementById('id_bahan')?.addEventListener('change', function() {
+        const bahanId = this.value;
+        const batchSelect = document.getElementById('id_pengadaan_bahan');
+        const stokInfo = document.getElementById('stokInfo');
+        const dataOption = this.options[this.selectedIndex]?.dataset;
+        
+        // Reset batch select
+        batchSelect.innerHTML = '<option value="">-- Pilih Bahan Dulu --</option>';
+        
+        if (!bahanId) {
+            stokInfo.textContent = 'Stok tersedia: -';
+            return;
+        }
+        
+        const selectedOption = this.options[this.selectedIndex];
+        if (!selectedOption || !dataOption) return;
+        
+        const stok = selectedOption.getAttribute('data-stok');
+        const satuan = selectedOption.getAttribute('data-satuan');
+        const pengadaanOptions = JSON.parse(dataOption.getAttribute('data-pengadaan') || '[]');
+        
+        stokInfo.textContent = `Stok tersedia: ${stok} ${satuan}`;
+        
+        // Populate batch options
+        if (pengadaanOptions.length > 0) {
+            pengadaanOptions.forEach(function(opt) {
+                const optEl = document.createElement('option');
+                optEl.value = opt.id;
+                optEl.textContent = opt.label;
+                batchSelect.appendChild(optEl);
+            });
+        }
+    });
+
+    // Format sisa when input jumlah terpakai changes
+    document.getElementById('jumlah_pengambilan')?.parentElement?.addEventListener('input', function() {
+        const ambil = parseInt(document.getElementById('jumlah_pengambilan')?.value) || 0;
+        // Note: This is a simplified check - in real app would need the actualambil value from hidden
+    });
+    </script>
+
+    <script>
+    // Return Sisa Bahan Modal (new)
+    document.addEventListener('DOMContentLoaded', function() {
+        const modal = new bootstrap.Modal(document.getElementById('returnBahanDashModal'));
+        const form = document.getElementById('returnBahanDashForm');
+        const nameEl = document.getElementById('returnBahanName');
+        const ambilEl = document.getElementById('returnBahanAmbil');
+        const terpakaiEl = document.getElementById('returnTerpakai');
+        const sisaDisplayEl = document.getElementById('returnSisaDisplay');
+        const jumlahKembaliEl = document.getElementById('returnJumlahKembali');
+        const errorDiv = document.getElementById('returnBahanDashError');
+        const submitBtn = document.getElementById('btnReturnBahanDashSubmit');
+
+        // Open modal when clicking "Kembalikan Sisa" button
+        document.querySelectorAll('.btn-return-bahan').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                const id = this.dataset.id;
+                const name = this.dataset.name;
+                const ambil = parseInt(this.dataset.ambil) || 0;
+                const satuan = this.dataset.satuan || '-';
+
+                nameEl.textContent = name;
+                ambilEl.textContent = ambil + ' ' + satuan;
+                terpakaiEl.value = '';
+                sisaDisplayEl.value = ambil;
+                jumlahKembaliEl.value = Math.max(0, ambil);
+                jumlahKembaliEl.max = ambil;
+
+                modal.show();
+                setTimeout(() => terpakaiEl.focus(), 300);
+            });
+        });
+
+        // Format sisa when input changes
+        terpakaiEl.addEventListener('input', function() {
+            const ambil = parseInt(ambilEl.textContent?.split(' ')[0]) || 0;
+            const pakai = parseInt(this.value) || 0;
+            const sisa = Math.max(0, ambil - pakai);
+            sisaDisplayEl.value = sisa;
+            jumlahKembaliEl.value = Math.min(sisa, parseInt(jumlahKembaliEl.max) || sisa);
+            jumlahKembaliEl.max = sisa;
+        });
+
+        // Handle form submission via AJAX
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
+            errorDiv.classList.add('d-none');
+
+            fetch(form.action, {
+                method: 'POST',
+                body: new FormData(form),
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(response => {
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    return response.json().then(data => {
+                        throw new Error(data.message || Object.values(data.errors || {}).flat().join(', '));
+                    });
+                }
+            })
+            .catch(err => {
+                errorDiv.textContent = err.message;
+                errorDiv.classList.remove('d-none');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-check"></i> Konfirmasi Pengembalian';
+            });
         });
     });
     </script>
 
-@push('css')
+    @push('css')
 <style>
     .lab-card {
         transition: all 0.3s ease;

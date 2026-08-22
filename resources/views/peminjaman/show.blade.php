@@ -75,24 +75,10 @@
                     <div class="d-flex gap-2">
                         @can('return', $peminjaman)
                         @if($peminjaman->status == 'terpinjam')
-                            <a href="{{ route('peminjaman.return-form', $peminjaman) }}" class="btn btn-success">
+                            <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#returnModal">
                                 <i class="fas fa-undo"></i> Kembalikan
-                            </a>
-                        @endif
-                        @endcan
-                        @can('update', $peminjaman)
-                        <a href="{{ route('peminjaman.edit', $peminjaman) }}" class="btn btn-warning">
-                            <i class="fas fa-edit"></i> Edit
-                        </a>
-                        @endcan
-                        @can('delete', $peminjaman)
-                        <form action="{{ route('peminjaman.destroy', $peminjaman) }}" method="POST" style="display:inline;">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="btn btn-danger" onclick="return confirm('Yakin ingin menghapus?')">
-                                <i class="fas fa-trash"></i> Hapus
                             </button>
-                        </form>
+                        @endif
                         @endcan
                         <a href="{{ route('peminjaman.index') }}" class="btn btn-secondary">
                             <i class="fas fa-arrow-left"></i> Kembali
@@ -123,3 +109,85 @@
     </div>
 </div>
 @endsection
+
+@if($peminjaman->status == 'terpinjam')
+<div class="modal fade" id="returnModal" tabindex="-1" aria-labelledby="returnModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="returnForm" action="{{ route('peminjaman.return', $peminjaman) }}" method="POST">
+                @csrf
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title" id="returnModalLabel">
+                        <i class="fas fa-undo"></i> Konfirmasi Pengembalian
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info mb-3">
+                        <strong>Alat:</strong> {{ $peminjaman->alat?->nama_alat ?? $peminjaman->unitAlat?->alat?->nama_alat ?? 'Unknown' }}<br>
+                        <strong>Peminjam:</strong> {{ $peminjaman->userPeminjam->nama }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="waktu_kembali_aktual" class="form-label">Waktu Kembali Aktual <span class="text-danger">*</span></label>
+                        <input type="datetime-local" name="waktu_kembali_aktual" id="waktu_kembali_aktual"
+                               class="form-control" value="{{ now()->format('Y-m-d\TH:i') }}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="kondisi_saat_pengembalian" class="form-label">Kondisi Saat Pengembalian <span class="text-danger">*</span></label>
+                        <select name="kondisi_saat_pengembalian" id="kondisi_saat_pengembalian" class="form-select" required>
+                            <option value="">Pilih Kondisi</option>
+                            <option value="baik">Baik</option>
+                            <option value="rusak_ringan">Rusak Ringan</option>
+                            <option value="rusak_berat">Rusak Berat</option>
+                        </select>
+                    </div>
+
+                    <div id="returnError" class="alert alert-danger d-none"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-success" id="btnReturnSubmit">
+                        <i class="fas fa-check"></i> Konfirmasi Pengembalian
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('returnForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const form = this;
+    const btn = document.getElementById('btnReturnSubmit');
+    const errorDiv = document.getElementById('returnError');
+
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
+    errorDiv.classList.add('d-none');
+
+    fetch(form.action, {
+        method: 'POST',
+        body: new FormData(form),
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(response => {
+        if (response.ok) {
+            window.location.reload();
+        } else {
+            return response.json().then(data => {
+                throw new Error(data.message || 'Gagal mengembalikan peminjaman.');
+            });
+        }
+    })
+    .catch(err => {
+        errorDiv.textContent = err.message;
+        errorDiv.classList.remove('d-none');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-check"></i> Konfirmasi Pengembalian';
+    });
+});
+</script>
+@endif

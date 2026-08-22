@@ -77,28 +77,6 @@
                             @enderror
                         </div>
                     </div>
-
-                    <div class="col-md-4">
-                        <div class="mb-3">
-                            <label for="jumlah_terpakai" class="form-label">Jumlah Terpakai <span class="text-danger">*</span></label>
-                            <input type="number" name="jumlah_terpakai" id="jumlah_terpakai" class="form-control @error('jumlah_terpakai') is-invalid @enderror" 
-                                   value="{{ old('jumlah_terpakai') }}" min="0" required>
-                            @error('jumlah_terpakai')
-                                <div class="invalid-feedback d-block">{{ $message }}</div>
-                            @enderror
-                        </div>
-                    </div>
-
-                    <div class="col-md-4">
-                        <div class="mb-3">
-                            <label for="jumlah_pengembalian" class="form-label">Jumlah Pengembalian <span class="text-danger">*</span></label>
-                            <input type="number" name="jumlah_pengembalian" id="jumlah_pengembalian" class="form-control @error('jumlah_pengembalian') is-invalid @enderror" 
-                                   value="{{ old('jumlah_pengembalian') }}" min="0" required>
-                            @error('jumlah_pengembalian')
-                                <div class="invalid-feedback d-block">{{ $message }}</div>
-                            @enderror
-                        </div>
-                    </div>
                 </div>
 
                 <div class="mb-3">
