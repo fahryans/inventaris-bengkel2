@@ -64,4 +64,14 @@ class Alat extends Model
         }
         return $this->pengadaanAlat()->sum('jumlah');
     }
+
+    /**
+     * ponytail: kolom jumlah_alat dihapus oleh migrasi 2026_08_20; stok kini
+     * dihitung dari pengadaan_alat. Accessor ini menjaga view/resource lama.
+     * Hapus accessor + ganti pemanggilan saat refactor tampilan.
+     */
+    public function getJumlahAlatAttribute(): int
+    {
+        return $this->getAvailableQuantity();
+    }
 }

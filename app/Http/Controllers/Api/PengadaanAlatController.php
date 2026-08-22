@@ -89,8 +89,9 @@ class PengadaanAlatController extends Controller
                         ]);
                     }
                 } else {
-                    $this->stokService->tambahAlatAgregat($pengadaanAlat->alat, $pengadaanAlat->jumlah);
-                }
+                // Stok agregat: jumlah tersedia dihitung dari pengadaan_alat.
+                // Tidak perlu mutasi — riwayat pembelian tidak diubah.
+            }
             });
         } catch (\Exception $e) {
             return response()->json(['message' => $e->getMessage()], 422);
@@ -153,9 +154,10 @@ class PengadaanAlatController extends Controller
                         $delta = (int) $validated['jumlah'] - $oldJumlah;
 
                         if ($delta > 0) {
-                            $this->stokService->tambahAlatAgregat($pengadaanAlat->alat, $delta);
+                            // Stok agregat: tambah dihitung dari pengadaan_alat;
+                            // kolom jumlah_alat di alat sudah tidak digunakan.
                         } elseif ($delta < 0) {
-                            $this->stokService->kurangiAlatAgregat($pengadaanAlat->alat, abs($delta));
+                            // Stok agregat: kurangi juga dihitung dari pengadaan_alat.
                         }
                     }
                 }
@@ -177,10 +179,8 @@ class PengadaanAlatController extends Controller
 
         try {
             DB::transaction(function () use ($pengadaanAlat) {
-                if ($pengadaanAlat->tanggal_masuk && !$pengadaanAlat->alat->isUnitTracked()) {
-                    $this->stokService->kurangiAlatAgregat($pengadaanAlat->alat, $pengadaanAlat->jumlah);
-                }
-
+                // Stok agregat: kurangi dihitung dari tabel pengadaan_alat;
+                // kolom jumlah_alat di alat sudah dihapus migrasi 2026_08_20.
                 $pengadaanAlat->delete();
             });
         } catch (\Exception $e) {

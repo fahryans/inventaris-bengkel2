@@ -181,10 +181,8 @@ class PengadaanAlatController extends Controller
                     ->where('kode_inventaris', null)
                     ->update(['status' => 'tersedia']);
             } else {
-                $this->stokService->tambahAlatAgregat(
-                    $pengadaan->alat,
-                    $pengadaan->jumlah
-                );
+                // Stok agregat: jumlah tersedia dihitung dari tabel pengadaan_alat.
+                // Tidak perlu mutasi — riwayat pembelian tidak diubah.
             }
         });
 
