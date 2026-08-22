@@ -18,6 +18,7 @@ class Laboratorium extends Model
         'nama_labor',
         'lokasi',
         'sop',
+        'gambar',
     ];
 
     public function kalab(): BelongsTo

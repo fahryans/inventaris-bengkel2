@@ -20,9 +20,18 @@ class ProfileController extends Controller
 
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
-        $request->user()->fill($request->validated());
+        $user = $request->user();
+        $validated = $request->validated();
 
-        $request->user()->save();
+        if ($request->hasFile('foto')) {
+            if ($user->foto) {
+                \Storage::disk('public')->delete($user->foto);
+            }
+            $validated['foto'] = $request->file('foto')->store('users', 'public');
+        }
+
+        $user->fill($validated);
+        $user->save();
 
         return Redirect::route('profile.edit')
             ->with('status', 'profile-updated');

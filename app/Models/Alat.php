@@ -62,6 +62,10 @@ class Alat extends Model
         if ($this->isUnitTracked()) {
             return $this->unitAlat()->where('status', 'tersedia')->count();
         }
-        return $this->pengadaanAlat()->sum('jumlah');
+
+        $totalAcquired = $this->pengadaanAlat()->sum('jumlah');
+        $totalBorrowed = $this->peminjamanAlat()->active()->sum('jumlah');
+
+        return max(0, $totalAcquired - $totalBorrowed);
     }
 }

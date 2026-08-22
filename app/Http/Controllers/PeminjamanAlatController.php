@@ -58,8 +58,8 @@ class PeminjamanAlatController extends Controller
             'id_unit_alat' => ['nullable', 'exists:unit_alat,id'],
             'id_spesifikasi_alat' => ['nullable', 'exists:spesifikasi_alat,id'],
             'keperluan' => ['required', 'string', 'max:255'],
-            'waktu_peminjaman' => ['required', 'date_format:Y-m-d H:i'],
-            'waktu_pengembalian' => ['nullable', 'date_format:Y-m-d H:i', 'after:waktu_peminjaman'],
+            'waktu_peminjaman' => ['required', 'date_format:Y-m-d\TH:i'],
+            'waktu_pengembalian' => ['required', 'date_format:Y-m-d\TH:i', 'after:waktu_peminjaman'],
             'jumlah' => ['nullable', 'integer', 'min:1'],
             'kondisi_saat_peminjaman' => ['required', 'string', 'max:255'],
         ]);
@@ -76,6 +76,33 @@ class PeminjamanAlatController extends Controller
 
         return redirect()->route('peminjaman.index')
             ->with('success', 'Peminjaman berhasil dibuat');
+    }
+
+    public function quickStore(Request $request)
+    {
+        $this->authorize('create', PeminjamanAlat::class);
+
+        $validated = $request->validate([
+            'id_alat' => ['nullable', 'exists:alat,id'],
+            'id_unit_alat' => ['nullable', 'exists:unit_alat,id'],
+            'keperluan' => ['required', 'string', 'max:255'],
+            'waktu_pengembalian' => ['required', 'date_format:Y-m-d\TH:i'],
+        ]);
+
+        $validated['id_user_peminjam'] = Auth::id();
+        $validated['waktu_peminjaman'] = now();
+        $validated['kondisi_saat_peminjaman'] = 'baik';
+
+        $peminjaman = $this->peminjamanService->createBorrowing($validated);
+
+        activity()
+            ->performedOn($peminjaman)
+            ->withProperties(['attributes' => $peminjaman->toArray()])
+            ->event('created')
+            ->log('Peminjaman alat cepat dibuat dari lab');
+
+        return redirect()->back()
+            ->with('success', 'Alat berhasil dipinjam!');
     }
 
     public function show(PeminjamanAlat $peminjaman)
@@ -115,7 +142,7 @@ class PeminjamanAlatController extends Controller
 
         $validated = $request->validate([
             'keperluan' => ['required', 'string', 'max:255'],
-            'waktu_pengembalian' => ['nullable', 'date_format:Y-m-d H:i', 'after:waktu_peminjaman'],
+            'waktu_pengembalian' => ['nullable', 'date_format:Y-m-d\TH:i', 'after:waktu_peminjaman'],
             'kondisi_saat_peminjaman' => ['required', 'string', 'max:255'],
         ]);
 
@@ -147,7 +174,7 @@ class PeminjamanAlatController extends Controller
         $oldData = $peminjaman->toArray();
 
         $validated = $request->validate([
-            'waktu_kembali_aktual' => ['required', 'date_format:Y-m-d H:i'],
+            'waktu_kembali_aktual' => ['required', 'date_format:Y-m-d\TH:i'],
             'kondisi_saat_pengembalian' => ['required', 'string', 'max:255'],
         ]);
 
@@ -161,7 +188,7 @@ class PeminjamanAlatController extends Controller
             ->event('returned')
             ->log('Alat berhasil dikembalikan');
 
-        return redirect()->route('peminjaman.show', $peminjaman)
+        return redirect()->back()
             ->with('success', 'Alat berhasil dikembalikan');
     }
 

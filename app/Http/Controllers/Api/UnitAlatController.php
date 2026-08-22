@@ -12,6 +12,8 @@ class UnitAlatController extends Controller
 {
     public function index(Request $request)
     {
+        $this->authorize('viewAny', UnitAlat::class);
+
         $query = UnitAlat::with(['alat']);
 
         if ($request->has('search')) {

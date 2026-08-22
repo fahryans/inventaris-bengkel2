@@ -26,6 +26,18 @@ class InventorySeeder extends Seeder
         'CNC Machine', '3D Printer', 'Laser Cutter', 'Drill Machine',
         'Grinding Machine', 'Lathe Machine', 'Milling Machine', 'Plotter',
         'Crimping Tool', 'Wire Stripper', 'Tang Potong', 'Obeng Set',
+        // Motor Bakar
+        'Mesin Uji Kompresi', 'Alat Uji Tekanan Bahan Bakar', 'Timing Light',
+        'Dwell Meter', 'Tachometer Engine', 'Smoke Tester',
+        // Dasar Teknologi Bengkel', 
+        'Kunci Pas Set', 'Kunci Ring Set', 'Kunci Socket Set', 'Trometer',
+        'Dial Indicator', 'Vernier Caliper', 'Micrometer',
+        // Sepeda Motor
+        'Carburetor Cleaner Tool', 'Alat Uji Aki', 'Brake Lathe',
+        'Chain Tensioner', 'Spoke Wrench', 'Piston Ring Compressor',
+        // Pengujian Kendaraan
+        'Dyno Machine', 'Emissions Tester', 'Wheel Alignment',
+        'Brake Tester', 'Headlight Adjuster', 'Speedometer Tester',
     ];
 
     private array $kategoriBahan = [
@@ -33,14 +45,26 @@ class InventorySeeder extends Seeder
         'LED', 'Kabel', 'Connector', 'PCB', 'Solder',
         'Flux', 'Kawat Tembaga', 'Termokopel', 'Thermal Paste',
         'Heat Shrink', 'Kabel Ribbon', 'Relay', 'Sensor', 'Baterai', 'Adaptor',
+        // Motor Bakar
+        'Oli Mesin', 'Filter Udara', 'Busi', 'Gasket Set', 'Cairan Radiator',
+        // Dasar Teknologi Bengkel
+        'Mur Baut Set', 'Lem Gasket', 'Grease', 'Chain Lubricant', 'Brake Cleaner',
+        // Sepeda Motor
+        'Oli Gardan', 'Minyak Rem', 'Pelumas Rantai', 'Filter Oli', 'Kampas Rem',
+        // Pengujian Kendaraan
+        'Gas Kalibrasi', 'Cairan Uji Emisi', 'Calibration Weight', 'Brake Fluid Test',
     ];
 
     private array $labs = [
-        ['nama' => 'Laboratorium Elektronika', 'lokasi' => 'Gedung A Lantai 2'],
-        ['nama' => 'Laboratorium Mekanik', 'lokasi' => 'Gedung B Lantai 1'],
-        ['nama' => 'Laboratorium Komputer', 'lokasi' => 'Gedung C Lantai 3'],
-        ['nama' => 'Laboratorium Kimia', 'lokasi' => 'Gedung D Lantai 1'],
-        ['nama' => 'Laboratorium Fisika', 'lokasi' => 'Gedung E Lantai 2'],
+        ['nama' => 'Laboratorium Elektronika', 'lokasi' => 'Gedung A Lantai 2', 'gambar' => 'labs/labelektronika.webp'],
+        ['nama' => 'Laboratorium Mekanik', 'lokasi' => 'Gedung B Lantai 1', 'gambar' => 'labs/labmekanik.webp'],
+        ['nama' => 'Laboratorium Komputer', 'lokasi' => 'Gedung C Lantai 3', 'gambar' => 'labs/labkomputer.jpg'],
+        ['nama' => 'Laboratorium Kimia', 'lokasi' => 'Gedung D Lantai 1', 'gambar' => 'labs/labkimia.jpg'],
+        ['nama' => 'Laboratorium Fisika', 'lokasi' => 'Gedung E Lantai 2', 'gambar' => 'labs/labfisika.webp'],
+        ['nama' => 'Laboratorium Motor Bakar', 'lokasi' => 'Gedung F Lantai 1', 'gambar' => 'labs/labmotorbakar.jpeg'],
+        ['nama' => 'Laboratorium Dasar Teknologi Bengkel', 'lokasi' => 'Gedung G Lantai 1', 'gambar' => 'labs/labdtbengkel.jpeg'],
+        ['nama' => 'Laboratorium Sepeda Motor', 'lokasi' => 'Gedung H Lantai 1', 'gambar' => 'labs/labmotor.jpeg'],
+        ['nama' => 'Laboratorium Pengujian Kendaraan', 'lokasi' => 'Gedung I Lantai 1', 'gambar' => 'labs/labpengujiankendaraan.jpeg'],
     ];
 
     private array $mereks = [
@@ -103,6 +127,28 @@ class InventorySeeder extends Seeder
         // Obeng
         ['kode' => 'OB-01', 'nama' => 'Phillips Set', 'deskripsi' => 'Set obeng Phillips'],
         ['kode' => 'OB-02', 'nama' => 'Flathead Set', 'deskripsi' => 'Set obeng flathead'],
+        // Motor Bakar
+        ['kode' => 'MB-01', 'nama' => 'Kompresi Digital', 'deskripsi' => 'Alat uji kompresi mesin digital'],
+        ['kode' => 'MB-02', 'nama' => 'Tekanan Bensin', 'deskripsi' => 'Manometer tekanan bahan bakar'],
+        ['kode' => 'MB-03', 'nama' => 'Timing Light LED', 'deskripsi' => 'Timing light LED strobe'],
+        ['kode' => 'MB-04', 'nama' => 'Smoke Machine', 'deskripsi' => 'Mesin uji kebocaran vakum'],
+        // Dasar Teknologi Bengkel
+        ['kode' => 'DTB-01', 'nama' => 'Kunci Pas 8-24mm', 'deskripsi' => 'Set kunci pas 12pcs'],
+        ['kode' => 'DTB-02', 'nama' => 'Kunci Socket Set', 'deskripsi' => 'Set kunci socket 40pcs'],
+        ['kode' => 'DTB-03', 'nama' => 'Dial Indicator', 'deskripsi' => 'Indikator dial 0-10mm'],
+        ['kode' => 'DTB-04', 'nama' => 'Vernier Caliper', 'deskripsi' => 'Jangka sorong 150mm'],
+        ['kode' => 'DTB-05', 'nama' => 'Micrometer', 'deskripsi' => 'Mikrometer luar 0-25mm'],
+        // Sepeda Motor
+        ['kode' => 'SM-01', 'nama' => 'Carb Cleaner Kit', 'deskripsi' => 'Toolkit pembersih karburator'],
+        ['kode' => 'SM-02', 'nama' => 'Battery Tester', 'deskripsi' => 'Alat uji kondisi aki 12V'],
+        ['kode' => 'SM-03', 'nama' => 'Brake Lathe', 'deskripsi' => 'Mesin bubut piringan rem'],
+        ['kode' => 'SM-04', 'nama' => 'Piston Ring Compressor', 'deskripsi' => 'Alat kompresi ring piston'],
+        // Pengujian Kendaraan
+        ['kode' => 'PK-01', 'nama' => 'Chassis Dyno', 'deskripsi' => 'Dinamometer chassis 4WD'],
+        ['kode' => 'PK-02', 'nama' => 'Emissions Analyzer', 'deskripsi' => 'Analisis emisi gas buang 4 gas'],
+        ['kode' => 'PK-03', 'nama' => 'Wheel Alignment 3D', 'deskripsi' => 'Spooring 3D system'],
+        ['kode' => 'PK-04', 'nama' => 'Brake Tester', 'deskripsi' => 'Mesin uji rem roller'],
+        ['kode' => 'PK-05', 'nama' => 'Headlight Adjuster', 'deskripsi' => 'Alat setel lampu depan digital'],
     ];
 
     private array $spesifikasiBahan = [
@@ -134,6 +180,29 @@ class InventorySeeder extends Seeder
         // PCB
         ['kode' => 'PCB-01', 'nama' => 'PCB Single Layer', 'deskripsi' => 'PCB prototipe single layer'],
         ['kode' => 'PCB-02', 'nama' => 'PCB Double Layer', 'deskripsi' => 'PCB prototipe double layer'],
+        // Motor Bakar
+        ['kode' => 'OLI-01', 'nama' => 'Oli Mesin 10W-40', 'deskripsi' => 'Oli mesin sintetik 4 tak 1L'],
+        ['kode' => 'FLT-01', 'nama' => 'Filter Udara Universal', 'deskripsi' => 'Filter udara mesin universal'],
+        ['kode' => 'BUS-01', 'nama' => 'Busi Iridium', 'deskripsi' => 'Busi iridium tahan lama'],
+        ['kode' => 'GSK-01', 'nama' => 'Gasket Set Mesin', 'deskripsi' => 'Set gasket lengkap mesin'],
+        ['kode' => 'RAD-01', 'nama' => 'Cairan Radiator 1L', 'deskripsi' => 'Coolant radiator ready to use'],
+        // Dasar Teknologi Bengkel
+        ['kode' => 'MUR-01', 'nama' => 'Mur Baut Set 200pcs', 'deskripsi' => 'Set mur baut aneka ukuran'],
+        ['kode' => 'LMK-01', 'nama' => 'Lem Gasket RTV', 'deskripsi' => 'Lem gasket tahan panas 900°F'],
+        ['kode' => 'GRS-01', 'nama' => 'Grease Multifungsi', 'deskripsi' => 'Pelumas serbaguna 500g'],
+        ['kode' => 'CHN-01', 'nama' => 'Chain Lubricant', 'deskripsi' => 'Pelumas rantai anti karat'],
+        ['kode' => 'BRC-01', 'nama' => 'Brake Cleaner', 'deskripsi' => 'Pembersih rem aerosol 500ml'],
+        // Sepeda Motor
+        ['kode' => 'OLG-01', 'nama' => 'Oli Gardan 120ml', 'deskripsi' => 'Oli gardan mesin 2 tak'],
+        ['kode' => 'MRE-01', 'nama' => 'Minyak Rem DOT4', 'deskripsi' => 'Minyak rem DOT4 500ml'],
+        ['kode' => 'PLR-01', 'nama' => 'Chain Lube Spray', 'deskripsi' => 'Pelumas rantai motor spray'],
+        ['kode' => 'FLO-01', 'nama' => 'Filter Oli Motor', 'deskripsi' => 'Filter oli mesin motor'],
+        ['kode' => 'KRE-01', 'nama' => 'Kampas Rem Depan', 'deskripsi' => 'Kampas rem cakram depan motor'],
+        // Pengujian Kendaraan
+        ['kode' => 'GAS-01', 'nama' => 'Gas Kalibrasi 4 Gas', 'deskripsi' => 'Gas kalibrasi CO/HC/CO2/O2'],
+        ['kode' => 'CEM-01', 'nama' => 'Cairan Uji Emisi', 'deskripsi' => 'Cairan referensi emisi gas buang'],
+        ['kode' => 'CAL-01', 'nama' => 'Calibration Weight 50kg', 'deskripsi' => 'Bobot kalibrasi dinamo roll'],
+        ['kode' => 'BFT-01', 'nama' => 'Brake Fluid Tester', 'deskripsi' => 'Tester titik didih minyak rem'],
     ];
 
     private array $keperluanPeminjaman = [
@@ -187,6 +256,7 @@ class InventorySeeder extends Seeder
                 'nama_labor' => $lab['nama'],
                 'lokasi' => $lab['lokasi'],
                 'sop' => 'SOP ' . str_replace('Laboratorium ', '', $lab['nama']),
+                'gambar' => $lab['gambar'],
             ]);
         }
     }

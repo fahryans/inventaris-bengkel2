@@ -28,6 +28,8 @@ class LaporanController extends Controller
 
     public function dashboard()
     {
+        $this->authorize('viewAny', PeminjamanAlat::class);
+
         return response()->json([
             'total_alat' => \App\Models\Alat::count(),
             'total_bahan' => \App\Models\Bahan::count(),
@@ -40,6 +42,8 @@ class LaporanController extends Controller
 
     public function index(Request $request)
     {
+        $this->authorize('viewAny', PeminjamanAlat::class);
+
         $peminjaman = PeminjamanAlat::with(['alat', 'userPeminjam']);
         $pengadaan = PengadaanAlat::with(['alat', 'userInput']);
         $pemeliharaan = PemeliharaanAlat::with(['unitAlat', 'teknisi']);

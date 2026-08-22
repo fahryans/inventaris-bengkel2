@@ -49,7 +49,7 @@ class DashboardController extends Controller
         $totalUser = User::count();
         $totalPeminjaman = PeminjamanAlat::count();
 
-        $lowStockBahan = 0; // Stok dihitung dari pengadaan_bahan
+        $lowStockBahan = Bahan::lowStock()->count();
         $overduePeminjaman = PeminjamanAlat::where('status', 'terpinjam')
             ->where('waktu_pengembalian', '<', now())
             ->count();
@@ -101,7 +101,7 @@ class DashboardController extends Controller
 
         $totalAlat = Alat::where('id_labor', $lab->id)->count();
         $totalBahan = Bahan::where('id_labor', $lab->id)->count();
-        $lowStockBahan = 0; // Stok dihitung dari pengadaan_bahan
+        $lowStockBahan = Bahan::where('id_labor', $lab->id)->lowStock()->count();
         $upcomingMaintenance = PemeliharaanAlat::whereHas('unitAlat.alat', function ($q) use ($lab) {
             $q->where('id_labor', $lab->id);
         })->whereNull('tanggal_cek')
@@ -202,7 +202,7 @@ class DashboardController extends Controller
         $totalBahan = Bahan::count();
         $totalLaboratorium = Laboratorium::count();
         $totalPeminjaman = PeminjamanAlat::count();
-        $lowStockBahan = 0; // Stok dihitung dari pengadaan_bahan
+        $lowStockBahan = Bahan::lowStock()->count();
 
         $monthExprBulan = DB::getDriverName() === 'sqlite'
             ? "CAST(strftime('%m', created_at) AS INTEGER) as bulan"

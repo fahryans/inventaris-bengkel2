@@ -65,6 +65,7 @@
                 <table class="table table-hover table-sm">
                     <thead class="table-light">
                         <tr>
+                            <th style="width: 50px;"></th>
                             <th>Nama</th>
                             <th>Email</th>
                             <th>Role</th>
@@ -76,6 +77,12 @@
                     <tbody>
                         @forelse($users as $user)
                             <tr>
+                                <td class="text-center">
+                                    <img src="{{ asset('storage/' . ($user->foto ?: 'users/profilelogo.webp')) }}" 
+                                         alt="{{ $user->nama }}"
+                                         class="rounded-circle"
+                                         style="width: 40px; height: 40px; object-fit: cover;">
+                                </td>
                                 <td>
                                     <strong>{{ $user->nama }}</strong>
                                 </td>
@@ -124,7 +131,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="text-center text-muted py-4">
+                                <td colspan="7" class="text-center text-muted py-4">
                                     <i class="fas fa-inbox"></i> Tidak ada data user
                                 </td>
                             </tr>

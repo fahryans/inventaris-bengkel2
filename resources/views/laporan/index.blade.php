@@ -60,7 +60,7 @@
         </div>
 
         <div class="col-md-4 col-sm-6 mb-4">
-            <a href="{{ route('laporan.show', ['tipe' => 'peminjaman']) }}" class="text-decoration-none">
+            <a href="{{ route('laporan.show', ['tipe' => 'peminjaman']) }}?filter=terlambat" class="text-decoration-none">
                 <div class="card border-left-danger shadow h-100 py-2">
                     <div class="card-body">
                         <div class="text-danger text-uppercase mb-1 small font-weight-bold">Peminjaman Terlambat</div>

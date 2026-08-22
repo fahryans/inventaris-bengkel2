@@ -68,7 +68,22 @@
                                 <td>{{ $pem->userPeminjam->nama }}</td>
                                 <td>{{ $pem->keperluan }}</td>
                                 <td>{{ $pem->waktu_peminjaman->format('d/m/Y H:i') }}</td>
-                                <td>{{ $pem->waktu_pengembalian?->format('d/m/Y H:i') ?? '-' }}</td>
+                                <td>
+                                    @if($pem->waktu_pengembalian)
+                                        @php
+                                            $isReturned = $pem->status === 'sudah_dikembalikan';
+                                            $isOverdue = !$isReturned && $pem->waktu_pengembalian < now();
+                                            $returnedLate = $isReturned && $pem->waktu_kembali_aktual && $pem->waktu_kembali_aktual > $pem->waktu_pengembalian;
+                                        @endphp
+                                        <small class="{{ $returnedLate ? 'text-warning fw-bold' : ($isReturned ? 'text-success' : ($isOverdue ? 'text-danger fw-bold' : 'text-muted')) }}">
+                                            <i class="fas fa-{{ $returnedLate ? 'exclamation-circle' : ($isReturned ? 'check-circle' : ($isOverdue ? 'exclamation-triangle' : 'clock')) }}"></i>
+                                            {{ $pem->waktu_pengembalian->format('d/m/Y H:i') }}
+                                            @if($returnedLate) (terlambat dikembalikan) @elseif($isOverdue) (overdue) @endif
+                                        </small>
+                                    @else
+                                        <small class="text-muted">-</small>
+                                    @endif
+                                </td>
                                 <td>
                                     <span class="badge bg-{{ $pem->status == 'terpinjam' ? 'warning' : 'success' }}">
                                         {{ ucfirst(str_replace('_', ' ', $pem->status)) }}
@@ -86,11 +101,6 @@
                                         <a href="{{ route('peminjaman.show', $pem) }}" class="btn btn-outline-info" title="Lihat">
                                             <i class="fas fa-eye"></i>
                                         </a>
-                                        @can('update', $pem)
-                                        <a href="{{ route('peminjaman.edit', $pem) }}" class="btn btn-outline-warning" title="Edit">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
-                                        @endcan
                                         @can('delete', $pem)
                                         <form action="{{ route('peminjaman.destroy', $pem) }}" method="POST" style="display:inline;">
                                             @csrf

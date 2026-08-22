@@ -162,6 +162,8 @@ class AlatController extends Controller
 
     public function storeSpesifikasi(Request $request, Alat $alat)
     {
+        $this->authorize('update', $alat);
+
         $validated = $request->validate([
             'kode_spesifikasi' => ['required', 'string', 'max:255', "unique:spesifikasi_alat,kode_spesifikasi,{$alat->id},id_alat"],
             'nama_spesifikasi' => ['required', 'string', 'max:255'],
@@ -182,6 +184,8 @@ class AlatController extends Controller
 
     public function updateSpesifikasi(Request $request, Alat $alat, SpesifikasiAlat $spesifikasi)
     {
+        $this->authorize('update', $alat);
+
         $validated = $request->validate([
             'kode_spesifikasi' => ['required', 'string', 'max:255', "unique:spesifikasi_alat,kode_spesifikasi,{$spesifikasi->id},id"],
             'nama_spesifikasi' => ['required', 'string', 'max:255'],
@@ -202,6 +206,8 @@ class AlatController extends Controller
 
     public function destroySpesifikasi(Alat $alat, SpesifikasiAlat $spesifikasi)
     {
+        $this->authorize('update', $alat);
+
         // Cek apakah spesifikasi sudah dipakai di pengadaan atau unit
         if ($spesifikasi->pengadaanAlat()->count() > 0 || $spesifikasi->unitAlat()->count() > 0) {
             return redirect()->route('alat.show', $alat)

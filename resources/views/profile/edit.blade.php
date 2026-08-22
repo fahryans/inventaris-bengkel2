@@ -103,6 +103,43 @@
         <div class="col-lg-4">
             <div class="card shadow-sm mb-4">
                 <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">Foto Profil</h5>
+                </div>
+                <div class="card-body text-center">
+                    <form method="POST" action="{{ route('profile.update') }}" enctype="multipart/form-data" id="fotoForm">
+                        @csrf
+                        @method('PATCH')
+                        <input type="hidden" name="email" value="{{ $user->email }}">
+                        @if($user->role !== 'mahasiswa')
+                            <input type="hidden" name="nama" value="{{ $user->nama }}">
+                        @endif
+
+                        <div class="mb-3">
+                            <img src="{{ asset('storage/' . ($user->foto ?: 'users/profilelogo.webp')) }}" 
+                                 alt="{{ $user->nama }}"
+                                 class="rounded-circle mb-2"
+                                 style="width: 120px; height: 120px; object-fit: cover;"
+                                 id="previewFoto">
+                        </div>
+
+                        <div class="mb-3">
+                            <input type="file" name="foto" id="inputFoto" class="form-control @error('foto') is-invalid @enderror" 
+                                   accept="image/*" onchange="previewImage(this)">
+                            @error('foto')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                            <small class="text-muted">Max 2MB. Format: JPG, PNG, WEBP</small>
+                        </div>
+
+                        <button type="submit" class="btn btn-info btn-sm">
+                            <i class="fas fa-camera"></i> Update Foto
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-info text-white">
                     <h5 class="mb-0">Info Akun</h5>
                 </div>
                 <div class="card-body text-dark">
@@ -143,4 +180,18 @@
         </div>
     </div>
 </div>
+
+@push('js')
+<script>
+function previewImage(input) {
+    if (input.files && input.files[0]) {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('previewFoto').src = e.target.result;
+        }
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+</script>
+@endpush
 @endsection

@@ -13,6 +13,8 @@ class PengadaanBahanController extends Controller
 {
     public function index(Request $request)
     {
+        $this->authorize('viewAny', PengadaanBahan::class);
+
         $query = PengadaanBahan::with(['bahan', 'userInput']);
 
         if ($request->has('search')) {

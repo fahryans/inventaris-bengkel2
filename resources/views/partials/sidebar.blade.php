@@ -35,13 +35,6 @@
 
         </li>
 
-        {{-- MASTER DATA --}}
-        <li class="menu-title">
-
-            MASTER DATA
-
-        </li>
-
         @can('viewAny', App\Models\User::class)
         <li>
             <a href="{{ route('users.index') }}" class="{{ request()->routeIs('users.*') ? 'active' : '' }}">

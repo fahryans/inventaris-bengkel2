@@ -19,6 +19,8 @@ class PengadaanAlatController extends Controller
 
     public function index(Request $request)
     {
+        $this->authorize('viewAny', PengadaanAlat::class);
+
         $query = PengadaanAlat::with(['alat', 'userInput']);
 
         if ($request->has('search')) {

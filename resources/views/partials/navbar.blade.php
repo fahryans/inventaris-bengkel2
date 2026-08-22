@@ -20,6 +20,11 @@
 
 <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-expanded="false" aria-haspopup="true">
 
+<img src="{{ asset('storage/' . (Auth::user()->foto ?: 'users/profilelogo.webp')) }}" 
+     alt="{{ Auth::user()->nama }}"
+     class="rounded-circle me-1"
+     style="width: 28px; height: 28px; object-fit: cover;">
+
 {{ Auth::user()->nama }}
 
 </a>

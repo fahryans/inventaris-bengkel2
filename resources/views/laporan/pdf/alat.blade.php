@@ -22,7 +22,7 @@
             <td>{{ $item->kategori->nama_kategori }}</td>
             <td>{{ $item->laboratorium->nama_labor }}</td>
             <td>{{ ucfirst($item->tipe_pelacakan) }}</td>
-            <td>{{ $item->jumlah_alat }}</td>
+            <td>{{ $item->getAvailableQuantity() }}</td>
         </tr>
         @endforeach
     </tbody>

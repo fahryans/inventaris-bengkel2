@@ -73,6 +73,17 @@
         </div>
 
         <div class="col-md-4">
+            <div class="card shadow-sm mb-3">
+                <div class="card-body text-center">
+                    <img src="{{ asset('storage/' . ($user->foto ?: 'users/profilelogo.webp')) }}" 
+                         alt="{{ $user->nama }}"
+                         class="rounded-circle mb-3"
+                         style="width: 120px; height: 120px; object-fit: cover;">
+                    <h5 class="mb-1">{{ $user->nama }}</h5>
+                    <span class="badge bg-secondary">{{ ucfirst($user->role) }}</span>
+                </div>
+            </div>
+
             @if($user->role == 'kepala_labor')
                 <div class="card shadow-sm mb-3">
                     <div class="card-header bg-info text-white">

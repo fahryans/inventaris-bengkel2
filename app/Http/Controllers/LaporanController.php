@@ -18,6 +18,22 @@ use Illuminate\Support\Facades\DB;
 
 class LaporanController extends Controller
 {
+    private function getPeminjamanData(bool $isMahasiswa, ?string $filter)
+    {
+        $query = PeminjamanAlat::with(['alat', 'unitAlat', 'userPeminjam']);
+
+        if ($isMahasiswa) {
+            $query->where('id_user_peminjam', Auth::id());
+        }
+
+        if ($filter === 'terlambat') {
+            $query->where('status', 'terpinjam')
+                  ->where('waktu_pengembalian', '<', now());
+        }
+
+        return $query->latest()->paginate(20);
+    }
+
     public function index()
     {
         $this->authorize('viewAny', \App\Models\PeminjamanAlat::class);
@@ -55,7 +71,7 @@ class LaporanController extends Controller
         return view('laporan.index', compact('summary', 'user'));
     }
 
-    public function show($tipe)
+    public function show($tipe, Request $request)
     {
         $this->authorize('viewAny', \App\Models\PeminjamanAlat::class);
 
@@ -66,12 +82,12 @@ class LaporanController extends Controller
             abort(403, 'Anda tidak memiliki akses ke laporan ini.');
         }
 
+        $filter = $request->query('filter');
+
         $data = match($tipe) {
             'alat' => Alat::with(['kategori', 'laboratorium'])->latest()->paginate(20),
             'bahan' => Bahan::with('kategori')->latest()->paginate(20),
-            'peminjaman' => $isMahasiswa
-                ? PeminjamanAlat::where('id_user_peminjam', Auth::id())->with(['alat', 'unitAlat', 'userPeminjam'])->latest()->paginate(20)
-                : PeminjamanAlat::with(['alat', 'unitAlat', 'userPeminjam'])->latest()->paginate(20),
+            'peminjaman' => $this->getPeminjamanData($isMahasiswa, $filter),
             'pemeliharaan' => PemeliharaanAlat::with(['unitAlat', 'teknisi'])->latest()->paginate(20),
             'pengadaan_alat' => PengadaanAlat::with(['alat', 'userInput'])->latest()->paginate(20),
             'pengadaan_bahan' => PengadaanBahan::with(['bahan', 'userInput'])->latest()->paginate(20),
@@ -82,7 +98,7 @@ class LaporanController extends Controller
         $title = match($tipe) {
             'alat' => 'Laporan Data Alat',
             'bahan' => 'Laporan Data Bahan',
-            'peminjaman' => 'Laporan Peminjaman Alat',
+            'peminjaman' => $filter === 'terlambat' ? 'Laporan Peminjaman Terlambat' : 'Laporan Peminjaman Aktif Alat dan Bahan',
             'pemeliharaan' => 'Laporan Pemeliharaan Alat',
             'pengadaan_alat' => 'Laporan Pengadaan Alat',
             'pengadaan_bahan' => 'Laporan Pengadaan Bahan',
@@ -129,7 +145,7 @@ class LaporanController extends Controller
         $title = match($tipe) {
             'alat' => 'Laporan Data Alat',
             'bahan' => 'Laporan Data Bahan',
-            'peminjaman' => 'Laporan Peminjaman Alat',
+            'peminjaman' => 'Laporan Peminjaman Aktif Alat dan Bahan',
             'pemeliharaan' => 'Laporan Pemeliharaan Alat',
             'pengadaan_alat' => 'Laporan Pengadaan Alat',
             'pengadaan_bahan' => 'Laporan Pengadaan Bahan',

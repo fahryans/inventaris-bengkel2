@@ -74,7 +74,7 @@
                         <div class="mb-2 pb-2 border-bottom">
                             <p class="mb-1"><strong>{{ $alat->nama_alat }}</strong></p>
                             <small class="text-muted">{{ $alat->kategori->nama_kategori }}</small><br>
-                            <small>Jumlah: {{ $alat->jumlah_alat }}</small>
+                            <small>Jumlah: {{ $alat->getAvailableQuantity() }}</small>
                         </div>
                     @empty
                         <p class="text-muted text-center">Belum ada alat</p>

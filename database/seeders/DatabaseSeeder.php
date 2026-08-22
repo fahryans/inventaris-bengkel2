@@ -39,6 +39,7 @@ class DatabaseSeeder extends Seeder
                 'status' => 'aktif',
                 'no_hp' => '0812' . str_pad($i, 8, '0', STR_PAD_LEFT),
                 'no_induk' => $user['no_induk'],
+                'foto' => 'users/profilelogo.webp',
             ]);
         }
     }

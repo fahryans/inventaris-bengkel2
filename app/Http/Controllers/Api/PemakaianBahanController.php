@@ -18,6 +18,8 @@ class PemakaianBahanController extends Controller
 
     public function index(Request $request)
     {
+        $this->authorize('viewAny', PemakaianBahan::class);
+
         $query = PemakaianBahan::with(['bahan', 'userPemakai', 'userVerifikasi']);
 
         if ($request->has('id_bahan')) {

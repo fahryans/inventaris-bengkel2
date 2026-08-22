@@ -94,6 +94,9 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['role:admin_jurusan,kepala_labor,teknisi,dosen,mahasiswa,kadep'])->group(function () {
         Route::get('lab/{lab}', [LabController::class, 'show'])->name('lab.show');
         Route::resource('peminjaman', PeminjamanAlatController::class);
+        Route::post('peminjaman/quick', [PeminjamanAlatController::class, 'quickStore'])
+            ->middleware('throttle:10,1')
+            ->name('peminjaman.quick');
         Route::get('peminjaman/{peminjaman}/return', [PeminjamanAlatController::class, 'returnForm'])
             ->name('peminjaman.return-form');
         Route::post('peminjaman/{peminjaman}/return', [PeminjamanAlatController::class, 'return'])

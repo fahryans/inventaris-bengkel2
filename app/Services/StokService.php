@@ -57,10 +57,6 @@ class StokService
 
     public function getAvailableAlatQuantity(Alat $alat): int
     {
-        if ($alat->isUnitTracked()) {
-            return $alat->unitAlat()->where('status', 'tersedia')->count();
-        }
-
-        return $alat->jumlah_alat;
+        return $alat->getAvailableQuantity();
     }
 }

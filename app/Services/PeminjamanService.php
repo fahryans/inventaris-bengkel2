@@ -41,10 +41,7 @@ class PeminjamanService
 
             $peminjaman = PeminjamanAlat::create($data);
 
-            if ($idAlat) {
-                $alat = Alat::findOrFail($idAlat);
-                $this->stokService->kurangiAlatAgregat($alat, $peminjaman->jumlah);
-            } elseif ($idUnitAlat) {
+            if ($idUnitAlat) {
                 $unit = UnitAlat::findOrFail($idUnitAlat);
 
                 $taken = DB::table('unit_alat')
@@ -74,10 +71,7 @@ class PeminjamanService
                 'status' => 'sudah_dikembalikan',
             ]);
 
-            if ($peminjaman->id_alat) {
-                $alat = Alat::findOrFail($peminjaman->id_alat);
-                $this->stokService->tambahAlatAgregat($alat, $peminjaman->jumlah ?? 1);
-            } elseif ($peminjaman->id_unit_alat) {
+            if ($peminjaman->id_unit_alat) {
                 $unit = UnitAlat::findOrFail($peminjaman->id_unit_alat);
                 $this->stokService->updateUnitStatus($unit, 'tersedia');
                 $unit->update(['kondisi_saat_ini' => $data['kondisi_saat_pengembalian']]);
@@ -110,7 +104,7 @@ class PeminjamanService
             if (!$alat) {
                 return ['available' => false, 'message' => 'Alat tidak ditemukan'];
             }
-            if ($alat->jumlah_alat <= 0) {
+            if ($alat->getAvailableQuantity() <= 0) {
                 return ['available' => false, 'message' => 'Stok alat tidak tersedia'];
             }
         } elseif ($idUnitAlat) {

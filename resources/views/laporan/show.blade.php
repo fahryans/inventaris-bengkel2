@@ -50,10 +50,11 @@
                                 <th>Satuan</th>
                             @elseif($tipe === 'peminjaman')
                                 <th>Alat</th>
-                                <th>Unit</th>
+                                <th>Tipe</th>
+                                <th>Keperluan</th>
                                 <th>Peminjam</th>
-                                <th>Tanggal Pinjam</th>
-                                <th>Tanggal Kembali</th>
+                                <th>Tgl Pinjam</th>
+                                <th>Tgl Kembali</th>
                                 <th>Status</th>
                             @elseif($tipe === 'pemeliharaan')
                                 <th>Unit Alat</th>
@@ -119,11 +120,31 @@
                                     </td>
                                     <td>{{ $item->satuan }}</td>
                                 @elseif($tipe === 'peminjaman')
-                                    <td><strong>{{ $item->alat->nama_alat ?? '-' }}</strong></td>
-                                    <td>{{ $item->unitAlat->kode_inventaris ?? '-' }}</td>
+                                    <td><strong>{{ $item->equipment_name }}</strong></td>
+                                    <td>
+                                        <span class="badge bg-{{ $item->equipment_type === 'Agregat' ? 'primary' : 'info' }}">
+                                            {{ $item->equipment_type }}
+                                        </span>
+                                    </td>
+                                    <td><small>{{ $item->keperluan ?? '-' }}</small></td>
                                     <td>{{ $item->userPeminjam?->nama ?? '-' }}</td>
-                                    <td><small>{{ $item->waktu_peminjaman?->format('d-m-Y') }}</small></td>
-                                    <td><small>{{ $item->waktu_pengembalian?->format('d-m-Y') }}</small></td>
+                                    <td><small>{{ $item->waktu_peminjaman?->format('d-m-Y H:i') }}</small></td>
+                                    <td>
+                                        @if($item->waktu_pengembalian)
+                                            @php
+                                                $isReturned = $item->status === 'sudah_dikembalikan';
+                                                $isOverdue = !$isReturned && $item->waktu_pengembalian < now();
+                                                $returnedLate = $isReturned && $item->waktu_kembali_aktual && $item->waktu_kembali_aktual > $item->waktu_pengembalian;
+                                            @endphp
+                                            <small class="{{ $returnedLate ? 'text-warning fw-bold' : ($isReturned ? 'text-success' : ($isOverdue ? 'text-danger fw-bold' : 'text-muted')) }}">
+                                                <i class="fas fa-{{ $returnedLate ? 'exclamation-circle' : ($isReturned ? 'check-circle' : ($isOverdue ? 'exclamation-triangle' : 'clock')) }}"></i>
+                                                {{ $item->waktu_pengembalian->format('d-m-Y H:i') }}
+                                                @if($returnedLate) (terlambat dikembalikan) @elseif($isOverdue) (overdue) @endif
+                                            </small>
+                                        @else
+                                            <small class="text-muted">-</small>
+                                        @endif
+                                    </td>
                                     <td>
                                         <span class="badge bg-{{ $item->status === 'terpinjam' ? 'warning' : ($item->status === 'terlambat' ? 'danger' : 'success') }}">
                                             {{ ucfirst(str_replace('_', ' ', $item->status)) }}
@@ -175,7 +196,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="{{ $tipe === 'peminjaman' || $tipe === 'pemeliharaan' ? 6 : ($tipe === 'pemakaian_bahan' ? 5 : 4) }}" class="text-center text-muted py-4">
+                                <td colspan="{{ $tipe === 'peminjaman' ? 7 : ($tipe === 'pemeliharaan' ? 6 : ($tipe === 'pemakaian_bahan' ? 5 : 4)) }}" class="text-center text-muted py-4">
                                     <i class="fas fa-inbox"></i> Tidak ada data
                                 </td>
                             </tr>

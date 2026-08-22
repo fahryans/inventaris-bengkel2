@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Builder;
 
 class Bahan extends Model
 {
@@ -66,5 +67,14 @@ class Bahan extends Model
     public function isStokMenipis(): bool
     {
         return $this->getTotalStock() < $this->stok_minimum;
+    }
+
+    public function scopeLowStock(Builder $query): Builder
+    {
+        return $query->whereRaw('(
+            SELECT COALESCE(SUM(pb.stok_tersisa_batch), 0)
+            FROM pengadaan_bahan pb
+            WHERE pb.id_bahan = bahan.id
+        ) < bahan.stok_minimum');
     }
 }

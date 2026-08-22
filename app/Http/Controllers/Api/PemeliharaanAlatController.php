@@ -11,6 +11,8 @@ class PemeliharaanAlatController extends Controller
 {
     public function index(Request $request)
     {
+        $this->authorize('viewAny', PemeliharaanAlat::class);
+
         $query = PemeliharaanAlat::with(['unitAlat', 'teknisi']);
 
         if ($request->has('id_unit_alat')) {

@@ -22,7 +22,7 @@ class UserSeeder extends Seeder
                 'status'    => 'aktif',
                 'no_hp'     => null,
                 'no_induk'  => null,
-                'foto'      => null,
+                'foto'      => 'users/profilelogo.webp',
             ]
         );
     }

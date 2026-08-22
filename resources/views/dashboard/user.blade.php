@@ -4,6 +4,20 @@
 
 @section('content')
 <div class="container-fluid">
+    @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>{{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+
+    @if(session('error'))
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>{{ session('error') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+
     <div class="row mb-4">
         <div class="col-12">
             <h1 class="h3">Dashboard {{ ucfirst(Auth::user()->role) }}</h1>
@@ -58,18 +72,25 @@
         @forelse($labs as $lab)
             <div class="col-md-4 mb-4">
                 <a href="{{ route('lab.show', $lab) }}" class="text-decoration-none">
-                    <div class="card shadow h-100">
-                        <div class="card-body">
-                            <div class="d-flex align-items-center mb-3">
-                                <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
-                                    <i class="fas fa-building fa-lg"></i>
-                                </div>
-                                <div>
-                                    <h5 class="card-title mb-0">{{ $lab->nama_labor }}</h5>
-                                    <small class="text-muted">{{ $lab->lokasi }}</small>
-                                </div>
+                    <div class="card shadow h-100 lab-card">
+                        @if($lab->gambar)
+                            <img src="{{ asset('storage/' . $lab->gambar) }}" 
+                                 class="card-img-top" 
+                                 alt="{{ $lab->nama_labor }}"
+                                 style="height: 180px; object-fit: cover;"
+                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                            <div class="card-img-top bg-primary text-white d-none align-items-center justify-content-center" style="height: 180px;">
+                                <i class="fas fa-building fa-3x"></i>
                             </div>
-                            <div class="row text-center">
+                        @else
+                            <div class="card-img-top bg-primary text-white d-flex align-items-center justify-content-center" style="height: 180px;">
+                                <i class="fas fa-building fa-3x"></i>
+                            </div>
+                        @endif
+                        <div class="card-body">
+                            <h5 class="card-title mb-1">{{ $lab->nama_labor }}</h5>
+                            <small class="text-muted"><i class="fas fa-map-marker-alt me-1"></i>{{ $lab->lokasi }}</small>
+                            <div class="row text-center mt-3">
                                 <div class="col-6">
                                     <div class="border rounded py-2">
                                         <div class="h5 mb-0 text-primary">{{ $lab->alat_count }}</div>
@@ -128,14 +149,23 @@
                                         <td>{{ $peminjaman->keperluan }}</td>
                                         <td>{{ $peminjaman->waktu_peminjaman->format('d-m-Y H:i') }}</td>
                                         <td>
-                                            {{ $peminjaman->waktu_pengembalian?->format('d-m-Y H:i') }}
-                                            @if($peminjaman->isOverdue())
-                                                <span class="badge bg-danger">{{ $peminjaman->getDaysOverdue() }} hari overdue</span>
+                                            @if($peminjaman->waktu_pengembalian)
+                                                <small class="{{ $peminjaman->isOverdue() ? 'text-danger fw-bold' : 'text-muted' }}">
+                                                    <i class="fas fa-{{ $peminjaman->isOverdue() ? 'exclamation-triangle' : 'clock' }}"></i>
+                                                    {{ $peminjaman->waktu_pengembalian->format('d-m-Y H:i') }}
+                                                    @if($peminjaman->isOverdue()) (overdue) @endif
+                                                </small>
+                                            @else
+                                                <small class="text-muted">-</small>
                                             @endif
                                         </td>
                                         <td><span class="badge bg-warning">Terpinjam</span></td>
                                         <td>
                                             <a href="{{ route('peminjaman.show', $peminjaman) }}" class="btn btn-sm btn-info">Detail</a>
+                                            <button type="button" class="btn btn-sm btn-success btn-return"
+                                                    data-id="{{ $peminjaman->id }}" data-name="{{ $peminjaman->equipment_name }}">
+                                                <i class="fas fa-undo"></i> Kembalikan
+                                            </button>
                                         </td>
                                     </tr>
                                 @endforeach
@@ -182,5 +212,91 @@
         options: { responsive: true, scales: { y: { beginAtZero: true } } }
     });
     </script>
+
+    <!-- Modal Quick Return -->
+    <div class="modal fade" id="modalReturn" tabindex="-1" aria-labelledby="modalReturnLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form id="formQuickReturn" method="POST">
+                    @csrf
+                    <input type="hidden" name="waktu_kembali_aktual" id="returnTime">
+
+                    <div class="modal-header bg-success text-white">
+                        <h5 class="modal-title" id="modalReturnLabel">
+                            <i class="fas fa-undo me-2"></i>Kembalikan Alat
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Alat</label>
+                            <p class="form-control-plaintext" id="returnAlatName">-</p>
+                        </div>
+                        <div class="mb-3">
+                            <label for="returnKondisi" class="form-label">Kondisi Saat Dikembalikan <span class="text-danger">*</span></label>
+                            <select name="kondisi_saat_pengembalian" id="returnKondisi" class="form-select" required>
+                                <option value="">Pilih Kondisi</option>
+                                <option value="baik">Baik</option>
+                                <option value="rusak_ringan">Rusak Ringan</option>
+                                <option value="rusak_berat">Rusak Berat</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-check me-1"></i> Kembalikan Sekarang
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const modal = new bootstrap.Modal(document.getElementById('modalReturn'));
+        const form = document.getElementById('formQuickReturn');
+        const inputTime = document.getElementById('returnTime');
+        const inputName = document.getElementById('returnAlatName');
+        const inputKondisi = document.getElementById('returnKondisi');
+
+        document.querySelectorAll('.btn-return').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                const id = this.dataset.id;
+                const name = this.dataset.name;
+
+                form.action = '/peminjaman/' + id + '/return';
+                inputTime.value = new Date().toISOString().slice(0, 16);
+                inputName.textContent = name;
+                inputKondisi.value = '';
+
+                modal.show();
+                setTimeout(() => inputKondisi.focus(), 300);
+            });
+        });
+    });
+    </script>
+
+@push('css')
+<style>
+    .lab-card {
+        transition: all 0.3s ease;
+        overflow: hidden;
+    }
+    .lab-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 12px 30px rgba(0,0,0,0.2) !important;
+    }
+    .lab-card .card-img-top {
+        transition: transform 0.3s ease;
+    }
+    .lab-card:hover .card-img-top {
+        transform: scale(1.05);
+    }
+</style>
+@endpush
 </div>
 @endsection
