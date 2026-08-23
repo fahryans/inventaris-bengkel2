@@ -12,11 +12,28 @@ use Spatie\Activitylog\Facades\Activity;
 
 class PengadaanBahanController extends Controller
 {
+    private function getLabIds()
+    {
+        $user = Auth::user();
+        if ($user->role === 'teknisi') {
+            return $user->laboratoriumTeknisi->pluck('id')->toArray();
+        } elseif ($user->role === 'kepala_labor') {
+            return $user->laboratoriumDikelola->pluck('id')->toArray();
+        }
+        return null;
+    }
+
     public function index(Request $request)
     {
         $this->authorize('viewAny', PengadaanBahan::class);
 
+        $user = Auth::user();
         $query = PengadaanBahan::with(['bahan', 'userInput'])->latest();
+
+        $labIds = $this->getLabIds();
+        if ($labIds) {
+            $query->whereHas('bahan', fn($q) => $q->whereIn('id_labor', $labIds));
+        }
 
         if ($request->filled('bahan')) {
             $query->where('id_bahan', $request->bahan);
@@ -33,7 +50,7 @@ class PengadaanBahanController extends Controller
         }
 
         $pengadaans = $query->paginate(15);
-        $bahans = Bahan::all();
+        $bahans = $labIds ? Bahan::whereIn('id_labor', $labIds)->get() : Bahan::all();
 
         return view('pengadaan_bahan.index', compact('pengadaans', 'bahans'));
     }
@@ -42,7 +59,8 @@ class PengadaanBahanController extends Controller
     {
         $this->authorize('create', PengadaanBahan::class);
 
-        $bahans = Bahan::all();
+        $labIds = $this->getLabIds();
+        $bahans = $labIds ? Bahan::whereIn('id_labor', $labIds)->get() : Bahan::all();
 
         return view('pengadaan_bahan.create', compact('bahans'));
     }
@@ -85,7 +103,8 @@ class PengadaanBahanController extends Controller
         $pengadaan = PengadaanBahan::findOrFail($id);
         $this->authorize('update', $pengadaan);
 
-        $bahans = Bahan::all();
+        $labIds = $this->getLabIds();
+        $bahans = $labIds ? Bahan::whereIn('id_labor', $labIds)->get() : Bahan::all();
 
         return view('pengadaan_bahan.edit', compact('pengadaan', 'bahans'));
     }

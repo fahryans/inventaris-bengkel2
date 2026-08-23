@@ -7,15 +7,33 @@ use App\Models\PemeliharaanAlat;
 use App\Models\UnitAlat;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Spatie\Activitylog\Facades\Activity;
 
 class PemeliharaanAlatController extends Controller
 {
+    private function getLabIds()
+    {
+        $user = Auth::user();
+        if ($user->role === 'teknisi') {
+            return $user->laboratoriumTeknisi->pluck('id')->toArray();
+        } elseif ($user->role === 'kepala_labor') {
+            return $user->laboratoriumDikelola->pluck('id')->toArray();
+        }
+        return null;
+    }
+
     public function index(Request $request)
     {
         $this->authorize('viewAny', PemeliharaanAlat::class);
 
+        $user = Auth::user();
         $query = PemeliharaanAlat::with(['unitAlat.alat', 'teknisi'])->latest();
+
+        $labIds = $this->getLabIds();
+        if ($labIds) {
+            $query->whereHas('unitAlat.alat', fn($q) => $q->whereIn('id_labor', $labIds));
+        }
 
         if ($request->filled('status')) {
             if ($request->status === 'overdue') {
@@ -45,7 +63,12 @@ class PemeliharaanAlatController extends Controller
     {
         $this->authorize('create', PemeliharaanAlat::class);
 
-        $unitAlats = UnitAlat::with('alat')->get();
+        $labIds = $this->getLabIds();
+        $unitAlatsQuery = UnitAlat::with('alat');
+        if ($labIds) {
+            $unitAlatsQuery->whereHas('alat', fn($q) => $q->whereIn('id_labor', $labIds));
+        }
+        $unitAlats = $unitAlatsQuery->get();
         $teknisis = User::where('role', 'teknisi')->get();
 
         return view('pemeliharaan.create', compact('unitAlats', 'teknisis'));
@@ -82,7 +105,12 @@ class PemeliharaanAlatController extends Controller
         $pemeliharaan = PemeliharaanAlat::findOrFail($id);
         $this->authorize('update', $pemeliharaan);
 
-        $unitAlats = UnitAlat::with('alat')->get();
+        $labIds = $this->getLabIds();
+        $unitAlatsQuery = UnitAlat::with('alat');
+        if ($labIds) {
+            $unitAlatsQuery->whereHas('alat', fn($q) => $q->whereIn('id_labor', $labIds));
+        }
+        $unitAlats = $unitAlatsQuery->get();
         $teknisis = User::where('role', 'teknisi')->get();
 
         return view('pemeliharaan.edit', compact('pemeliharaan', 'unitAlats', 'teknisis'));

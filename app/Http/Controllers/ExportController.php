@@ -41,23 +41,40 @@ class ExportController extends Controller
     {
         $user = Auth::user();
         $isMahasiswa = $user->role === 'mahasiswa';
+        $isTeknisi = $user->role === 'teknisi';
+        $isKepalaLab = $user->role === 'kepala_labor';
+
+        $labIds = [];
+        if ($isTeknisi) {
+            $labIds = $user->laboratoriumTeknisi->pluck('id')->toArray();
+        } elseif ($isKepalaLab) {
+            $labIds = $user->laboratoriumDikelola->pluck('id')->toArray();
+        }
 
         return match($tipe) {
-            'alat' => Alat::with(['kategori', 'laboratorium', 'spesifikasiAlat'])->latest()->get(),
-            'bahan' => Bahan::with(['kategori', 'pengadaanBahan'])->latest()->get(),
+            'alat' => Alat::when($labIds, fn($q) => $q->whereIn('id_labor', $labIds))
+                ->with(['kategori', 'laboratorium', 'spesifikasiAlat'])->latest()->get(),
+            'bahan' => Bahan::when($labIds, fn($q) => $q->whereIn('id_labor', $labIds))
+                ->with(['kategori', 'pengadaanBahan'])->latest()->get(),
             'kategori' => Kategori::latest()->get(),
-            'laboratorium' => Laboratorium::with('kalab')->latest()->get(),
+            'laboratorium' => Laboratorium::when($labIds, fn($q) => $q->whereIn('id', $labIds))
+                ->with('kalab')->latest()->get(),
             'users' => User::latest()->get(),
-            'unit_alat' => UnitAlat::with(['alat', 'spesifikasiAlat'])->latest()->get(),
-            'pengadaan_alat' => PengadaanAlat::with(['alat', 'userInput'])->latest()->get(),
-            'pengadaan_bahan' => PengadaanBahan::with(['bahan', 'userInput'])->latest()->get(),
+            'unit_alat' => UnitAlat::when($labIds, fn($q) => $q->whereHas('alat', fn($q2) => $q2->whereIn('id_labor', $labIds)))
+                ->with(['alat', 'spesifikasiAlat'])->latest()->get(),
+            'pengadaan_alat' => PengadaanAlat::when($labIds, fn($q) => $q->whereHas('alat', fn($q2) => $q2->whereIn('id_labor', $labIds)))
+                ->with(['alat', 'userInput'])->latest()->get(),
+            'pengadaan_bahan' => PengadaanBahan::when($labIds, fn($q) => $q->whereHas('bahan', fn($q2) => $q2->whereIn('id_labor', $labIds)))
+                ->with(['bahan', 'userInput'])->latest()->get(),
             'peminjaman' => $isMahasiswa
                 ? PeminjamanAlat::where('id_user_peminjam', Auth::id())->with(['alat', 'unitAlat', 'userPeminjam'])->latest()->get()
                 : PeminjamanAlat::with(['alat', 'unitAlat', 'userPeminjam'])->latest()->get(),
             'pemakaian_bahan' => $isMahasiswa
                 ? PemakaianBahan::where('id_user_pemakai', Auth::id())->with(['bahan', 'userPemakai', 'userVerifikasi'])->latest()->get()
-                : PemakaianBahan::with(['bahan', 'userPemakai', 'userVerifikasi'])->latest()->get(),
-            'pemeliharaan' => PemeliharaanAlat::with(['unitAlat.alat', 'teknisi'])->latest()->get(),
+                : PemakaianBahan::when($labIds, fn($q) => $q->whereHas('bahan', fn($q2) => $q2->whereIn('id_labor', $labIds)))
+                    ->with(['bahan', 'userPemakai', 'userVerifikasi'])->latest()->get(),
+            'pemeliharaan' => PemeliharaanAlat::when($labIds, fn($q) => $q->whereHas('unitAlat.alat', fn($q2) => $q2->whereIn('id_labor', $labIds)))
+                ->with(['unitAlat.alat', 'teknisi'])->latest()->get(),
             default => null,
         };
     }
@@ -140,42 +157,56 @@ class ExportController extends Controller
         return $pdf->download($filename);
     }
 
+    private function colLetter(int $col): string
+    {
+        $letter = '';
+        while ($col > 0) {
+            $col--;
+            $letter = chr(65 + ($col % 26)) . $letter;
+            $col = intdiv($col, 26);
+        }
+        return $letter;
+    }
+
     private function exportExcel($title, $headers, $rows, $tipe)
     {
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
 
+        $lastCol = $this->colLetter(count($headers));
+
         // Title
-        $sheet->mergeCells('A1:' . chr(64 + count($headers)) . '1');
+        $sheet->mergeCells("A1:{$lastCol}1");
         $sheet->setCellValue('A1', $title);
         $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
         $sheet->getStyle('A1')->getAlignment()->setHorizontal('center');
 
         // Date
-        $sheet->mergeCells('A2:' . chr(64 + count($headers)) . '2');
+        $sheet->mergeCells("A2:{$lastCol}2");
         $sheet->setCellValue('A2', 'Dicetak: ' . now()->format('d/m/Y H:i'));
         $sheet->getStyle('A2')->getAlignment()->setHorizontal('center');
 
         // Headers
         $headerRow = 4;
         foreach ($headers as $col => $header) {
-            $cell = $sheet->getCellByColumnAndRow($col + 1, $headerRow);
-            $cell->setValue($header);
-            $cell->getFont()->setBold(true);
-            $cell->getFill()->setFillType('solid')->getStartColor()->setRGB('4472C4');
-            $cell->getFont()->getColor()->setRGB('FFFFFF');
+            $coord = $this->colLetter($col + 1) . $headerRow;
+            $sheet->setCellValue($coord, $header);
+            $sheet->getStyle($coord)->getFont()->setBold(true);
+            $sheet->getStyle($coord)->getFill()->setFillType('solid')->getStartColor()->setRGB('4472C4');
+            $sheet->getStyle($coord)->getFont()->getColor()->setRGB('FFFFFF');
         }
 
         // Data
         foreach ($rows as $rowIndex => $row) {
             foreach ($row as $colIndex => $value) {
-                $sheet->getCellByColumnAndRow($colIndex + 1, $headerRow + 1 + $rowIndex)->setValue($value);
+                $coord = $this->colLetter($colIndex + 1) . ($headerRow + 1 + $rowIndex);
+                $sheet->setCellValue($coord, $value);
             }
         }
 
         // Auto width
-        foreach (range('A', chr(64 + count($headers))) as $col) {
-            $sheet->getColumnDimension($col)->setAutoSize(true);
+        for ($i = 1; $i <= count($headers); $i++) {
+            $sheet->getColumnDimension($this->colLetter($i))->setAutoSize(true);
         }
 
         $filename = strtolower(str_replace(' ', '_', $title)) . '_' . now()->format('d-m-Y') . '.xls';

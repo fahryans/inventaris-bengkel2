@@ -8,16 +8,34 @@ use App\Models\Kategori;
 use App\Models\Laboratorium;
 use App\Models\SpesifikasiAlat;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Spatie\Activitylog\Facades\Activity;
 
 class AlatController extends Controller
 {
+    private function getLabIds()
+    {
+        $user = Auth::user();
+        if ($user->role === 'teknisi') {
+            return $user->laboratoriumTeknisi->pluck('id')->toArray();
+        } elseif ($user->role === 'kepala_labor') {
+            return $user->laboratoriumDikelola->pluck('id')->toArray();
+        }
+        return null;
+    }
+
     public function index(Request $request)
     {
         $this->authorize('viewAny', Alat::class);
 
+        $user = Auth::user();
         $query = Alat::with(['kategori', 'laboratorium', 'spesifikasiAlat']);
+
+        $labIds = $this->getLabIds();
+        if ($labIds) {
+            $query->whereIn('id_labor', $labIds);
+        }
 
         if ($request->filled('kategori')) {
             $query->where('id_kategori', $request->kategori);
@@ -50,7 +68,7 @@ class AlatController extends Controller
 
         $alats = $query->paginate(15)->withQueryString();
         $kategoris = Kategori::where('jenis', 'alat')->get();
-        $laboratoriums = Laboratorium::all();
+        $laboratoriums = $labIds ? Laboratorium::whereIn('id', $labIds)->get() : Laboratorium::all();
 
         return view('alat.index', compact('alats', 'kategoris', 'laboratoriums'));
     }
@@ -59,8 +77,9 @@ class AlatController extends Controller
     {
         $this->authorize('create', Alat::class);
 
+        $labIds = $this->getLabIds();
         $kategoris = Kategori::where('jenis', 'alat')->get();
-        $laboratoriums = Laboratorium::all();
+        $laboratoriums = $labIds ? Laboratorium::whereIn('id', $labIds)->get() : Laboratorium::all();
 
         return view('alat.create', compact('kategoris', 'laboratoriums'));
     }
@@ -107,8 +126,9 @@ class AlatController extends Controller
     {
         $this->authorize('update', $alat);
 
+        $labIds = $this->getLabIds();
         $kategoris = Kategori::where('jenis', 'alat')->get();
-        $laboratoriums = Laboratorium::all();
+        $laboratoriums = $labIds ? Laboratorium::whereIn('id', $labIds)->get() : Laboratorium::all();
 
         return view('alat.edit', compact('alat', 'kategoris', 'laboratoriums'));
     }

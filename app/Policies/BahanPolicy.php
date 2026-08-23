@@ -19,12 +19,13 @@ class BahanPolicy
 
     public function view(User $user, Bahan $bahan): bool
     {
-        return in_array($user->role, [
-            'admin_jurusan',
-            'kepala_labor',
-            'teknisi',
-            'kadep'
-        ]);
+        if (in_array($user->role, ['admin_jurusan', 'kepala_labor', 'kadep'])) {
+            return true;
+        }
+        if ($user->role === 'teknisi') {
+            return $user->isTeknisiOf($bahan->id_labor);
+        }
+        return false;
     }
 
     public function create(User $user): bool
@@ -38,11 +39,13 @@ class BahanPolicy
 
     public function update(User $user, Bahan $bahan): bool
     {
-        return in_array($user->role, [
-            'admin_jurusan',
-            'kepala_labor',
-            'teknisi'
-        ]);
+        if (in_array($user->role, ['admin_jurusan', 'kepala_labor'])) {
+            return true;
+        }
+        if ($user->role === 'teknisi') {
+            return $user->isTeknisiOf($bahan->id_labor);
+        }
+        return false;
     }
 
     public function delete(User $user, Bahan $bahan): bool

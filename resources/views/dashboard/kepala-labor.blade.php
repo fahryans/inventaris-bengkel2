@@ -1,13 +1,13 @@
 @extends('layouts.admin')
 
-@section('title', 'Dashboard Kepala Lab')
+@section('title', 'Dashboard Kepala Lab ' . $labNames)
 
 @section('content')
 <div class="container-fluid">
     <div class="row mb-4">
         <div class="col-12">
             <h1 class="h3 d-inline-block">Dashboard Kepala Laboratorium</h1>
-            <p class="text-muted">{{ $lab->nama_labor }} - {{ $lab->lokasi }}</p>
+            <p class="text-muted">{{ $labNames }}</p>
         </div>
     </div>
 
@@ -17,7 +17,7 @@
                 <div class="card-body">
                     <div class="text-primary text-uppercase mb-1 small font-weight-bold">Alat di Lab</div>
                     <div class="h3 mb-0">{{ $totalAlat }}</div>
-                    <a href="{{ route('alat.index', ['labor' => $lab->id]) }}" class="small text-muted">Lihat →</a>
+                    <a href="{{ route('alat.index') }}" class="small text-muted">Lihat →</a>
                 </div>
             </div>
         </div>
@@ -27,7 +27,7 @@
                 <div class="card-body">
                     <div class="text-success text-uppercase mb-1 small font-weight-bold">Bahan di Lab</div>
                     <div class="h3 mb-0">{{ $totalBahan }}</div>
-                    <a href="{{ route('bahan.index', ['labor' => $lab->id]) }}" class="small text-muted">Lihat →</a>
+                    <a href="{{ route('bahan.index') }}" class="small text-muted">Lihat →</a>
                 </div>
             </div>
         </div>
@@ -37,7 +37,7 @@
                 <div class="card-body">
                     <div class="text-danger text-uppercase mb-1 small font-weight-bold">Stok Minimum</div>
                     <div class="h3 mb-0">{{ $lowStockBahan }}</div>
-                    <a href="{{ route('bahan.index', ['labor' => $lab->id, 'stock_status' => 'low']) }}" class="small text-muted">Lihat →</a>
+                    <a href="{{ route('bahan.index', ['stock_status' => 'low']) }}" class="small text-muted">Lihat →</a>
                 </div>
             </div>
         </div>
@@ -126,8 +126,8 @@
                     <h6 class="m-0 font-weight-bold text-primary">Info Lab</h6>
                 </div>
                 <div class="card-body">
-                    <p><strong>Nama:</strong> {{ $lab->nama_labor }}</p>
-                    <p><strong>Lokasi:</strong> {{ $lab->lokasi }}</p>
+                    <p><strong>Laboratorium:</strong> {{ $lab->nama_labor }}</p>
+                    <p><strong>Lokasi:</strong> {{ $lab->lokasi ?? '-' }}</p>
                     <p><strong>Total Alat:</strong> {{ $totalAlat }}</p>
                     <p><strong>Total Bahan:</strong> {{ $totalBahan }}</p>
                     <hr>

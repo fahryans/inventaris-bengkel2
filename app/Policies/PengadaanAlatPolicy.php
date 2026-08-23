@@ -19,12 +19,13 @@ class PengadaanAlatPolicy
 
     public function view(User $user, PengadaanAlat $pengadaan): bool
     {
-        return in_array($user->role, [
-            'admin_jurusan',
-            'kepala_labor',
-            'teknisi',
-            'kadep'
-        ]);
+        if (in_array($user->role, ['admin_jurusan', 'kepala_labor', 'kadep'])) {
+            return true;
+        }
+        if ($user->role === 'teknisi') {
+            return $user->isTeknisiOf($pengadaan->alat->id_labor ?? 0);
+        }
+        return false;
     }
 
     public function create(User $user): bool
@@ -38,11 +39,13 @@ class PengadaanAlatPolicy
 
     public function update(User $user, PengadaanAlat $pengadaan): bool
     {
-        return in_array($user->role, [
-            'admin_jurusan',
-            'kepala_labor',
-            'teknisi'
-        ]);
+        if (in_array($user->role, ['admin_jurusan', 'kepala_labor'])) {
+            return true;
+        }
+        if ($user->role === 'teknisi') {
+            return $user->isTeknisiOf($pengadaan->alat->id_labor ?? 0);
+        }
+        return false;
     }
 
     public function delete(User $user, PengadaanAlat $pengadaan): bool

@@ -19,9 +19,13 @@
                     <h1 class="h3">{{ $title }}</h1>
                     <p class="text-muted">Detail data laporan.</p>
                 </div>
-                <a href="{{ route('laporan.index') }}" class="btn btn-outline-secondary">
-                    <i class="fas fa-arrow-left"></i> Kembali
-                </a>
+                <div>
+                    <a href="{{ route('export', $tipe) }}?format=pdf" class="btn btn-outline-danger btn-sm me-1"><i class="fas fa-file-pdf"></i> Export PDF</a>
+                    <a href="{{ route('export', $tipe) }}?format=excel" class="btn btn-outline-success btn-sm me-2"><i class="fas fa-file-excel"></i> Export Excel</a>
+                    <a href="{{ route('laporan.index') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left"></i> Kembali
+                    </a>
+                </div>
             </div>
         </div>
     </div>

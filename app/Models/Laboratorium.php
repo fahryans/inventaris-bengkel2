@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Laboratorium extends Model
@@ -24,6 +25,12 @@ class Laboratorium extends Model
     public function kalab(): BelongsTo
     {
         return $this->belongsTo(User::class, 'id_user_kalab');
+    }
+
+    public function teknisi(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'labor_teknisi', 'id_laboratorium', 'id_user')
+            ->withTimestamps();
     }
 
     public function alat(): HasMany

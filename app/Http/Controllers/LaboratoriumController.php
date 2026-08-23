@@ -6,6 +6,7 @@ use App\Http\Requests\LaboratoriumRequest;
 use App\Models\Laboratorium;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Spatie\Activitylog\Facades\Activity;
 
 class LaboratoriumController extends Controller
@@ -14,7 +15,15 @@ class LaboratoriumController extends Controller
     {
         $this->authorize('viewAny', Laboratorium::class);
 
+        $user = Auth::user();
         $query = Laboratorium::with('kalab')->latest();
+
+        if ($user->role === 'teknisi') {
+            $labIds = $user->laboratoriumTeknisi->pluck('id')->toArray();
+            $query->whereIn('id', $labIds);
+        } elseif ($user->role === 'kepala_labor') {
+            $query->where('id_user_kalab', $user->id);
+        }
 
         if ($request->filled('search')) {
             $query->where('nama_labor', 'like', '%' . $request->search . '%');
@@ -64,8 +73,9 @@ class LaboratoriumController extends Controller
         $this->authorize('update', $laboratorium);
 
         $users = User::where('role', 'kepala_labor')->get();
+        $teknisis = User::where('role', 'teknisi')->get();
 
-        return view('laboratorium.edit', compact('laboratorium', 'users'));
+        return view('laboratorium.edit', compact('laboratorium', 'users', 'teknisis'));
     }
 
     public function update(LaboratoriumRequest $request, Laboratorium $laboratorium)
@@ -74,6 +84,10 @@ class LaboratoriumController extends Controller
 
         $oldData = $laboratorium->toArray();
         $laboratorium->update($request->validated());
+
+        if ($request->has('teknisi')) {
+            $laboratorium->teknisi()->sync($request->teknisi);
+        }
 
         activity()
             ->performedOn($laboratorium)

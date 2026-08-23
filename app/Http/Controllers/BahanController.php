@@ -7,15 +7,33 @@ use App\Models\Bahan;
 use App\Models\Kategori;
 use App\Models\Laboratorium;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Spatie\Activitylog\Facades\Activity;
 
 class BahanController extends Controller
 {
+    private function getLabIds()
+    {
+        $user = Auth::user();
+        if ($user->role === 'teknisi') {
+            return $user->laboratoriumTeknisi->pluck('id')->toArray();
+        } elseif ($user->role === 'kepala_labor') {
+            return $user->laboratoriumDikelola->pluck('id')->toArray();
+        }
+        return null;
+    }
+
     public function index(Request $request)
     {
         $this->authorize('viewAny', Bahan::class);
 
+        $user = Auth::user();
         $query = Bahan::with(['kategori', 'laboratorium']);
+
+        $labIds = $this->getLabIds();
+        if ($labIds) {
+            $query->whereIn('id_labor', $labIds);
+        }
 
         if ($request->filled('kategori')) {
             $query->where('id_kategori', $request->kategori);
@@ -44,7 +62,7 @@ class BahanController extends Controller
 
         $bahans = $query->paginate(15)->withQueryString();
         $kategoris = Kategori::where('jenis', 'bahan')->get();
-        $laboratoriums = Laboratorium::all();
+        $laboratoriums = $labIds ? Laboratorium::whereIn('id', $labIds)->get() : Laboratorium::all();
 
         return view('bahan.index', compact('bahans', 'kategoris', 'laboratoriums'));
     }
@@ -53,8 +71,9 @@ class BahanController extends Controller
     {
         $this->authorize('create', Bahan::class);
 
+        $labIds = $this->getLabIds();
         $kategoris = Kategori::where('jenis', 'bahan')->get();
-        $laboratoriums = Laboratorium::all();
+        $laboratoriums = $labIds ? Laboratorium::whereIn('id', $labIds)->get() : Laboratorium::all();
 
         return view('bahan.create', compact('kategoris', 'laboratoriums'));
     }
@@ -94,8 +113,9 @@ class BahanController extends Controller
     {
         $this->authorize('update', $bahan);
 
+        $labIds = $this->getLabIds();
         $kategoris = Kategori::where('jenis', 'bahan')->get();
-        $laboratoriums = Laboratorium::all();
+        $laboratoriums = $labIds ? Laboratorium::whereIn('id', $labIds)->get() : Laboratorium::all();
 
         return view('bahan.edit', compact('bahan', 'kategoris', 'laboratoriums'));
     }

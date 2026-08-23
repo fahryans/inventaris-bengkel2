@@ -41,10 +41,26 @@ class LaporanController extends Controller
         $user = Auth::user();
         $isDosen = $user->role === 'dosen';
         $isMahasiswa = $user->role === 'mahasiswa';
+        $isTeknisi = $user->role === 'teknisi';
+        $isKepalaLab = $user->role === 'kepala_labor';
+
+        $labIds = [];
+        if ($isTeknisi) {
+            $labIds = $user->laboratoriumTeknisi->pluck('id')->toArray();
+        } elseif ($isKepalaLab) {
+            $labIds = $user->laboratoriumDikelola->pluck('id')->toArray();
+        }
+
+        $alatQuery = Alat::query();
+        $bahanQuery = Bahan::query();
+        if ($labIds) {
+            $alatQuery->whereIn('id_labor', $labIds);
+            $bahanQuery->whereIn('id_labor', $labIds);
+        }
 
         $summary = [
-            'total_alat' => Alat::count(),
-            'total_bahan' => Bahan::count(),
+            'total_alat' => $alatQuery->count(),
+            'total_bahan' => $bahanQuery->count(),
             'peminjaman_aktif' => $isMahasiswa
                 ? PeminjamanAlat::where('id_user_peminjam', Auth::id())->where('status', 'terpinjam')->count()
                 : PeminjamanAlat::where('status', 'terpinjam')->count(),
@@ -56,13 +72,22 @@ class LaporanController extends Controller
         ];
 
         if (!$isMahasiswa) {
+            $pemeliharaanQuery = PemeliharaanAlat::query();
+            $pengadaanAlatQuery = PengadaanAlat::query();
+            $pengadaanBahanQuery = PengadaanBahan::query();
+            if ($labIds) {
+                $pemeliharaanQuery->whereHas('unitAlat.alat', fn($q) => $q->whereIn('id_labor', $labIds));
+                $pengadaanAlatQuery->whereHas('alat', fn($q) => $q->whereIn('id_labor', $labIds));
+                $pengadaanBahanQuery->whereHas('bahan', fn($q) => $q->whereIn('id_labor', $labIds));
+            }
+
             $summary += [
-                'pemeliharaan_upcoming' => PemeliharaanAlat::where('tanggal_cek_berikutnya', '>=', now())
+                'pemeliharaan_upcoming' => $pemeliharaanQuery->where('tanggal_cek_berikutnya', '>=', now())
                     ->where('tanggal_cek_berikutnya', '<=', now()->addDays(7))->count(),
-                'pemeliharaan_overdue' => PemeliharaanAlat::where('tanggal_cek_berikutnya', '<', now())->count(),
-                'pengadaan_alat_pending' => PengadaanAlat::whereNull('tanggal_masuk')->count(),
-                'pengadaan_bahan_pending' => PengadaanBahan::whereNull('tanggal_masuk')->count(),
-                'bahan_low_stock' => Bahan::whereRaw('
+                'pemeliharaan_overdue' => $pemeliharaanQuery->where('tanggal_cek_berikutnya', '<', now())->count(),
+                'pengadaan_alat_pending' => $pengadaanAlatQuery->whereNull('tanggal_masuk')->count(),
+                'pengadaan_bahan_pending' => $pengadaanBahanQuery->whereNull('tanggal_masuk')->count(),
+                'bahan_low_stock' => $bahanQuery->whereRaw('
                     (SELECT COALESCE(SUM(stok_tersisa_batch), 0) FROM pengadaan_bahan WHERE pengadaan_bahan.id_bahan = bahan.id) <= stok_minimum
                 ')->whereNull('deleted_at')->count(),
             ];
@@ -77,21 +102,36 @@ class LaporanController extends Controller
 
         $user = Auth::user();
         $isMahasiswa = $user->role === 'mahasiswa';
+        $isTeknisi = $user->role === 'teknisi';
+        $isKepalaLab = $user->role === 'kepala_labor';
 
         if ($isMahasiswa && !in_array($tipe, ['alat', 'bahan', 'peminjaman'])) {
             abort(403, 'Anda tidak memiliki akses ke laporan ini.');
         }
 
+        $labIds = [];
+        if ($isTeknisi) {
+            $labIds = $user->laboratoriumTeknisi->pluck('id')->toArray();
+        } elseif ($isKepalaLab) {
+            $labIds = $user->laboratoriumDikelola->pluck('id')->toArray();
+        }
+
         $filter = $request->query('filter');
 
         $data = match($tipe) {
-            'alat' => Alat::with(['kategori', 'laboratorium'])->latest()->paginate(20),
-            'bahan' => Bahan::with('kategori')->latest()->paginate(20),
+            'alat' => Alat::when($labIds, fn($q) => $q->whereIn('id_labor', $labIds))
+                ->with(['kategori', 'laboratorium'])->latest()->paginate(20),
+            'bahan' => Bahan::when($labIds, fn($q) => $q->whereIn('id_labor', $labIds))
+                ->with('kategori')->latest()->paginate(20),
             'peminjaman' => $this->getPeminjamanData($isMahasiswa, $filter),
-            'pemeliharaan' => PemeliharaanAlat::with(['unitAlat', 'teknisi'])->latest()->paginate(20),
-            'pengadaan_alat' => PengadaanAlat::with(['alat', 'userInput'])->latest()->paginate(20),
-            'pengadaan_bahan' => PengadaanBahan::with(['bahan', 'userInput'])->latest()->paginate(20),
-            'pemakaian_bahan' => PemakaianBahan::with(['bahan', 'userPemakai', 'userVerifikasi'])->latest()->paginate(20),
+            'pemeliharaan' => PemeliharaanAlat::when($labIds, fn($q) => $q->whereHas('unitAlat.alat', fn($q2) => $q2->whereIn('id_labor', $labIds)))
+                ->with(['unitAlat', 'teknisi'])->latest()->paginate(20),
+            'pengadaan_alat' => PengadaanAlat::when($labIds, fn($q) => $q->whereHas('alat', fn($q2) => $q2->whereIn('id_labor', $labIds)))
+                ->with(['alat', 'userInput'])->latest()->paginate(20),
+            'pengadaan_bahan' => PengadaanBahan::when($labIds, fn($q) => $q->whereHas('bahan', fn($q2) => $q2->whereIn('id_labor', $labIds)))
+                ->with(['bahan', 'userInput'])->latest()->paginate(20),
+            'pemakaian_bahan' => PemakaianBahan::when($labIds, fn($q) => $q->whereHas('bahan', fn($q2) => $q2->whereIn('id_labor', $labIds)))
+                ->with(['bahan', 'userPemakai', 'userVerifikasi'])->latest()->paginate(20),
             default => abort(404),
         };
 
@@ -115,21 +155,36 @@ class LaporanController extends Controller
 
         $user = Auth::user();
         $isMahasiswa = $user->role === 'mahasiswa';
+        $isTeknisi = $user->role === 'teknisi';
+        $isKepalaLab = $user->role === 'kepala_labor';
 
         if ($isMahasiswa && !in_array($tipe, ['alat', 'bahan', 'peminjaman'])) {
             abort(403, 'Anda tidak memiliki akses ke laporan ini.');
         }
 
+        $labIds = [];
+        if ($isTeknisi) {
+            $labIds = $user->laboratoriumTeknisi->pluck('id')->toArray();
+        } elseif ($isKepalaLab) {
+            $labIds = $user->laboratoriumDikelola->pluck('id')->toArray();
+        }
+
         $data = match($tipe) {
-            'alat' => Alat::with(['kategori', 'laboratorium'])->latest()->get(),
-            'bahan' => Bahan::with('kategori')->latest()->get(),
+            'alat' => Alat::when($labIds, fn($q) => $q->whereIn('id_labor', $labIds))
+                ->with(['kategori', 'laboratorium'])->latest()->get(),
+            'bahan' => Bahan::when($labIds, fn($q) => $q->whereIn('id_labor', $labIds))
+                ->with('kategori')->latest()->get(),
             'peminjaman' => $isMahasiswa
                 ? PeminjamanAlat::where('id_user_peminjam', Auth::id())->with(['alat', 'unitAlat', 'userPeminjam'])->latest()->get()
                 : PeminjamanAlat::with(['alat', 'unitAlat', 'userPeminjam'])->latest()->get(),
-            'pemeliharaan' => PemeliharaanAlat::with(['unitAlat', 'teknisi'])->latest()->get(),
-            'pengadaan_alat' => PengadaanAlat::with(['alat', 'userInput'])->latest()->get(),
-            'pengadaan_bahan' => PengadaanBahan::with(['bahan', 'userInput'])->latest()->get(),
-            'pemakaian_bahan' => PemakaianBahan::with(['bahan', 'userPemakai', 'userVerifikasi'])->latest()->get(),
+            'pemeliharaan' => PemeliharaanAlat::when($labIds, fn($q) => $q->whereHas('unitAlat.alat', fn($q2) => $q2->whereIn('id_labor', $labIds)))
+                ->with(['unitAlat', 'teknisi'])->latest()->get(),
+            'pengadaan_alat' => PengadaanAlat::when($labIds, fn($q) => $q->whereHas('alat', fn($q2) => $q2->whereIn('id_labor', $labIds)))
+                ->with(['alat', 'userInput'])->latest()->get(),
+            'pengadaan_bahan' => PengadaanBahan::when($labIds, fn($q) => $q->whereHas('bahan', fn($q2) => $q2->whereIn('id_labor', $labIds)))
+                ->with(['bahan', 'userInput'])->latest()->get(),
+            'pemakaian_bahan' => PemakaianBahan::when($labIds, fn($q) => $q->whereHas('bahan', fn($q2) => $q2->whereIn('id_labor', $labIds)))
+                ->with(['bahan', 'userPemakai', 'userVerifikasi'])->latest()->get(),
             'peminjaman_saya' => PeminjamanAlat::where('id_user_peminjam', Auth::id())
                 ->with(['alat', 'unitAlat', 'userPeminjam'])->latest()->get(),
             'pemakaian_saya' => PemakaianBahan::where('id_user_pemakai', Auth::id())
@@ -212,23 +267,34 @@ class LaporanController extends Controller
     {
         $this->authorize('viewAny', \App\Models\PeminjamanAlat::class);
 
-        $pengadaanAlat = PengadaanAlat::with(['alat'])
-            ->latest('tanggal_pengadaan')
-            ->get();
+        $user = Auth::user();
+        $query = PengadaanAlat::with(['alat']);
+        if ($user->role === 'teknisi') {
+            $labIds = $user->laboratoriumTeknisi->pluck('id')->toArray();
+            $query->whereHas('alat', fn($q) => $q->whereIn('id_labor', $labIds));
+        } elseif ($user->role === 'kepala_labor') {
+            $labIds = $user->laboratoriumDikelola->pluck('id')->toArray();
+            $query->whereHas('alat', fn($q) => $q->whereIn('id_labor', $labIds));
+        }
+        $pengadaanAlat = $query->latest('tanggal_pengadaan')->get();
 
         return view('laporan.breakdown_merek_alat', compact('pengadaanAlat'));
     }
 
-    /**
-     * Breakdown Bahan per Merek & Supplier
-     */
     public function breakdownMerekBahan()
     {
         $this->authorize('viewAny', \App\Models\PeminjamanAlat::class);
 
-        $pengadaanBahan = PengadaanBahan::with(['bahan'])
-            ->latest('tanggal_pengadaan')
-            ->get();
+        $user = Auth::user();
+        $query = PengadaanBahan::with(['bahan']);
+        if ($user->role === 'teknisi') {
+            $labIds = $user->laboratoriumTeknisi->pluck('id')->toArray();
+            $query->whereHas('bahan', fn($q) => $q->whereIn('id_labor', $labIds));
+        } elseif ($user->role === 'kepala_labor') {
+            $labIds = $user->laboratoriumDikelola->pluck('id')->toArray();
+            $query->whereHas('bahan', fn($q) => $q->whereIn('id_labor', $labIds));
+        }
+        $pengadaanBahan = $query->latest('tanggal_pengadaan')->get();
 
         return view('laporan.breakdown_merek_bahan', compact('pengadaanBahan'));
     }

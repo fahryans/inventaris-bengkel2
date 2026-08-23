@@ -17,11 +17,29 @@ class PengadaanAlatController extends Controller
     public function __construct(
         protected StokService $stokService,
     ) {}
+
+    private function getLabIds()
+    {
+        $user = Auth::user();
+        if ($user->role === 'teknisi') {
+            return $user->laboratoriumTeknisi->pluck('id')->toArray();
+        } elseif ($user->role === 'kepala_labor') {
+            return $user->laboratoriumDikelola->pluck('id')->toArray();
+        }
+        return null;
+    }
+
     public function index(Request $request)
     {
         $this->authorize('viewAny', PengadaanAlat::class);
 
+        $user = Auth::user();
         $query = PengadaanAlat::with(['alat', 'spesifikasiAlat', 'userInput'])->latest();
+
+        $labIds = $this->getLabIds();
+        if ($labIds) {
+            $query->whereHas('alat', fn($q) => $q->whereIn('id_labor', $labIds));
+        }
 
         if ($request->filled('alat')) {
             $query->where('id_alat', $request->alat);
@@ -38,7 +56,11 @@ class PengadaanAlatController extends Controller
         }
 
         $pengadaans = $query->paginate(15);
-        $alats = Alat::with('spesifikasiAlat')->get();
+        $alatsQuery = Alat::with('spesifikasiAlat');
+        if ($labIds) {
+            $alatsQuery->whereIn('id_labor', $labIds);
+        }
+        $alats = $alatsQuery->get();
 
         return view('pengadaan_alat.index', compact('pengadaans', 'alats'));
     }
@@ -47,7 +69,12 @@ class PengadaanAlatController extends Controller
     {
         $this->authorize('create', PengadaanAlat::class);
 
-        $alats = Alat::with('spesifikasiAlat')->get();
+        $labIds = $this->getLabIds();
+        $alatsQuery = Alat::with('spesifikasiAlat');
+        if ($labIds) {
+            $alatsQuery->whereIn('id_labor', $labIds);
+        }
+        $alats = $alatsQuery->get();
 
         return view('pengadaan_alat.create', compact('alats'));
     }
@@ -113,7 +140,12 @@ class PengadaanAlatController extends Controller
         $this->authorize('update', $pengadaan);
 
         $pengadaan->load('alat');
-        $alats = Alat::with('spesifikasiAlat')->get();
+        $labIds = $this->getLabIds();
+        $alatsQuery = Alat::with('spesifikasiAlat');
+        if ($labIds) {
+            $alatsQuery->whereIn('id_labor', $labIds);
+        }
+        $alats = $alatsQuery->get();
 
         return view('pengadaan_alat.edit', compact('pengadaan', 'alats'));
     }

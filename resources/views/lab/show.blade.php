@@ -35,6 +35,15 @@
                 <div>
                     <h3 class="mb-1">{{ $lab->nama_labor }}</h3>
                     <p class="text-muted mb-1"><i class="fas fa-map-marker-alt me-1"></i> {{ $lab->lokasi }}</p>
+                    <p class="text-muted mb-1"><i class="fas fa-user-tie me-1"></i> Ka. Lab: {{ $lab->kalab->nama ?? '-' }}</p>
+                    @if($lab->teknisi->count())
+                        <p class="text-muted mb-0">
+                            <i class="fas fa-wrench me-1"></i> Teknisi: 
+                            @foreach($lab->teknisi as $t)
+                                <span class="badge bg-info">{{ $t->nama }}</span>
+                            @endforeach
+                        </p>
+                    @endif
                     @if($lab->sop)
                         <small class="text-muted">SOP: {{ $lab->sop }}</small>
                     @endif

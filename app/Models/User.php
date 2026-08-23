@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -44,6 +45,12 @@ class User extends Authenticatable
         return $this->hasMany(Laboratorium::class, 'id_user_kalab');
     }
 
+    public function laboratoriumTeknisi(): BelongsToMany
+    {
+        return $this->belongsToMany(Laboratorium::class, 'labor_teknisi', 'id_user', 'id_laboratorium')
+            ->withTimestamps();
+    }
+
     public function pengadaanAlat(): HasMany
     {
         return $this->hasMany(PengadaanAlat::class, 'id_user_input');
@@ -82,5 +89,27 @@ class User extends Authenticatable
     public function scopeByRole($query, string $role)
     {
         return $query->where('role', $role);
+    }
+
+    public function isTeknisiOf(int $labId): bool
+    {
+        if ($this->role !== 'teknisi') {
+            return false;
+        }
+        return $this->laboratoriumTeknisi()->where('id_laboratorium', $labId)->exists();
+    }
+
+    public function assignedLabIds(): array
+    {
+        if ($this->role === 'admin_jurusan' || $this->role === 'kadep') {
+            return [];
+        }
+        if ($this->role === 'kepala_labor') {
+            return [$this->laboratoriumDikelola()->pluck('laboratorium.id')->toArray()];
+        }
+        if ($this->role === 'teknisi') {
+            return $this->laboratoriumTeknisi()->pluck('laboratorium.id')->toArray();
+        }
+        return [];
     }
 }

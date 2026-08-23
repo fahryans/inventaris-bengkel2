@@ -16,14 +16,30 @@ class PeminjamanAlatController extends Controller
         protected PeminjamanService $peminjamanService,
     ) {}
 
+    private function getLabIds()
+    {
+        $user = Auth::user();
+        if ($user->role === 'teknisi') {
+            return $user->laboratoriumTeknisi->pluck('id')->toArray();
+        } elseif ($user->role === 'kepala_labor') {
+            return $user->laboratoriumDikelola->pluck('id')->toArray();
+        }
+        return null;
+    }
+
     public function index(Request $request)
     {
         $this->authorize('viewAny', PeminjamanAlat::class);
 
+        $user = Auth::user();
         $query = PeminjamanAlat::with(['alat', 'spesifikasiAlat', 'unitAlat', 'userPeminjam']);
 
-        if (in_array(Auth::user()->role, ['dosen', 'mahasiswa'])) {
-            $query->where('id_user_peminjam', Auth::id());
+        $labIds = $this->getLabIds();
+
+        if (in_array($user->role, ['dosen', 'mahasiswa'])) {
+            $query->where('id_user_peminjam', $user->id);
+        } elseif ($labIds) {
+            $query->whereHas('alat', fn($q) => $q->whereIn('id_labor', $labIds));
         }
 
         if ($request->filled('status')) {
@@ -43,8 +59,15 @@ class PeminjamanAlatController extends Controller
     {
         $this->authorize('create', PeminjamanAlat::class);
 
-        $alats = Alat::with('spesifikasiAlat')->where('tipe_pelacakan', 'agregat')->get();
-        $units = UnitAlat::with('alat', 'spesifikasiAlat')->get();
+        $labIds = $this->getLabIds();
+        $alatsQuery = Alat::with('spesifikasiAlat')->where('tipe_pelacakan', 'agregat');
+        $unitsQuery = UnitAlat::with('alat', 'spesifikasiAlat');
+        if ($labIds) {
+            $alatsQuery->whereIn('id_labor', $labIds);
+            $unitsQuery->whereHas('alat', fn($q) => $q->whereIn('id_labor', $labIds));
+        }
+        $alats = $alatsQuery->get();
+        $units = $unitsQuery->get();
 
         return view('peminjaman.create', compact('alats', 'units'));
     }
@@ -123,8 +146,15 @@ class PeminjamanAlatController extends Controller
                 ->with('error', 'Tidak dapat mengedit peminjaman yang sudah dikembalikan');
         }
 
-        $alats = Alat::with('spesifikasiAlat')->where('tipe_pelacakan', 'agregat')->get();
-        $units = UnitAlat::with('alat', 'spesifikasiAlat')->get();
+        $labIds = $this->getLabIds();
+        $alatsQuery = Alat::with('spesifikasiAlat')->where('tipe_pelacakan', 'agregat');
+        $unitsQuery = UnitAlat::with('alat', 'spesifikasiAlat');
+        if ($labIds) {
+            $alatsQuery->whereIn('id_labor', $labIds);
+            $unitsQuery->whereHas('alat', fn($q) => $q->whereIn('id_labor', $labIds));
+        }
+        $alats = $alatsQuery->get();
+        $units = $unitsQuery->get();
 
         return view('peminjaman.edit', compact('peminjaman', 'alats', 'units'));
     }

@@ -6,16 +6,34 @@ use App\Http\Requests\UnitAlatRequest;
 use App\Models\Alat;
 use App\Models\UnitAlat;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Spatie\Activitylog\Facades\Activity;
 
 class UnitAlatController extends Controller
 {
+    private function getLabIds()
+    {
+        $user = Auth::user();
+        if ($user->role === 'teknisi') {
+            return $user->laboratoriumTeknisi->pluck('id')->toArray();
+        } elseif ($user->role === 'kepala_labor') {
+            return $user->laboratoriumDikelola->pluck('id')->toArray();
+        }
+        return null;
+    }
+
     public function index(Request $request)
     {
         $this->authorize('viewAny', UnitAlat::class);
 
+        $user = Auth::user();
         $query = UnitAlat::with(['alat', 'spesifikasiAlat']);
+
+        $labIds = $this->getLabIds();
+        if ($labIds) {
+            $query->whereHas('alat', fn($q) => $q->whereIn('id_labor', $labIds));
+        }
 
         if ($request->filled('search')) {
             // Saat search digunakan, abaikan filter id_alat, search mencari di semua alat
@@ -66,7 +84,11 @@ class UnitAlatController extends Controller
         }
 
         $unitAlats = $query->paginate(15)->withQueryString();
-        $alats = Alat::with('spesifikasiAlat')->where('tipe_pelacakan', 'unit')->get();
+        $alatsQuery = Alat::with('spesifikasiAlat')->where('tipe_pelacakan', 'unit');
+        if ($labIds) {
+            $alatsQuery->whereIn('id_labor', $labIds);
+        }
+        $alats = $alatsQuery->get();
 
         return view('unit_alat.index', compact('unitAlats', 'alats'));
     }
@@ -75,7 +97,12 @@ class UnitAlatController extends Controller
     {
         $this->authorize('create', UnitAlat::class);
 
-        $alats = Alat::with('spesifikasiAlat')->where('tipe_pelacakan', 'unit')->get();
+        $labIds = $this->getLabIds();
+        $alatsQuery = Alat::with('spesifikasiAlat')->where('tipe_pelacakan', 'unit');
+        if ($labIds) {
+            $alatsQuery->whereIn('id_labor', $labIds);
+        }
+        $alats = $alatsQuery->get();
 
         return view('unit_alat.create', compact('alats'));
     }
@@ -119,7 +146,12 @@ class UnitAlatController extends Controller
     {
         $this->authorize('update', $unitAlat);
 
-        $alats = Alat::with('spesifikasiAlat')->where('tipe_pelacakan', 'unit')->get();
+        $labIds = $this->getLabIds();
+        $alatsQuery = Alat::with('spesifikasiAlat')->where('tipe_pelacakan', 'unit');
+        if ($labIds) {
+            $alatsQuery->whereIn('id_labor', $labIds);
+        }
+        $alats = $alatsQuery->get();
 
         return view('unit_alat.edit', compact('unitAlat', 'alats'));
     }

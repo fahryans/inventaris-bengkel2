@@ -64,6 +64,21 @@
                     @enderror
                 </div>
 
+                <div class="mb-3">
+                    <label for="teknisi" class="form-label">Teknisi</label>
+                    <select name="teknisi[]" id="teknisi" class="form-select @error('teknisi') is-invalid @enderror" multiple size="5">
+                        @foreach($teknisis as $teknisi)
+                            <option value="{{ $teknisi->id }}" {{ in_array($teknisi->id, old('teknisi', $laboratorium->teknisi->pluck('id')->toArray())) ? 'selected' : '' }}>
+                                {{ $teknisi->nama }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <small class="text-muted">Tahan Ctrl/Cmd untuk pilih lebih dari satu</small>
+                    @error('teknisi')
+                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                    @enderror
+                </div>
+
                 <div class="d-flex gap-2 justify-content-end">
                     <a href="{{ route('laboratorium.index') }}" class="btn btn-secondary">Batal</a>
                     <button type="submit" class="btn btn-primary">

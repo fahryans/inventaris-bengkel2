@@ -19,12 +19,13 @@ class AlatPolicy
 
     public function view(User $user, Alat $alat): bool
     {
-        return in_array($user->role, [
-            'admin_jurusan',
-            'kepala_labor',
-            'teknisi',
-            'kadep'
-        ]);
+        if (in_array($user->role, ['admin_jurusan', 'kepala_labor', 'kadep'])) {
+            return true;
+        }
+        if ($user->role === 'teknisi') {
+            return $user->isTeknisiOf($alat->id_labor);
+        }
+        return false;
     }
 
     public function create(User $user): bool
@@ -38,11 +39,13 @@ class AlatPolicy
 
     public function update(User $user, Alat $alat): bool
     {
-        return in_array($user->role, [
-            'admin_jurusan',
-            'kepala_labor',
-            'teknisi'
-        ]);
+        if (in_array($user->role, ['admin_jurusan', 'kepala_labor'])) {
+            return true;
+        }
+        if ($user->role === 'teknisi') {
+            return $user->isTeknisiOf($alat->id_labor);
+        }
+        return false;
     }
 
     public function delete(User $user, Alat $alat): bool

@@ -20,11 +20,28 @@ class PemakaianBahanController extends Controller
         protected StokService $stokService,
     ) {}
 
+    private function getLabIds()
+    {
+        $user = Auth::user();
+        if ($user->role === 'teknisi') {
+            return $user->laboratoriumTeknisi->pluck('id')->toArray();
+        } elseif ($user->role === 'kepala_labor') {
+            return $user->laboratoriumDikelola->pluck('id')->toArray();
+        }
+        return null;
+    }
+
     public function index(Request $request)
     {
         $this->authorize('viewAny', PemakaianBahan::class);
 
+        $user = Auth::user();
         $query = PemakaianBahan::with(['bahan', 'pengadaanBahan', 'userPemakai', 'userVerifikasi'])->latest();
+
+        $labIds = $this->getLabIds();
+        if ($labIds) {
+            $query->whereHas('bahan', fn($q) => $q->whereIn('id_labor', $labIds));
+        }
 
         if ($request->filled('bahan')) {
             $query->where('id_bahan', $request->bahan);
@@ -43,7 +60,7 @@ class PemakaianBahanController extends Controller
         }
 
         $pemakaians = $query->paginate(15);
-        $bahans = Bahan::all();
+        $bahans = $labIds ? Bahan::whereIn('id_labor', $labIds)->get() : Bahan::all();
 
         return view('pemakaian_bahan.index', compact('pemakaians', 'bahans'));
     }
@@ -52,8 +69,9 @@ class PemakaianBahanController extends Controller
     {
         $this->authorize('create', PemakaianBahan::class);
 
-        $bahans = Bahan::all();
-        $pengadaans = PengadaanBahan::all();
+        $labIds = $this->getLabIds();
+        $bahans = $labIds ? Bahan::whereIn('id_labor', $labIds)->get() : Bahan::all();
+        $pengadaans = $labIds ? PengadaanBahan::whereHas('bahan', fn($q) => $q->whereIn('id_labor', $labIds))->get() : PengadaanBahan::all();
 
         return view('pemakaian_bahan.create', compact('bahans', 'pengadaans'));
     }
@@ -106,8 +124,9 @@ class PemakaianBahanController extends Controller
         $pemakaian = PemakaianBahan::findOrFail($id);
         $this->authorize('update', $pemakaian);
 
-        $bahans = Bahan::all();
-        $pengadaans = PengadaanBahan::all();
+        $labIds = $this->getLabIds();
+        $bahans = $labIds ? Bahan::whereIn('id_labor', $labIds)->get() : Bahan::all();
+        $pengadaans = $labIds ? PengadaanBahan::whereHas('bahan', fn($q) => $q->whereIn('id_labor', $labIds))->get() : PengadaanBahan::all();
 
         return view('pemakaian_bahan.edit', compact('pemakaian', 'bahans', 'pengadaans'));
     }
