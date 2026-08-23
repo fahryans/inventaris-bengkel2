@@ -18,11 +18,12 @@ class PemakaianBahanRequest extends FormRequest
         return [
             'id_bahan' => ['required', 'exists:bahan,id'],
             'id_pengadaan_bahan' => ['required', 'exists:pengadaan_bahan,id'],
+            'id_laboratorium' => ['nullable', 'exists:laboratorium,id'],
             'keperluan' => ['required', 'string', 'max:255'],
             'jumlah_pengambilan' => ['required', 'integer', 'min:1'],
             'jumlah_terpakai' => ['nullable', 'integer', 'min:0'],
             'jumlah_pengembalian' => ['nullable', 'integer', 'min:0'],
-            'waktu_pemakaian' => ['required', 'date_format:Y-m-d H:i', 'date_format:Y-m-d\TH:i'],
+            'waktu_pemakaian' => ['required', 'date_format:Y-m-d\TH:i'],
         ];
     }
 

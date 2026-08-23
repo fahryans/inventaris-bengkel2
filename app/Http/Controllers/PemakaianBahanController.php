@@ -70,13 +70,11 @@ class PemakaianBahanController extends Controller
         DB::transaction(function () use ($validated, &$pemakaian) {
             $pemakaian = PemakaianBahan::create($validated);
 
-            // Hanya konsumsi stok jika jumlah_terpakai diisi dan > 0
-            if ($validated['jumlah_terpakai'] ?? 0 > 0) {
-                $this->fifoService->consumeFromBatches(
-                    $validated['id_bahan'],
-                    $validated['jumlah_terpakai']
-                );
-            }
+            // Stok langsung berkurang sesuai jumlah pengambilan
+            $this->fifoService->consumeFromBatches(
+                $validated['id_bahan'],
+                $validated['jumlah_pengambilan']
+            );
         });
 
         activity()
@@ -84,6 +82,10 @@ class PemakaianBahanController extends Controller
             ->withProperties(['attributes' => $pemakaian->toArray()])
             ->event('created')
             ->log('Pemakaian bahan baru dicatat');
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json(['message' => 'Pemakaian bahan berhasil dicatat']);
+        }
 
         return redirect()->route('pemakaian_bahan.index')
             ->with('success', 'Pemakaian bahan berhasil dicatat');

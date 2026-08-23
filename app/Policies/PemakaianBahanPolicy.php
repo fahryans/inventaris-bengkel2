@@ -25,7 +25,9 @@ class PemakaianBahanPolicy
             'admin_jurusan',
             'kepala_labor',
             'teknisi',
-            'kadep'
+            'kadep',
+            'dosen',
+            'mahasiswa',
         ]) || $user->id === $pemakaian->id_user_pemakai;
     }
 
@@ -59,11 +61,8 @@ class PemakaianBahanPolicy
 
     public function return(User $user, PemakaianBahan $pemakaian): bool
     {
-        return in_array($user->role, [
-            'admin_jurusan',
-            'kepala_labor',
-            'teknisi'
-        ]) && is_null($pemakaian->jumlah_pengembalian);
+        return !is_null($pemakaian->id_user_verifikasi) && is_null($pemakaian->jumlah_pengembalian)
+            && ($user->id === $pemakaian->id_user_pemakai || in_array($user->role, ['admin_jurusan', 'kepala_labor', 'teknisi']));
     }
 
     public function delete(User $user, PemakaianBahan $pemakaian): bool

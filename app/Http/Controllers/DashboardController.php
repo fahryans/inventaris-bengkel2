@@ -252,33 +252,29 @@ class DashboardController extends Controller
             ->toArray();
         $riwayatPeminjaman = collect(range(1, 12))->map(fn($m) => $riwayatPeminjaman[$m] ?? 0)->toArray();
 
+        $isStaff = in_array(Auth::user()->role, ['admin_jurusan', 'kepala_labor', 'teknisi'], true);
+
+        if ($isStaff) {
+            // Kalab/teknisi: lihat pemakaian bahan yang belum diverifikasi (butuh verifikasi)
+            $pendingPemakaianBahan = \App\Models\PemakaianBahan::whereNull('id_user_verifikasi')
+                ->whereNull('jumlah_pengembalian')
+                ->with(['bahan', 'pengadaanBahan', 'userPemakai'])
+                ->latest()
+                ->limit(10)
+                ->get();
+        } else {
+            // Mahasiswa/dosen: lihat pemakaian bahan yang sudah diverifikasi & belum dikembalikan
+            $pendingPemakaianBahan = collect();
+        }
+
+        // Mahasiswa/dosen: lihat pemakaian bahan sendiri yang sudah diverifikasi & belum dikembalikan
         $myPemakaianBahan = \App\Models\PemakaianBahan::where('id_user_pemakai', Auth::id())
+            ->whereNotNull('id_user_verifikasi')
             ->whereNull('jumlah_pengembalian')
             ->with(['bahan', 'pengadaanBahan'])
             ->latest()
-            ->limit(5)
+            ->limit(10)
             ->get();
-
-        $allBahans = \App\Models\PengadaanBahan::where('stok_tersisa_batch', '>', 0)
-            ->whereNotNull('tanggal_masuk')
-            ->with('bahan')
-            ->get()
-            ->groupBy('id_bahan')
-            ->map(function ($batches) {
-                $bahan = $batches->first()->bahan;
-                $totalStok = $batches->sum('stok_tersisa_batch');
-                return [
-                    'id' => $bahan->id,
-                    'nama' => $bahan->nama_bahan,
-                    'satuan' => $bahan->satuan,
-                    'stok' => $totalStok,
-                    'pengadaan_options' => $batches->map(fn($b) => [
-                        'id' => $b->id,
-                        'label' => $b->supplier . ' (' . $b->stok_tersisa_batch . ' ' . $bahan->satuan . ')',
-                    ])->values(),
-                ];
-            })
-            ->values();
 
         return view('dashboard.user', compact(
             'labs',
@@ -287,7 +283,8 @@ class DashboardController extends Controller
             'riwayatCount',
             'riwayatPeminjaman',
             'myPemakaianBahan',
-            'allBahans'
+            'pendingPemakaianBahan',
+            'isStaff'
         ));
     }
 }

@@ -8,8 +8,9 @@ class LabController extends Controller
 {
     public function show(Laboratorium $lab)
     {
-        $lab->load(['alat.unitAlat', 'bahan']);
+        $alat = $lab->alat()->with('unitAlat')->paginate(10);
+        $bahan = $lab->bahan()->paginate(10);
 
-        return view('lab.show', compact('lab'));
+        return view('lab.show', compact('lab', 'alat', 'bahan'));
     }
 }

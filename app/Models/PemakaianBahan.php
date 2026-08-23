@@ -16,6 +16,7 @@ class PemakaianBahan extends Model
     protected $fillable = [
         'id_bahan',
         'id_pengadaan_bahan',
+        'id_laboratorium',
         'id_user_pemakai',
         'id_user_verifikasi',
         'keperluan',
@@ -35,6 +36,11 @@ class PemakaianBahan extends Model
     public function bahan(): BelongsTo
     {
         return $this->belongsTo(Bahan::class, 'id_bahan');
+    }
+
+    public function laboratorium(): BelongsTo
+    {
+        return $this->belongsTo(Laboratorium::class, 'id_laboratorium');
     }
 
     public function pengadaanBahan(): BelongsTo
