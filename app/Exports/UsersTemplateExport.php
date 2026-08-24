@@ -15,7 +15,7 @@ class UsersTemplateExport
         // Header
         $headers = ['Nama', 'Email', 'Role', 'Status', 'No. HP', 'No. Induk', 'Password'];
         foreach ($headers as $index => $header) {
-            $sheet->setCellValueByColumnAndRow($index + 1, 1, $header);
+            $sheet->setCellValue(self::colLetter($index + 1) . '1', $header);
         }
 
         // Style header
@@ -35,7 +35,7 @@ class UsersTemplateExport
 
         foreach ($examples as $rowIndex => $row) {
             foreach ($row as $colIndex => $value) {
-                $sheet->setCellValueByColumnAndRow($colIndex + 1, $rowIndex + 2, $value);
+                $sheet->setCellValue(self::colLetter($colIndex + 1) . ($rowIndex + 2), $value);
             }
         }
 
@@ -61,6 +61,17 @@ class UsersTemplateExport
         $sheet->setDataValidation('D2:D1000', $validationStatus);
 
         return $spreadsheet;
+    }
+
+    private static function colLetter(int $column): string
+    {
+        $letter = '';
+        while ($column > 0) {
+            $column--;
+            $letter = chr(65 + ($column % 26)) . $letter;
+            $column = intdiv($column, 26);
+        }
+        return $letter;
     }
 
     public function download()
