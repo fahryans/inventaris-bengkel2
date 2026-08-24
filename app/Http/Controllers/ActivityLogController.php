@@ -10,7 +10,7 @@ class ActivityLogController extends Controller
     {
         $this->authorize('viewAny', Activity::class);
 
-        $activities = Activity::with('causedBy')
+        $activities = Activity::with('causer')
             ->latest()
             ->paginate(20);
 

@@ -24,7 +24,7 @@
                     @forelse($activities as $activity)
                     <tr>
                         <td>{{ $activity->created_at->format('d/m/Y H:i:s') }}</td>
-                        <td>{{ $activity->causedBy->nama ?? 'System' }}</td>
+                        <td>{{ $activity->causer->nama ?? 'System' }}</td>
                         <td>
                             @if($activity->event === 'created')
                                 <span class="badge bg-success">Create</span>
