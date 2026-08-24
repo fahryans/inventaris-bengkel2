@@ -275,22 +275,39 @@ class DashboardController extends Controller
         $isStaff = in_array(Auth::user()->role, ['admin_jurusan', 'kepala_labor', 'teknisi'], true);
 
         if ($isStaff) {
-            // Kalab/teknisi: lihat pemakaian bahan yang belum diverifikasi (butuh verifikasi)
+            $user = Auth::user();
+            $labIds = $user->laboratoriumTeknisi->pluck('id')
+                ->merge($user->laboratoriumDikelola->pluck('id'))
+                ->unique();
+
+            // Kalab/teknisi: pemakaian bahan yang belum diverifikasi (butuh verifikasi pemakaian)
             $pendingPemakaianBahan = \App\Models\PemakaianBahan::whereNull('id_user_verifikasi')
                 ->whereNull('jumlah_pengembalian')
+                ->whereHas('bahan', fn($q) => $q->whereIn('id_laboratorium', $labIds))
+                ->with(['bahan', 'pengadaanBahan', 'userPemakai'])
+                ->latest()
+                ->limit(10)
+                ->get();
+
+            // Kalab/teknisi: pengembalian bahan yang menunggu verifikasi
+            $pendingReturns = \App\Models\PemakaianBahan::where('status_pengembalian', 'pending')
+                ->whereHas('bahan', fn($q) => $q->whereIn('id_laboratorium', $labIds))
                 ->with(['bahan', 'pengadaanBahan', 'userPemakai'])
                 ->latest()
                 ->limit(10)
                 ->get();
         } else {
-            // Mahasiswa/dosen: lihat pemakaian bahan yang sudah diverifikasi & belum dikembalikan
             $pendingPemakaianBahan = collect();
+            $pendingReturns = collect();
         }
 
-        // Mahasiswa/dosen: lihat pemakaian bahan sendiri yang sudah diverifikasi & belum dikembalikan
+        // Pemakaian bahan aktif: belum dikembalikan ATAU status pengembalian pending
         $myPemakaianBahan = \App\Models\PemakaianBahan::where('id_user_pemakai', Auth::id())
             ->whereNotNull('id_user_verifikasi')
-            ->whereNull('jumlah_pengembalian')
+            ->where(function ($q) {
+                $q->whereNull('jumlah_pengembalian')
+                    ->orWhere('status_pengembalian', 'pending');
+            })
             ->with(['bahan', 'pengadaanBahan'])
             ->latest()
             ->limit(10)
@@ -304,6 +321,7 @@ class DashboardController extends Controller
             'riwayatPeminjaman',
             'myPemakaianBahan',
             'pendingPemakaianBahan',
+            'pendingReturns',
             'isStaff'
         ));
     }

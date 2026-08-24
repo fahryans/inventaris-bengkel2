@@ -200,6 +200,7 @@
                                     <th>Diambil</th>
                                     <th>Keperluan</th>
                                     <th>Waktu</th>
+                                    <th>Status Pengembalian</th>
                                     <th>Aksi</th>
                                 </tr>
                             </thead>
@@ -213,6 +214,27 @@
                                         <td>{{ $pemakaian->keperluan }}</td>
                                         <td><small class="text-muted">{{ $pemakaian->created_at->format('d-m-Y H:i') }}</small></td>
                                         <td>
+                                            @if($pemakaian->status_pengembalian === 'pending')
+                                                <span class="badge bg-warning">Menunggu Verifikasi</span>
+                                                <form action="{{ route('pemakaian_bahan.verify_return', $pemakaian) }}" method="POST" class="d-inline mt-1"
+                                                      onsubmit="return confirm('Verifikasi pengembalian ini?')">
+                                                    @csrf
+                                                    <button type="submit" class="btn btn-success btn-xs"><i class="fas fa-check"></i></button>
+                                                </form>
+                                                <form action="{{ route('pemakaian_bahan.reject_return', $pemakaian) }}" method="POST" class="d-inline mt-1"
+                                                      onsubmit="return confirm('Tolak pengembalian ini?')">
+                                                    @csrf
+                                                    <button type="submit" class="btn btn-danger btn-xs"><i class="fas fa-times"></i></button>
+                                                </form>
+                                            @elseif($pemakaian->status_pengembalian === 'verified')
+                                                <span class="badge bg-success">Diverifikasi</span>
+                                            @elseif($pemakaian->status_pengembalian === 'rejected')
+                                                <span class="badge bg-danger">Ditolak</span>
+                                            @else
+                                                <span class="badge bg-secondary">-</span>
+                                            @endif
+                                        </td>
+                                        <td>
                                             <a href="{{ route('pemakaian_bahan.show', $pemakaian) }}" class="btn btn-sm btn-info" title="Lihat Detail">
                                                 <i class="fas fa-eye"></i>
                                             </a>
@@ -221,6 +243,65 @@
                                                 <button type="submit" class="btn btn-sm btn-success" onclick="return confirm('Verifikasi pemakaian bahan ini?')">
                                                     <i class="fas fa-check"></i> Verifikasi
                                                 </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
+
+    {{-- Pengembalian Menunggu Verifikasi (kalab/teknisi) --}}
+    @if($isStaff && $pendingReturns->count())
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-info">
+                        <i class="fas fa-undo me-1"></i> Pengembalian Menunggu Verifikasi
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Pemakai</th>
+                                    <th>Bahan</th>
+                                    <th>Supplier</th>
+                                    <th>Diambil</th>
+                                    <th>Dikembalikan</th>
+                                    <th>Waktu Return</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($pendingReturns as $pemakaian)
+                                    <tr>
+                                        <td>{{ $pemakaian->userPemakai->nama ?? '-' }}</td>
+                                        <td>{{ $pemakaian->bahan->nama_bahan ?? '-' }}</td>
+                                        <td>{{ $pemakaian->pengadaanBahan->supplier ?? '-' }}</td>
+                                        <td>{{ $pemakaian->jumlah_pengambilan }} {{ $pemakaian->bahan->satuan ?? '-' }}</td>
+                                        <td>{{ $pemakaian->jumlah_pengembalian }} {{ $pemakaian->bahan->satuan ?? '-' }}</td>
+                                        <td><small class="text-muted">{{ $pemakaian->waktu_pengembalian?->format('d-m-Y H:i') ?? '-' }}</small></td>
+                                        <td>
+                                            <a href="{{ route('pemakaian_bahan.show', $pemakaian) }}" class="btn btn-sm btn-info" title="Lihat Detail">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <form action="{{ route('pemakaian_bahan.verify_return', $pemakaian) }}" method="POST" class="d-inline"
+                                                  onsubmit="return confirm('Verifikasi pengembalian ini? Stok akan dikembalikan ke inventory.')">
+                                                @csrf
+                                                <button type="submit" class="btn btn-sm btn-success"><i class="fas fa-check"></i></button>
+                                            </form>
+                                            <form action="{{ route('pemakaian_bahan.reject_return', $pemakaian) }}" method="POST" class="d-inline"
+                                                  onsubmit="return confirm('Tolak pengembalian ini?')">
+                                                @csrf
+                                                <button type="submit" class="btn btn-sm btn-danger"><i class="fas fa-times"></i></button>
                                             </form>
                                         </td>
                                     </tr>
@@ -255,6 +336,7 @@
                                     <th>Diambil</th>
                                     <th>Keperluan</th>
                                     <th>Waktu</th>
+                                    <th>Status Pengembalian</th>
                                     <th>Aksi</th>
                                 </tr>
                             </thead>
@@ -267,6 +349,18 @@
                                         <td>{{ $pemakaian->keperluan }}</td>
                                         <td><small class="text-muted">{{ $pemakaian->created_at->format('d-m-Y H:i') }}</small></td>
                                         <td>
+                                            @if($pemakaian->status_pengembalian === 'pending')
+                                                <span class="badge bg-warning">Menunggu Verifikasi</span>
+                                            @elseif($pemakaian->status_pengembalian === 'verified')
+                                                <span class="badge bg-success">Diverifikasi</span>
+                                            @elseif($pemakaian->status_pengembalian === 'rejected')
+                                                <span class="badge bg-danger">Ditolak</span>
+                                            @else
+                                                <span class="badge bg-secondary">Belum Dikembalikan</span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @can('return', $pemakaian)
                                             <button type="button" class="btn btn-sm btn-warning btn-return-bahan"
                                                     data-id="{{ $pemakaian->id }}"
                                                     data-name="{{ $pemakaian->bahan->nama_bahan ?? '-' }}"
@@ -274,6 +368,7 @@
                                                     data-satuan="{{ $pemakaian->bahan->satuan ?? '-' }}">
                                                 <i class="fas fa-undo"></i> Kembalikan Sisa
                                             </button>
+                                            @endcan
                                             <a href="{{ route('pemakaian_bahan.show', $pemakaian) }}" class="btn btn-sm btn-info" title="Lihat Detail">
                                                 <i class="fas fa-eye"></i>
                                             </a>

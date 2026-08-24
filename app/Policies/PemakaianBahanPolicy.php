@@ -62,7 +62,20 @@ class PemakaianBahanPolicy
     public function return(User $user, PemakaianBahan $pemakaian): bool
     {
         return !is_null($pemakaian->id_user_verifikasi) && is_null($pemakaian->jumlah_pengembalian)
+            && is_null($pemakaian->status_pengembalian)
             && ($user->id === $pemakaian->id_user_pemakai || in_array($user->role, ['admin_jurusan', 'kepala_labor', 'teknisi']));
+    }
+
+    public function verifyReturn(User $user, PemakaianBahan $pemakaian): bool
+    {
+        return in_array($user->role, ['admin_jurusan', 'kepala_labor'])
+            && $pemakaian->status_pengembalian === 'pending';
+    }
+
+    public function rejectReturn(User $user, PemakaianBahan $pemakaian): bool
+    {
+        return in_array($user->role, ['admin_jurusan', 'kepala_labor'])
+            && $pemakaian->status_pengembalian === 'pending';
     }
 
     public function delete(User $user, PemakaianBahan $pemakaian): bool

@@ -239,14 +239,17 @@ class PemakaianBahanController extends Controller
         }
 
         $oldData = $pemakaian->toArray();
+        $isKadep = Auth::user()->role === 'kadep';
 
-        DB::transaction(function () use ($pemakaian, $validated) {
+        DB::transaction(function () use ($pemakaian, $validated, $isKadep) {
             $pemakaian->update([
                 'jumlah_terpakai' => $validated['jumlah_terpakai'],
                 'jumlah_pengembalian' => $validated['jumlah_pengembalian'],
+                'status_pengembalian' => $isKadep ? 'verified' : 'pending',
+                'waktu_pengembalian' => now(),
             ]);
 
-            if ($validated['jumlah_pengembalian'] > 0) {
+            if ($isKadep && $validated['jumlah_pengembalian'] > 0) {
                 $this->fifoService->reverseConsumeFromBatches(
                     $pemakaian->id_bahan,
                     $validated['jumlah_pengembalian']
@@ -256,17 +259,83 @@ class PemakaianBahanController extends Controller
 
         $pemakaian->refresh();
 
+        $event = $isKadep ? 'returned' : 'returned_pending';
+        $logMessage = $isKadep
+            ? 'Pengembalian sisa bahan dicatat dan stok dikembalikan'
+            : 'Pengembalian sisa bahan dicatat, menunggu verifikasi';
+
         activity()
             ->performedOn($pemakaian)
             ->withProperties(['old' => $oldData, 'attributes' => $pemakaian->toArray()])
-            ->event('returned')
-            ->log('Pengembalian sisa bahan dicatat');
+            ->event($event)
+            ->log($logMessage);
 
         if ($request->ajax() || $request->wantsJson()) {
-            return response()->json(['message' => 'Pengembalian sisa bahan berhasil dicatat']);
+            return response()->json(['message' => $logMessage]);
         }
 
         return redirect()->route('pemakaian_bahan.show', $pemakaian)
-            ->with('success', 'Pengembalian sisa bahan berhasil dicatat');
+            ->with('success', $logMessage);
+    }
+
+    public function verifyReturn(Request $request, $id)
+    {
+        $pemakaian = PemakaianBahan::findOrFail($id);
+        $this->authorize('verifyReturn', $pemakaian);
+
+        $oldData = $pemakaian->toArray();
+
+        DB::transaction(function () use ($pemakaian) {
+            $pemakaian->update([
+                'status_pengembalian' => 'verified',
+            ]);
+
+            if ($pemakaian->jumlah_pengembalian > 0) {
+                $this->fifoService->reverseConsumeFromBatches(
+                    $pemakaian->id_bahan,
+                    $pemakaian->jumlah_pengembalian
+                );
+            }
+        });
+
+        $pemakaian->refresh();
+
+        activity()
+            ->performedOn($pemakaian)
+            ->withProperties(['old' => $oldData, 'attributes' => $pemakaian->toArray()])
+            ->event('verified')
+            ->log('Pengembalian bahan diverifikasi dan stok dikembalikan');
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json(['message' => 'Pengembalian bahan berhasil diverifikasi']);
+        }
+
+        return redirect()->route('pemakaian_bahan.show', $pemakaian)
+            ->with('success', 'Pengembalian bahan berhasil diverifikasi');
+    }
+
+    public function rejectReturn(Request $request, $id)
+    {
+        $pemakaian = PemakaianBahan::findOrFail($id);
+        $this->authorize('rejectReturn', $pemakaian);
+
+        $oldData = $pemakaian->toArray();
+
+        $pemakaian->update([
+            'status_pengembalian' => 'rejected',
+        ]);
+
+        activity()
+            ->performedOn($pemakaian)
+            ->withProperties(['old' => $oldData, 'attributes' => $pemakaian->toArray()])
+            ->event('rejected')
+            ->log('Pengembalian bahan ditolak');
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json(['message' => 'Pengembalian bahan ditolak']);
+        }
+
+        return redirect()->route('pemakaian_bahan.show', $pemakaian)
+            ->with('success', 'Pengembalian bahan ditolak');
     }
 }

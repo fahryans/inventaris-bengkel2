@@ -52,7 +52,7 @@
                             <p>{{ $pemakaian->pengadaanBahan->supplier ?? '-' }} ({{ $pemakaian->pengadaanBahan->tanggal_pengadaan?->format('d/m/Y') ?? '-' }})</p>
                         </div>
                         <div class="col-md-6">
-                            <p><strong>Status Verifikasi:</strong></p>
+                            <p><strong>Status Verifikasi Pemakaian:</strong></p>
                             <p>
                                 @if($pemakaian->id_user_verifikasi)
                                     <span class="badge bg-success">Terverifikasi oleh {{ $pemakaian->userVerifikasi->nama ?? '-' }}</span>
@@ -63,7 +63,47 @@
                         </div>
                     </div>
 
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <p><strong>Status Pengembalian:</strong></p>
+                            <p>
+                                @if($pemakaian->status_pengembalian === 'pending')
+                                    <span class="badge bg-warning">Menunggu Verifikasi</span>
+                                @elseif($pemakaian->status_pengembalian === 'verified')
+                                    <span class="badge bg-success">Diverifikasi</span>
+                                @elseif($pemakaian->status_pengembalian === 'rejected')
+                                    <span class="badge bg-danger">Ditolak</span>
+                                @elseif(!is_null($pemakaian->jumlah_pengembalian))
+                                    <span class="badge bg-secondary">Sudah Dikembalikan</span>
+                                @else
+                                    <span class="badge bg-secondary">Belum Dikembalikan</span>
+                                @endif
+                                @if($pemakaian->waktu_pengembalian)
+                                    <small class="text-muted d-block">Disubmit: {{ $pemakaian->waktu_pengembalian->format('d-m-Y H:i') }}</small>
+                                @endif
+                            </p>
+                        </div>
+                    </div>
+
                     <div class="d-flex gap-2">
+                        @can('verifyReturn', $pemakaian)
+                        <div class="mb-3">
+                            <form action="{{ route('pemakaian_bahan.verify_return', $pemakaian) }}" method="POST" class="d-inline"
+                                  onsubmit="return confirm('Verifikasi pengembalian bahan ini? Stok akan dikembalikan ke inventory.')">
+                                @csrf
+                                <button type="submit" class="btn btn-success btn-sm">
+                                    <i class="fas fa-check"></i> Verifikasi Pengembalian
+                                </button>
+                            </form>
+                            <form action="{{ route('pemakaian_bahan.reject_return', $pemakaian) }}" method="POST" class="d-inline"
+                                  onsubmit="return confirm('Tolak pengembalian bahan ini?')">
+                                @csrf
+                                <button type="submit" class="btn btn-danger btn-sm">
+                                    <i class="fas fa-times"></i> Tolak Pengembalian
+                                </button>
+                            </form>
+                        </div>
+                        @endcan
                         @can('return', $pemakaian)
                             <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#returnBahanModal">
                                 <i class="fas fa-undo"></i> Kembalikan Sisa

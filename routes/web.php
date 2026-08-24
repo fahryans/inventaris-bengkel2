@@ -93,6 +93,12 @@ Route::middleware(['auth'])->group(function () {
         Route::post('pemakaian_bahan/{pemakaian}/return', [PemakaianBahanController::class, 'returnBahan'])
             ->middleware('throttle:10,1')
             ->name('pemakaian_bahan.return');
+        Route::post('pemakaian_bahan/{pemakaian}/verify-return', [PemakaianBahanController::class, 'verifyReturn'])
+            ->middleware('throttle:10,1')
+            ->name('pemakaian_bahan.verify_return');
+        Route::post('pemakaian_bahan/{pemakaian}/reject-return', [PemakaianBahanController::class, 'rejectReturn'])
+            ->middleware('throttle:10,1')
+            ->name('pemakaian_bahan.reject_return');
     });
 
     Route::middleware(['role:admin_jurusan,kepala_labor,teknisi,dosen,mahasiswa,kadep'])->group(function () {

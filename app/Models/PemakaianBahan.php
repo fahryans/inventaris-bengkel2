@@ -24,12 +24,15 @@ class PemakaianBahan extends Model
         'jumlah_terpakai',
         'jumlah_pengembalian',
         'waktu_pemakaian',
+        'status_pengembalian',
+        'waktu_pengembalian',
     ];
 
     protected function casts(): array
     {
         return [
             'waktu_pemakaian' => 'datetime',
+            'waktu_pengembalian' => 'datetime',
         ];
     }
 
