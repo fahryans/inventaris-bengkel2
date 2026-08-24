@@ -55,26 +55,27 @@ class PemakaianBahanPolicy
     {
         return in_array($user->role, [
             'admin_jurusan',
-            'kepala_labor'
+            'kepala_labor',
+            'teknisi'
         ]);
     }
 
     public function return(User $user, PemakaianBahan $pemakaian): bool
     {
         return !is_null($pemakaian->id_user_verifikasi) && is_null($pemakaian->jumlah_pengembalian)
-            && is_null($pemakaian->status_pengembalian)
+            && in_array($pemakaian->status_pengembalian, [null, 'pending'])
             && ($user->id === $pemakaian->id_user_pemakai || in_array($user->role, ['admin_jurusan', 'kepala_labor', 'teknisi', 'kadep']));
     }
 
     public function verifyReturn(User $user, PemakaianBahan $pemakaian): bool
     {
-        return in_array($user->role, ['admin_jurusan', 'kepala_labor'])
+        return in_array($user->role, ['admin_jurusan', 'kepala_labor', 'teknisi'])
             && $pemakaian->status_pengembalian === 'pending';
     }
 
     public function rejectReturn(User $user, PemakaianBahan $pemakaian): bool
     {
-        return in_array($user->role, ['admin_jurusan', 'kepala_labor'])
+        return in_array($user->role, ['admin_jurusan', 'kepala_labor', 'teknisi'])
             && $pemakaian->status_pengembalian === 'pending';
     }
 

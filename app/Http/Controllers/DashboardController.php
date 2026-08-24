@@ -164,6 +164,11 @@ class DashboardController extends Controller
         $maintenanceSchedule = PemeliharaanAlat::where('id_teknisi', Auth::id())
             ->whereHas('unitAlat.alat', fn($q) => $q->whereIn('id_labor', $labIds))
             ->where('tanggal_cek_berikutnya', '<=', now()->addDays(14))
+            ->where(function ($q) {
+                $q->whereNull('tanggal_cek')
+                    ->orWhere('kondisi', '!=', 'baik')
+                    ->orWhere('tanggal_cek_berikutnya', '<', now());
+            })
             ->with('unitAlat.alat')
             ->orderBy('tanggal_cek_berikutnya')
             ->limit(10)
@@ -172,11 +177,16 @@ class DashboardController extends Controller
         $overdueCount = PemeliharaanAlat::where('id_teknisi', Auth::id())
             ->whereHas('unitAlat.alat', fn($q) => $q->whereIn('id_labor', $labIds))
             ->where('tanggal_cek_berikutnya', '<', now())
+            ->where(function ($q) {
+                $q->whereNull('tanggal_cek')
+                    ->orWhere('kondisi', '!=', 'baik');
+            })
             ->count();
 
         $completedThisMonth = PemeliharaanAlat::where('id_teknisi', Auth::id())
             ->whereHas('unitAlat.alat', fn($q) => $q->whereIn('id_labor', $labIds))
             ->whereBetween('tanggal_cek', [now()->startOfMonth(), now()->endOfMonth()])
+            ->where('kondisi', 'baik')
             ->count();
 
         $pemeliharaanPerBulan = PemeliharaanAlat::where('id_teknisi', Auth::id())

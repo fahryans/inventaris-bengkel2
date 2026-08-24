@@ -83,16 +83,18 @@
                                                 @endif
                                             </td>
                                             <td>
-                                                @if(!$maintenance->tanggal_cek || $maintenance->tanggal_cek->format('Y-m-d') !== now()->format('Y-m-d'))
-                                                    <span class="badge badge-warning">Belum Dikerjakan</span>
+                                                @if($maintenance->kondisi === 'baik' && $maintenance->tanggal_cek)
+                                                    <span class="badge badge-success">Selesai</span>
+                                                @elseif($maintenance->tanggal_cek)
+                                                    <span class="badge badge-info">Sudah Dikerjakan</span>
                                                 @else
-                                                    <span class="badge badge-success">Sudah Dikerjakan</span>
+                                                    <span class="badge badge-warning">Belum Dikerjakan</span>
                                                 @endif
                                             </td>
                                             <td>
                                                 <a href="{{ route('pemeliharaan.show', $maintenance) }}" class="btn btn-sm btn-info">Detail</a>
                                                 @can('complete', $maintenance)
-                                                @if(!$maintenance->tanggal_cek)
+                                                @if(!$maintenance->tanggal_cek || $maintenance->kondisi !== 'baik')
                                                     <a href="{{ route('pemeliharaan.show', $maintenance) }}" class="btn btn-sm btn-success">Kerjakan</a>
                                                 @endif
                                                 @endcan
