@@ -24,7 +24,7 @@ class DatabaseSeeder extends Seeder
         $users = [
             ['role' => 'admin_jurusan', 'nama' => 'Admin Jurusan', 'email' => 'admin@inventaris.test', 'no_induk' => 'ADM001'],
             ['role' => 'kadep', 'nama' => 'Kepala Departemen', 'email' => 'kadep@inventaris.test', 'no_induk' => 'KAD001'],
-            ['role' => 'kepala_labor', 'nama' => 'Kepala Lab Elektronika', 'email' => 'kalab1@inventaris.test', 'no_induk' => 'KL001'],
+            ['role' => 'kepala_labor', 'nama' => 'Kepala Lab Ototronik', 'email' => 'kalab1@inventaris.test', 'no_induk' => 'KL001'],
             ['role' => 'kepala_labor', 'nama' => 'Kepala Lab Motor', 'email' => 'kalab2@inventaris.test', 'no_induk' => 'KL002'],
             ['role' => 'kepala_labor', 'nama' => 'Kepala Lab Motor Bakar', 'email' => 'kalab3@inventaris.test', 'no_induk' => 'KL003'],
             ['role' => 'kepala_labor', 'nama' => 'Kepala Lab Pengujian Kendaraan', 'email' => 'kalab4@inventaris.test', 'no_induk' => 'KL004'],

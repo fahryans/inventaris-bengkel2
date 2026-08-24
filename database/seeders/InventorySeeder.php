@@ -56,7 +56,7 @@ class InventorySeeder extends Seeder
     ];
 
     private array $labs = [
-        ['nama' => 'Laboratorium Elektronika', 'lokasi' => 'Gedung A Lantai 2', 'gambar' => 'labs/labelektronika.webp'],
+        ['nama' => 'Laboratorium Ototronik', 'lokasi' => 'Gedung A Lantai 2', 'gambar' => 'labs/labototronik.webp'],
         ['nama' => 'Laboratorium Motor', 'lokasi' => 'Gedung B Lantai 1', 'gambar' => 'labs/labmotor.jpeg'],
         ['nama' => 'Laboratorium Motor Bakar', 'lokasi' => 'Gedung C Lantai 1', 'gambar' => 'labs/labmotorbakar.jpeg'],
         ['nama' => 'Laboratorium Pengujian Kendaraan', 'lokasi' => 'Gedung D Lantai 1', 'gambar' => 'labs/labpengujiankendaraan.jpeg'],
@@ -202,7 +202,7 @@ class InventorySeeder extends Seeder
     ];
 
     private array $keperluanPeminjaman = [
-        'Praktikum Elektronika Dasar',
+        'Praktikum Ototronik Dasar',
         'Praktikum Rangkaian Logika',
         'Praktikum Pengukuran',
         'Penelitian Skripsi',
