@@ -101,7 +101,7 @@
                 <div class="card-body">
                     <p><strong>Kategori:</strong><br><span class="badge bg-secondary">{{ $pengadaan->alat->kategori->nama_kategori ?? '-' }}</span></p>
                     <p><strong>Lab:</strong><br>{{ $pengadaan->alat->laboratorium->nama_labor ?? '-' }}</p>
-                    <p><strong>Merek:</strong><br>{{ $pengadaan->alat->merek ?? '-' }}</p>
+                    <p><strong>Merek:</strong><br>{{ $pengadaan->merek ?? '-' }}</p>
                     <p><strong>Tipe Pelacakan:</strong><br><span class="badge bg-{{ ($pengadaan->alat->tipe_pelacakan ?? '') == 'unit' ? 'warning' : 'success' }}">{{ ucfirst($pengadaan->alat->tipe_pelacakan ?? '-') }}</span></p>
                 </div>
             </div>

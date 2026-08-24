@@ -6,7 +6,6 @@
         <tr>
             <th>No</th>
             <th>Nama Alat</th>
-            <th>Merek</th>
             <th>Kategori</th>
             <th>Laboratorium</th>
             <th>Tipe Pelacakan</th>
@@ -18,7 +17,6 @@
         <tr>
             <td>{{ $index + 1 }}</td>
             <td>{{ $item->nama_alat }}</td>
-            <td>{{ $item->merek ?? '-' }}</td>
             <td>{{ $item->kategori->nama_kategori }}</td>
             <td>{{ $item->laboratorium->nama_labor }}</td>
             <td>{{ ucfirst($item->tipe_pelacakan) }}</td>

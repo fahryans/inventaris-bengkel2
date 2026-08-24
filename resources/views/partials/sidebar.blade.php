@@ -114,12 +114,14 @@
         </li>
         @endcan
 
+        @can('viewAny', App\Models\PeminjamanAlat::class)
         <li>
             <a href="{{ route('peminjaman.index') }}" class="{{ request()->routeIs('peminjaman.*') ? 'active' : '' }}">
                 <i class="fas fa-handshake"></i>
                 Peminjaman
             </a>
         </li>
+        @endcan
 
         @can('viewAny', App\Models\PemakaianBahan::class)
         <li>

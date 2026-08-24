@@ -68,7 +68,6 @@
                                 <thead>
                                     <tr>
                                         <th>Nama Alat</th>
-                                        <th>Merek</th>
                                         <th>Tipe</th>
                                         <th>Stok/Unit</th>
                                         <th>Aksi</th>
@@ -78,7 +77,6 @@
                                     @foreach($alat as $item)
                                         <tr>
                                             <td>{{ $item->nama_alat }}</td>
-                                            <td>{{ $item->merek ?? '-' }}</td>
                                             <td>
                                                 <span class="badge bg-{{ $item->tipe_pelacakan === 'agregat' ? 'primary' : 'info' }}">
                                                     {{ ucfirst($item->tipe_pelacakan) }}
@@ -143,7 +141,6 @@
                                 <thead>
                                     <tr>
                                         <th>Nama Bahan</th>
-                                        <th>Merek</th>
                                         <th>Stok</th>
                                         <th>Satuan</th>
                                         <th>Status</th>
@@ -158,7 +155,6 @@
                                         @endphp
                                         <tr>
                                             <td>{{ $item->nama_bahan }}</td>
-                                            <td>{{ $item->merek ?? '-' }}</td>
                                             <td>{{ $stok }}</td>
                                             <td>{{ $item->satuan }}</td>
                                             <td>

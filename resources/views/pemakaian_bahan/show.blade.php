@@ -150,7 +150,7 @@
                     <p><strong>Nama:</strong><br>{{ $pemakaian->bahan->nama_bahan ?? '-' }}</p>
                     <p><strong>Kategori:</strong><br><span class="badge bg-secondary">{{ $pemakaian->bahan->kategori->nama_kategori ?? '-' }}</span></p>
                     <p><strong>Lab:</strong><br>{{ $pemakaian->bahan->laboratorium->nama_labor ?? '-' }}</p>
-                    <p><strong>Merek:</strong><br>{{ $pemakaian->bahan->merek ?? '-' }}</p>
+                    <p><strong>Merek:</strong><br>{{ $pemakaian->pengadaanBahan->merek ?? '-' }}</p>
                 </div>
             </div>
         </div>

@@ -306,7 +306,7 @@ class DashboardController extends Controller
             // Kalab/teknisi: pemakaian bahan yang belum diverifikasi (butuh verifikasi pemakaian)
             $pendingPemakaianBahan = \App\Models\PemakaianBahan::whereNull('id_user_verifikasi')
                 ->whereNull('jumlah_pengembalian')
-                ->whereHas('bahan', fn($q) => $q->whereIn('id_laboratorium', $labIds))
+                ->whereHas('bahan', fn($q) => $q->whereIn('id_labor', $labIds))
                 ->with(['bahan', 'pengadaanBahan', 'userPemakai'])
                 ->latest()
                 ->limit(10)
@@ -314,7 +314,7 @@ class DashboardController extends Controller
 
             // Kalab/teknisi: pengembalian bahan yang menunggu verifikasi
             $pendingReturns = \App\Models\PemakaianBahan::where('status_pengembalian', 'pending')
-                ->whereHas('bahan', fn($q) => $q->whereIn('id_laboratorium', $labIds))
+                ->whereHas('bahan', fn($q) => $q->whereIn('id_labor', $labIds))
                 ->with(['bahan', 'pengadaanBahan', 'userPemakai'])
                 ->latest()
                 ->limit(10)
