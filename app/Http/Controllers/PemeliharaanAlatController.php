@@ -102,7 +102,7 @@ class PemeliharaanAlatController extends Controller
 
     public function edit($id)
     {
-        $pemeliharaan = PemeliharaanAlat::findOrFail($id);
+        $pemeliharaan = PemeliharaanAlat::with('unitAlat.alat')->findOrFail($id);
         $this->authorize('update', $pemeliharaan);
 
         $labIds = $this->getLabIds();
@@ -118,7 +118,7 @@ class PemeliharaanAlatController extends Controller
 
     public function update(PemeliharaanAlatRequest $request, $id)
     {
-        $pemeliharaan = PemeliharaanAlat::findOrFail($id);
+        $pemeliharaan = PemeliharaanAlat::with('unitAlat.alat')->findOrFail($id);
         $this->authorize('update', $pemeliharaan);
 
         $oldData = $pemeliharaan->toArray();
@@ -136,7 +136,7 @@ class PemeliharaanAlatController extends Controller
 
     public function complete(Request $request, $id)
     {
-        $pemeliharaan = PemeliharaanAlat::findOrFail($id);
+        $pemeliharaan = PemeliharaanAlat::with('unitAlat.alat')->findOrFail($id);
         $this->authorize('complete', $pemeliharaan);
 
         $request->validate([
@@ -168,7 +168,7 @@ class PemeliharaanAlatController extends Controller
 
     public function destroy($id)
     {
-        $pemeliharaan = PemeliharaanAlat::findOrFail($id);
+        $pemeliharaan = PemeliharaanAlat::with('unitAlat.alat')->findOrFail($id);
         $this->authorize('delete', $pemeliharaan);
 
         activity()

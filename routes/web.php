@@ -58,7 +58,7 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('laboratorium', LaboratoriumController::class)->except(['create', 'store']);
     });
 
-    Route::middleware(['role:admin_jurusan,kepala_labor,teknisi,kadep,mahasiswa'])->group(function () {
+    Route::middleware(['role:admin_jurusan,kepala_labor,teknisi,kadep,mahasiswa,dosen'])->group(function () {
         Route::resource('alat', AlatController::class);
 
         // Spesifikasi Alat Management
