@@ -63,7 +63,7 @@ class PemakaianBahanPolicy
     {
         return !is_null($pemakaian->id_user_verifikasi) && is_null($pemakaian->jumlah_pengembalian)
             && is_null($pemakaian->status_pengembalian)
-            && ($user->id === $pemakaian->id_user_pemakai || in_array($user->role, ['admin_jurusan', 'kepala_labor', 'teknisi']));
+            && ($user->id === $pemakaian->id_user_pemakai || in_array($user->role, ['admin_jurusan', 'kepala_labor', 'teknisi', 'kadep']));
     }
 
     public function verifyReturn(User $user, PemakaianBahan $pemakaian): bool

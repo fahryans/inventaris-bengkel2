@@ -225,13 +225,26 @@ class DashboardController extends Controller
             ->groupBy('bulan')
             ->get();
 
+        // Pemakaian bahan yang sudah diverifikasi & belum dikembalikan (untuk dikembalikan)
+        $myPemakaianBahan = \App\Models\PemakaianBahan::where('id_user_pemakai', Auth::id())
+            ->whereNotNull('id_user_verifikasi')
+            ->where(function ($q) {
+                $q->whereNull('jumlah_pengembalian')
+                    ->orWhere('status_pengembalian', 'pending');
+            })
+            ->with(['bahan', 'pengadaanBahan'])
+            ->latest()
+            ->limit(10)
+            ->get();
+
         return view('dashboard.kadep', compact(
             'totalAlat',
             'totalBahan',
             'totalLaboratorium',
             'totalPeminjaman',
             'lowStockBahan',
-            'peminjamPerBulan'
+            'peminjamPerBulan',
+            'myPemakaianBahan'
         ));
     }
 
