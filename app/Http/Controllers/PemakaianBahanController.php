@@ -83,6 +83,14 @@ class PemakaianBahanController extends Controller
         $validated = $request->validated();
         $validated['id_user_pemakai'] = Auth::id();
 
+        // Auto-set lab from bahan's lab
+        if (empty($validated['id_laboratorium']) && !empty($validated['id_bahan'])) {
+            $bahan = Bahan::find($validated['id_bahan']);
+            if ($bahan) {
+                $validated['id_laboratorium'] = $bahan->id_labor;
+            }
+        }
+
         $pemakaian = null;
 
         DB::transaction(function () use ($validated, &$pemakaian) {

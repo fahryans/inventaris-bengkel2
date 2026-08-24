@@ -80,8 +80,10 @@ class AlatController extends Controller
         $labIds = $this->getLabIds();
         $kategoris = Kategori::where('jenis', 'alat')->get();
         $laboratoriums = $labIds ? Laboratorium::whereIn('id', $labIds)->get() : Laboratorium::all();
+        $isTeknisi = Auth::user()->role === 'teknisi';
+        $autoLab = $isTeknisi ? Auth::user()->laboratoriumTeknisi->first() : null;
 
-        return view('alat.create', compact('kategoris', 'laboratoriums'));
+        return view('alat.create', compact('kategoris', 'laboratoriums', 'isTeknisi', 'autoLab'));
     }
 
     public function store(AlatRequest $request)
@@ -89,6 +91,11 @@ class AlatController extends Controller
         $this->authorize('create', Alat::class);
 
         $validated = $request->validated();
+
+        // Auto-set lab for teknisi
+        if (Auth::user()->role === 'teknisi') {
+            $validated['id_labor'] = Auth::user()->laboratoriumTeknisi->first()?->id;
+        }
 
         if ($request->hasFile('foto')) {
             $validated['foto'] = $request->file('foto')->store('alat', 'public');
@@ -129,8 +136,10 @@ class AlatController extends Controller
         $labIds = $this->getLabIds();
         $kategoris = Kategori::where('jenis', 'alat')->get();
         $laboratoriums = $labIds ? Laboratorium::whereIn('id', $labIds)->get() : Laboratorium::all();
+        $isTeknisi = Auth::user()->role === 'teknisi';
+        $autoLab = $isTeknisi ? Auth::user()->laboratoriumTeknisi->first() : null;
 
-        return view('alat.edit', compact('alat', 'kategoris', 'laboratoriums'));
+        return view('alat.edit', compact('alat', 'kategoris', 'laboratoriums', 'isTeknisi', 'autoLab'));
     }
 
     public function update(AlatRequest $request, Alat $alat)
@@ -140,6 +149,11 @@ class AlatController extends Controller
         $oldData = $alat->toArray();
 
         $validated = $request->validated();
+
+        // Auto-set lab for teknisi
+        if (Auth::user()->role === 'teknisi') {
+            $validated['id_labor'] = Auth::user()->laboratoriumTeknisi->first()?->id;
+        }
 
         if ($request->hasFile('foto')) {
             if ($alat->foto) {

@@ -42,18 +42,24 @@
 
                     <div class="col-md-6">
                         <div class="mb-3">
-                            <label for="id_labor" class="form-label">Laboratorium <span class="text-danger">*</span></label>
-                            <select name="id_labor" id="id_labor" class="form-select @error('id_labor') is-invalid @enderror" required>
-                                <option value="">Pilih Lab</option>
-                                @foreach($laboratoriums as $lab)
-                                    <option value="{{ $lab->id }}" {{ old('id_labor', $alat->id_labor) == $lab->id ? 'selected' : '' }}>
-                                        {{ $lab->nama_labor }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            @error('id_labor')
-                                <div class="invalid-feedback d-block">{{ $message }}</div>
-                            @enderror
+                            @if($isTeknisi)
+                                <label class="form-label">Laboratorium</label>
+                                <input type="hidden" name="id_labor" value="{{ $autoLab?->id }}">
+                                <input type="text" class="form-control" value="{{ $autoLab?->nama_labor ?? '-' }}" readonly>
+                            @else
+                                <label for="id_labor" class="form-label">Laboratorium <span class="text-danger">*</span></label>
+                                <select name="id_labor" id="id_labor" class="form-select @error('id_labor') is-invalid @enderror" required>
+                                    <option value="">Pilih Lab</option>
+                                    @foreach($laboratoriums as $lab)
+                                        <option value="{{ $lab->id }}" {{ old('id_labor', $alat->id_labor) == $lab->id ? 'selected' : '' }}>
+                                            {{ $lab->nama_labor }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('id_labor')
+                                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                                @enderror
+                            @endif
                         </div>
                     </div>
                 </div>

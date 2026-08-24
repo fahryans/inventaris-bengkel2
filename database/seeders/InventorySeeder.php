@@ -57,14 +57,10 @@ class InventorySeeder extends Seeder
 
     private array $labs = [
         ['nama' => 'Laboratorium Elektronika', 'lokasi' => 'Gedung A Lantai 2', 'gambar' => 'labs/labelektronika.webp'],
-        ['nama' => 'Laboratorium Mekanik', 'lokasi' => 'Gedung B Lantai 1', 'gambar' => 'labs/labmekanik.webp'],
-        ['nama' => 'Laboratorium Komputer', 'lokasi' => 'Gedung C Lantai 3', 'gambar' => 'labs/labkomputer.jpg'],
-        ['nama' => 'Laboratorium Kimia', 'lokasi' => 'Gedung D Lantai 1', 'gambar' => 'labs/labkimia.jpg'],
-        ['nama' => 'Laboratorium Fisika', 'lokasi' => 'Gedung E Lantai 2', 'gambar' => 'labs/labfisika.webp'],
-        ['nama' => 'Laboratorium Motor Bakar', 'lokasi' => 'Gedung F Lantai 1', 'gambar' => 'labs/labmotorbakar.jpeg'],
-        ['nama' => 'Laboratorium Dasar Teknologi Bengkel', 'lokasi' => 'Gedung G Lantai 1', 'gambar' => 'labs/labdtbengkel.jpeg'],
-        ['nama' => 'Laboratorium Sepeda Motor', 'lokasi' => 'Gedung H Lantai 1', 'gambar' => 'labs/labmotor.jpeg'],
-        ['nama' => 'Laboratorium Pengujian Kendaraan', 'lokasi' => 'Gedung I Lantai 1', 'gambar' => 'labs/labpengujiankendaraan.jpeg'],
+        ['nama' => 'Laboratorium Motor', 'lokasi' => 'Gedung B Lantai 1', 'gambar' => 'labs/labmotor.jpeg'],
+        ['nama' => 'Laboratorium Motor Bakar', 'lokasi' => 'Gedung C Lantai 1', 'gambar' => 'labs/labmotorbakar.jpeg'],
+        ['nama' => 'Laboratorium Pengujian Kendaraan', 'lokasi' => 'Gedung D Lantai 1', 'gambar' => 'labs/labpengujiankendaraan.jpeg'],
+        ['nama' => 'Laboratorium Dasar Teknologi Bengkel', 'lokasi' => 'Gedung E Lantai 1', 'gambar' => 'labs/labdtbengkel.jpeg'],
     ];
 
     private array $mereks = [
