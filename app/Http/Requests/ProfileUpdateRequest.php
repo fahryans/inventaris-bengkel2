@@ -20,7 +20,7 @@ class ProfileUpdateRequest extends FormRequest
                 'max:255',
                 Rule::unique(User::class)->ignore($this->user()->id),
             ],
-            'foto' => ['nullable', 'image', 'max:2048'],
+            'foto' => ['nullable', 'image', 'mimes:jpeg,jpg,png,gif,webp,bmp,svg,avif,ico,tiff', 'max:5120'],
         ];
 
         if ($this->user()->role !== 'mahasiswa') {

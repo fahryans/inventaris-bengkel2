@@ -21,19 +21,36 @@
             <form action="{{ route('pengadaan_bahan.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
 
-                <div class="mb-3">
-                    <label for="id_bahan" class="form-label">Bahan <span class="text-danger">*</span></label>
-                    <select name="id_bahan" id="id_bahan" class="form-select @error('id_bahan') is-invalid @enderror" required>
-                        <option value="">Pilih Bahan</option>
-                        @foreach($bahans as $bahan)
-                            <option value="{{ $bahan->id }}" {{ old('id_bahan') == $bahan->id ? 'selected' : '' }}>
-                                {{ $bahan->nama_bahan }}
-                            </option>
-                        @endforeach
-                    </select>
-                    @error('id_bahan')
-                        <div class="invalid-feedback d-block">{{ $message }}</div>
-                    @enderror
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="id_bahan" class="form-label">Bahan <span class="text-danger">*</span></label>
+                            <select name="id_bahan" id="id_bahan" class="form-select @error('id_bahan') is-invalid @enderror" required>
+                                <option value="">Pilih Bahan</option>
+                                @foreach($bahans as $bahan)
+                                    <option value="{{ $bahan->id }}" {{ old('id_bahan') == $bahan->id ? 'selected' : '' }}
+                                            data-spesifikasi='@json($bahan->spesifikasiBahan->map(fn($s) => ["id" => $s->id, "kode" => $s->kode_spesifikasi, "nama" => $s->nama_spesifikasi]))'>
+                                        {{ $bahan->nama_bahan }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('id_bahan')
+                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="id_spesifikasi_bahan" class="form-label">Spesifikasi <span class="text-danger">*</span></label>
+                            <select name="id_spesifikasi_bahan" id="id_spesifikasi_bahan" class="form-select @error('id_spesifikasi_bahan') is-invalid @enderror" required>
+                                <option value="">Pilih Spesifikasi</option>
+                            </select>
+                            @error('id_spesifikasi_bahan')
+                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
                 </div>
 
                 <div class="row">
@@ -41,7 +58,7 @@
                         <div class="mb-3">
                             <label for="tanggal_pengadaan" class="form-label">Tanggal Pengadaan <span class="text-danger">*</span></label>
                             <input type="date" name="tanggal_pengadaan" id="tanggal_pengadaan" class="form-control @error('tanggal_pengadaan') is-invalid @enderror" 
-                                   value="{{ old('tanggal_pengadaan') }}" required>
+                                   value="{{ old('tanggal_pengadaan', date('Y-m-d')) }}" required>
                             @error('tanggal_pengadaan')
                                 <div class="invalid-feedback d-block">{{ $message }}</div>
                             @enderror
@@ -52,7 +69,7 @@
                         <div class="mb-3">
                             <label for="tanggal_masuk" class="form-label">Tanggal Masuk</label>
                             <input type="date" name="tanggal_masuk" id="tanggal_masuk" class="form-control @error('tanggal_masuk') is-invalid @enderror" 
-                                   value="{{ old('tanggal_masuk') }}">
+                                   value="{{ old('tanggal_masuk', date('Y-m-d')) }}">
                             @error('tanggal_masuk')
                                 <div class="invalid-feedback d-block">{{ $message }}</div>
                             @enderror
@@ -120,7 +137,7 @@
                 <div class="mb-3">
                     <label for="foto_transaksi" class="form-label">Foto Transaksi</label>
                     <input type="file" name="foto_transaksi" id="foto_transaksi" class="form-control @error('foto_transaksi') is-invalid @enderror" accept="image/*">
-                    <small class="text-muted">Format: JPG, PNG (Max 2MB)</small>
+                    <small class="text-muted">Format: JPG, PNG, GIF, WEBP, SVG, dll (Max 5MB)</small>
                     @error('foto_transaksi')
                         <div class="invalid-feedback d-block">{{ $message }}</div>
                     @enderror
@@ -137,3 +154,35 @@
     </div>
 </div>
 @endsection
+
+@push('js')
+<script>
+document.getElementById('id_bahan').addEventListener('change', function() {
+    const selected = this.options[this.selectedIndex];
+    const spesifikasiSelect = document.getElementById('id_spesifikasi_bahan');
+    
+    // Clear spesifikasi options
+    spesifikasiSelect.innerHTML = '<option value="">Pilih Spesifikasi</option>';
+    
+    // Get spesifikasi data
+    const spesifikasiData = selected.getAttribute('data-spesifikasi');
+    
+    if (spesifikasiData) {
+        const spesifikasis = JSON.parse(spesifikasiData);
+        if (spesifikasis.length > 0) {
+            spesifikasis.forEach(function(spec) {
+                const option = document.createElement('option');
+                option.value = spec.id;
+                option.textContent = spec.kode + ' - ' + spec.nama;
+                spesifikasiSelect.appendChild(option);
+            });
+        } else {
+            const option = document.createElement('option');
+            option.disabled = true;
+            option.textContent = 'Tidak ada spesifikasi untuk bahan ini';
+            spesifikasiSelect.appendChild(option);
+        }
+    }
+});
+</script>
+@endpush

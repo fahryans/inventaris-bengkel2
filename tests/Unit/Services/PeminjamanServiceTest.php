@@ -10,10 +10,11 @@ use App\Models\User;
 use App\Models\UnitAlat;
 use App\Models\Kategori;
 use App\Models\Laboratorium;
+use App\Models\PengadaanAlat;
 
 class PeminjamanServiceTest extends TestCase
 {
-    public function test_create_peminjaman_decrements_stock()
+    public function test_create_peminjaman_decrements_available_quantity()
     {
         $user = User::factory()->create();
         $kategori = Kategori::factory()->create(['jenis' => 'alat']);
@@ -22,8 +23,8 @@ class PeminjamanServiceTest extends TestCase
             'id_kategori' => $kategori->id,
             'id_labor' => $laboratorium->id,
             'tipe_pelacakan' => 'agregat',
-            'jumlah_alat' => 10,
         ]);
+        PengadaanAlat::factory()->create(['id_alat' => $alat->id, 'jumlah' => 10]);
         $service = new PeminjamanService(new StokService());
 
         $peminjaman = $service->createBorrowing([
@@ -35,11 +36,11 @@ class PeminjamanServiceTest extends TestCase
             'waktu_pengembalian' => now()->addDays(7),
         ]);
 
-        $this->assertEquals(7, $alat->fresh()->jumlah_alat);
+        $this->assertEquals(7, $alat->fresh()->getAvailableQuantity());
         $this->assertEquals('terpinjam', $peminjaman->status);
     }
 
-    public function test_return_peminjaman_restores_stock()
+    public function test_return_peminjaman_restores_available_quantity()
     {
         $user = User::factory()->create();
         $kategori = Kategori::factory()->create(['jenis' => 'alat']);
@@ -48,12 +49,10 @@ class PeminjamanServiceTest extends TestCase
             'id_kategori' => $kategori->id,
             'id_labor' => $laboratorium->id,
             'tipe_pelacakan' => 'agregat',
-            'jumlah_alat' => 7,
         ]);
-        $unit = UnitAlat::factory()->create(['id_alat' => $alat->id, 'status' => 'tersedia']);
+        PengadaanAlat::factory()->create(['id_alat' => $alat->id, 'jumlah' => 10]);
         $peminjaman = \App\Models\PeminjamanAlat::factory()->create([
             'id_alat' => $alat->id,
-            'id_unit_alat' => $unit->id,
             'id_user_peminjam' => $user->id,
             'keperluan' => 'Praktikum',
             'jumlah' => 3,
@@ -63,9 +62,11 @@ class PeminjamanServiceTest extends TestCase
         ]);
         $service = new PeminjamanService(new StokService());
 
+        $this->assertEquals(7, $alat->fresh()->getAvailableQuantity());
+
         $service->returnBorrowing($peminjaman, ['kondisi_saat_pengembalian' => 'Baik', 'waktu_kembali_aktual' => now()]);
 
-        $this->assertEquals(10, $alat->fresh()->jumlah_alat);
+        $this->assertEquals(10, $alat->fresh()->getAvailableQuantity());
         $this->assertEquals('sudah_dikembalikan', $peminjaman->fresh()->status);
     }
 }

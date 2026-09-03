@@ -60,8 +60,8 @@
                                 </td>
                                 <td>{{ $lab->kalab->nama ?? '-' }}</td>
                                 <td>{{ $lab->lokasi ?? '-' }}</td>
-                                <td>{{ $lab->alat->count() }}</td>
-                                <td>{{ $lab->bahan->count() }}</td>
+                                <td>{{ $lab->alat_count }}</td>
+                                <td>{{ $lab->bahan_count }}</td>
                                 <td>
                                     <div class="btn-group btn-group-sm" role="group">
                                         <a href="{{ route('laboratorium.show', $lab) }}" class="btn btn-outline-info" title="Lihat">

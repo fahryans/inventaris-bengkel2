@@ -82,7 +82,13 @@
                     </thead>
                     <tbody>
                         @forelse($pemeliharaans as $pm)
-                            <tr class="{{ $pm->isOverdue() ? 'table-danger' : '' }}">
+                            @php
+                                $isLatest = in_array($pm->id, $latestIds ?? []);
+                                $duePast = $pm->tanggal_cek_berikutnya && $pm->tanggal_cek_berikutnya->isPast();
+                                $isOverdue = $isLatest && $duePast;
+                                $isLate = !$isLatest && $duePast;
+                            @endphp
+                            <tr class="{{ $isOverdue ? 'table-danger' : ($isLate ? 'table-warning' : '') }}">
                                 <td>
                                     <strong>{{ $pm->unitAlat->kode_inventaris }}</strong>
                                 </td>
@@ -92,8 +98,10 @@
                                 <td>{{ $pm->tanggal_cek_berikutnya->format('d/m/Y') }}</td>
                                 <td><span class="badge bg-info">{{ ucfirst($pm->kondisi) }}</span></td>
                                 <td>
-                                    @if($pm->isOverdue())
+                                    @if($isOverdue)
                                         <span class="badge bg-danger">Overdue</span>
+                                    @elseif($isLate)
+                                        <span class="badge bg-warning">Sudah Dicek Tapi Terlambat</span>
                                     @else
                                         <span class="badge bg-success">Normal</span>
                                     @endif

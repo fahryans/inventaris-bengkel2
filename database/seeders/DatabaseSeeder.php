@@ -13,9 +13,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->seedUsers();
-
-        $this->call(InventorySeeder::class);
-
+        $this->seedLaboratorium();
         $this->seedLaborTeknisi();
     }
 
@@ -53,6 +51,29 @@ class DatabaseSeeder extends Seeder
                 'no_hp' => '0812' . str_pad($i, 8, '0', STR_PAD_LEFT),
                 'no_induk' => $user['no_induk'],
                 'foto' => 'users/profilelogo.webp',
+            ]);
+        }
+    }
+
+    private function seedLaboratorium(): void
+    {
+        $labs = [
+            ['nama' => 'Laboratorium Ototronik', 'lokasi' => 'Gedung A Lantai 2', 'gambar' => 'labs/labototronik.webp'],
+            ['nama' => 'Laboratorium Motor', 'lokasi' => 'Gedung B Lantai 1', 'gambar' => 'labs/labmotor.jpeg'],
+            ['nama' => 'Laboratorium Motor Bakar', 'lokasi' => 'Gedung C Lantai 1', 'gambar' => 'labs/labmotorbakar.jpeg'],
+            ['nama' => 'Laboratorium Pengujian Kendaraan', 'lokasi' => 'Gedung D Lantai 1', 'gambar' => 'labs/labpengujiankendaraan.jpeg'],
+            ['nama' => 'Laboratorium Dasar Teknologi Bengkel', 'lokasi' => 'Gedung E Lantai 1', 'gambar' => 'labs/labdtbengkel.jpeg'],
+        ];
+
+        $kalabs = User::where('role', 'kepala_labor')->get();
+
+        foreach ($labs as $i => $lab) {
+            Laboratorium::create([
+                'id_user_kalab' => $kalabs[$i % $kalabs->count()]->id,
+                'nama_labor' => $lab['nama'],
+                'lokasi' => $lab['lokasi'],
+                'sop' => 'SOP ' . str_replace('Laboratorium ', '', $lab['nama']),
+                'gambar' => $lab['gambar'],
             ]);
         }
     }

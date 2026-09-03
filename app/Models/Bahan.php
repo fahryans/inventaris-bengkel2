@@ -21,7 +21,6 @@ class Bahan extends Model
         'nama_bahan',
         'stok_minimum',
         'satuan',
-        'spesifikasi',
         'foto',
     ];
 
@@ -33,6 +32,11 @@ class Bahan extends Model
     public function laboratorium(): BelongsTo
     {
         return $this->belongsTo(Laboratorium::class, 'id_labor');
+    }
+
+    public function spesifikasiBahan(): HasMany
+    {
+        return $this->hasMany(SpesifikasiBahan::class, 'id_bahan');
     }
 
     public function pengadaanBahan(): HasMany

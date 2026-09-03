@@ -22,19 +22,36 @@
                 @csrf
                 @method('PUT')
 
-                <div class="mb-3">
-                    <label for="id_bahan" class="form-label">Bahan <span class="text-danger">*</span></label>
-                    <select name="id_bahan" id="id_bahan" class="form-select @error('id_bahan') is-invalid @enderror" required>
-                        <option value="">Pilih Bahan</option>
-                        @foreach($bahans as $bahan)
-                            <option value="{{ $bahan->id }}" {{ old('id_bahan', $pengadaan->id_bahan) == $bahan->id ? 'selected' : '' }}>
-                                {{ $bahan->nama_bahan }}
-                            </option>
-                        @endforeach
-                    </select>
-                    @error('id_bahan')
-                        <div class="invalid-feedback d-block">{{ $message }}</div>
-                    @enderror
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="id_bahan" class="form-label">Bahan <span class="text-danger">*</span></label>
+                            <select name="id_bahan" id="id_bahan" class="form-select @error('id_bahan') is-invalid @enderror" required>
+                                <option value="">Pilih Bahan</option>
+                                @foreach($bahans as $bahan)
+                                    <option value="{{ $bahan->id }}" {{ old('id_bahan', $pengadaan->id_bahan) == $bahan->id ? 'selected' : '' }}
+                                            data-spesifikasi='{!! json_encode($bahan->spesifikasiBahan->map(fn($s) => ["id" => $s->id, "kode" => $s->kode_spesifikasi, "nama" => $s->nama_spesifikasi])) !!}'>
+                                        {{ $bahan->nama_bahan }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('id_bahan')
+                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="id_spesifikasi_bahan" class="form-label">Spesifikasi <span class="text-danger">*</span></label>
+                            <select name="id_spesifikasi_bahan" id="id_spesifikasi_bahan" class="form-select @error('id_spesifikasi_bahan') is-invalid @enderror" required>
+                                <option value="">Pilih Spesifikasi</option>
+                            </select>
+                            @error('id_spesifikasi_bahan')
+                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
                 </div>
 
                 <div class="row">
@@ -126,7 +143,7 @@
                         </div>
                     @endif
                     <input type="file" name="foto_transaksi" id="foto_transaksi" class="form-control @error('foto_transaksi') is-invalid @enderror" accept="image/*">
-                    <small class="text-muted">Format: JPG, PNG (Max 2MB)</small>
+                    <small class="text-muted">Format: JPG, PNG, GIF, WEBP, SVG, dll (Max 5MB)</small>
                     @error('foto_transaksi')
                         <div class="invalid-feedback d-block">{{ $message }}</div>
                     @enderror
@@ -142,4 +159,60 @@
         </div>
     </div>
 </div>
+
+@push('js')
+<script>
+document.getElementById('id_bahan').addEventListener('change', function() {
+    populateSpesifikasi(this);
+});
+
+function populateSpesifikasi(selectElement) {
+    const selected = selectElement.options[selectElement.selectedIndex];
+    const spesifikasiSelect = document.getElementById('id_spesifikasi_bahan');
+    const currentValue = spesifikasiSelect.dataset.currentValue;
+
+    // Clear spesifikasi options
+    spesifikasiSelect.innerHTML = '<option value="">Pilih Spesifikasi</option>';
+
+    const spesifikasiData = selected.getAttribute('data-spesifikasi');
+    let hasSelected = false;
+
+    if (spesifikasiData) {
+        const spesifikasis = JSON.parse(spesifikasiData.replace(/&quot;/g, '"'));
+        if (spesifikasis.length > 0) {
+            spesifikasis.forEach(function(spec) {
+                const option = document.createElement('option');
+                option.value = spec.id;
+                option.textContent = spec.kode + ' - ' + spec.nama;
+                spesifikasiSelect.appendChild(option);
+                // Keep existing selection
+                if (String(spec.id) === String(currentValue)) {
+                    option.selected = true;
+                    hasSelected = true;
+                }
+            });
+        } else {
+            const option = document.createElement('option');
+            option.value = '';
+            option.textContent = 'Tidak ada spesifikasi untuk bahan ini';
+            spesifikasiSelect.appendChild(option);
+        }
+    }
+
+    // If nothing selected and dataset currentValue set, try to keep it
+    if (!hasSelected && currentValue) {
+        spesifikasiSelect.value = currentValue;
+    }
+}
+
+// On load: populate spesifikasi based on current selected bahan
+(function() {
+    const bahanSelect = document.getElementById('id_bahan');
+    const spesifikasiSelect = document.getElementById('id_spesifikasi_bahan');
+    // Store current pengadaan's id_spesifikasi
+    spesifikasiSelect.dataset.currentValue = '{{ old("id_spesifikasi_bahan", $pengadaan->id_spesifikasi_bahan) }}';
+    populateSpesifikasi(bahanSelect);
+})();
+</script>
+@endpush
 @endsection

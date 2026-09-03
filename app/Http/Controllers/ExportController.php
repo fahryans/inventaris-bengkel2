@@ -40,7 +40,6 @@ class ExportController extends Controller
     private function getData($tipe)
     {
         $user = Auth::user();
-        $isMahasiswa = $user->role === 'mahasiswa';
         $isTeknisi = $user->role === 'teknisi';
         $isKepalaLab = $user->role === 'kepala_labor';
 
@@ -53,9 +52,15 @@ class ExportController extends Controller
 
         return match($tipe) {
             'alat' => Alat::when($labIds, fn($q) => $q->whereIn('id_labor', $labIds))
-                ->with(['kategori', 'laboratorium', 'spesifikasiAlat'])->latest()->get(),
+                ->with(['kategori', 'laboratorium', 'spesifikasiAlat'])
+                ->withCount(['unitAlat' => fn($q) => $q->where('status', 'tersedia')])
+                ->withSum('pengadaanAlat', 'jumlah')
+                ->withSum(['peminjamanAlat' => fn($q) => $q->active()], 'jumlah')
+                ->latest()->get(),
             'bahan' => Bahan::when($labIds, fn($q) => $q->whereIn('id_labor', $labIds))
-                ->with(['kategori', 'pengadaanBahan'])->latest()->get(),
+                ->with('kategori')
+                ->withSum('pengadaanBahan', 'stok_tersisa_batch')
+                ->latest()->get(),
             'kategori' => Kategori::latest()->get(),
             'laboratorium' => Laboratorium::when($labIds, fn($q) => $q->whereIn('id', $labIds))
                 ->with('kalab')->latest()->get(),
@@ -66,10 +71,16 @@ class ExportController extends Controller
                 ->with(['alat', 'userInput'])->latest()->get(),
             'pengadaan_bahan' => PengadaanBahan::when($labIds, fn($q) => $q->whereHas('bahan', fn($q2) => $q2->whereIn('id_labor', $labIds)))
                 ->with(['bahan', 'userInput'])->latest()->get(),
-            'peminjaman' => $isMahasiswa
+            'peminjaman' => in_array($user->role, ['dosen', 'mahasiswa'])
                 ? PeminjamanAlat::where('id_user_peminjam', Auth::id())->with(['alat', 'unitAlat', 'userPeminjam'])->latest()->get()
-                : PeminjamanAlat::with(['alat', 'unitAlat', 'userPeminjam'])->latest()->get(),
-            'pemakaian_bahan' => $isMahasiswa
+                : PeminjamanAlat::when($labIds, fn($q) => $q->whereHas('alat', fn($q2) => $q2->whereIn('id_labor', $labIds)))
+                    ->with(['alat', 'unitAlat', 'userPeminjam'])->latest()->get(),
+            'peminjaman_dikembalikan' => PeminjamanAlat::where('id_user_peminjam', Auth::id())
+                ->where('status', 'sudah_dikembalikan')
+                ->with(['alat', 'unitAlat', 'userPeminjam'])->latest()->get(),
+            'pemakaian_saya' => PemakaianBahan::where('id_user_pemakai', Auth::id())
+                ->with(['bahan', 'userPemakai', 'userVerifikasi'])->latest()->get(),
+            'pemakaian_bahan' => in_array($user->role, ['dosen', 'mahasiswa'])
                 ? PemakaianBahan::where('id_user_pemakai', Auth::id())->with(['bahan', 'userPemakai', 'userVerifikasi'])->latest()->get()
                 : PemakaianBahan::when($labIds, fn($q) => $q->whereHas('bahan', fn($q2) => $q2->whereIn('id_labor', $labIds)))
                     ->with(['bahan', 'userPemakai', 'userVerifikasi'])->latest()->get(),
@@ -91,7 +102,9 @@ class ExportController extends Controller
             'pengadaan_alat' => 'Data Pengadaan Alat',
             'pengadaan_bahan' => 'Data Pengadaan Bahan',
             'peminjaman' => 'Data Peminjaman Alat',
+            'peminjaman_dikembalikan' => 'Catatan Pengembalian Alat',
             'pemakaian_bahan' => 'Data Pemakaian Bahan',
+            'pemakaian_saya' => 'Catatan Pemakaian Bahan',
             'pemeliharaan' => 'Data Pemeliharaan Alat',
             default => 'Data',
         };
@@ -109,7 +122,9 @@ class ExportController extends Controller
             'pengadaan_alat' => ['No', 'Alat', 'Tanggal', 'Jumlah', 'Harga', 'Supplier', 'Status'],
             'pengadaan_bahan' => ['No', 'Bahan', 'Tanggal', 'Jumlah', 'Harga', 'Supplier', 'Status'],
             'peminjaman' => ['No', 'Alat/Unit', 'Peminjam', 'Keperluan', 'Tgl Pinjam', 'Tgl Kembali', 'Status'],
+            'peminjaman_dikembalikan' => ['No', 'Alat/Unit', 'Peminjam', 'Keperluan', 'Tgl Pinjam', 'Tgl Kembali Aktual', 'Kondisi Kembali'],
             'pemakaian_bahan' => ['No', 'Bahan', 'Pemakai', 'Keperluan', 'Jumlah Ambil', 'Jumlah Pakai', 'Status'],
+            'pemakaian_saya' => ['No', 'Bahan', 'Pemakai', 'Keperluan', 'Jumlah Ambil', 'Jumlah Pakai', 'Status'],
             'pemeliharaan' => ['No', 'Unit Alat', 'Teknisi', 'Tgl Cek', 'Tgl Berikutnya', 'Kondisi', 'Hasil'],
             default => ['No', 'Data'],
         };
@@ -120,8 +135,8 @@ class ExportController extends Controller
         return $data->map(function ($item, $index) use ($tipe) {
             $no = $index + 1;
             return match($tipe) {
-                'alat' => [$no, $item->nama_alat, $item->kategori->nama_kategori ?? '-', $item->laboratorium->nama_labor ?? '-', ucfirst($item->tipe_pelacakan), $item->getAvailableQuantity()],
-                'bahan' => [$no, $item->nama_bahan, $item->kategori->nama_kategori ?? '-', $item->satuan, $item->stok_minimum, $item->getTotalStock()],
+                'alat' => [$no, $item->nama_alat, $item->kategori->nama_kategori ?? '-', $item->laboratorium->nama_labor ?? '-', ucfirst($item->tipe_pelacakan), $item->tipe_pelacakan === 'unit' ? $item->unit_alat_count : max(0, ($item->pengadaan_alat_sum_jumlah ?? 0) - ($item->peminjaman_alat_sum_jumlah ?? 0))],
+                'bahan' => [$no, $item->nama_bahan, $item->kategori->nama_kategori ?? '-', $item->satuan, $item->stok_minimum, $item->pengadaan_bahan_sum_stok_tersisa_batch ?? 0],
                 'kategori' => [$no, $item->nama_kategori, ucfirst($item->jenis)],
                 'laboratorium' => [$no, $item->nama_labor, $item->lokasi ?? '-', $item->kalab->nama ?? '-'],
                 'users' => [$no, $item->nama, $item->email, ucfirst($item->role), $item->no_hp ?? '-', $item->no_induk ?? '-', ucfirst($item->status)],
@@ -129,7 +144,9 @@ class ExportController extends Controller
                 'pengadaan_alat' => [$no, $item->alat->nama_alat ?? '-', $item->tanggal_pengadaan?->format('d/m/Y') ?? '-', $item->jumlah, 'Rp ' . number_format($item->harga_perolehan, 0, ',', '.'), $item->supplier, $item->tanggal_masuk ? 'Diterima' : 'Pending'],
                 'pengadaan_bahan' => [$no, $item->bahan->nama_bahan ?? '-', $item->tanggal_pengadaan?->format('d/m/Y') ?? '-', $item->jumlah, 'Rp ' . number_format($item->harga_perolehan, 0, ',', '.'), $item->supplier, $item->tanggal_masuk ? 'Diterima' : 'Pending'],
                 'peminjaman' => [$no, $item->equipment_name, $item->userPeminjam->nama ?? '-', $item->keperluan, $item->waktu_peminjaman?->format('d/m/Y H:i') ?? '-', $item->waktu_pengembalian?->format('d/m/Y H:i') ?? '-', ucfirst(str_replace('_', ' ', $item->status))],
+                'peminjaman_dikembalikan' => [$no, $item->equipment_name, $item->userPeminjam->nama ?? '-', $item->keperluan, $item->waktu_peminjaman?->format('d/m/Y H:i') ?? '-', $item->waktu_kembali_aktual?->format('d/m/Y H:i') ?? '-', ucfirst(str_replace('_', ' ', $item->kondisi_saat_pengembalian ?? '-'))],
                 'pemakaian_bahan' => [$no, $item->bahan->nama_bahan ?? '-', $item->userPemakai->nama ?? '-', $item->keperluan, $item->jumlah_pengambilan, $item->jumlah_terpakai, $item->id_user_verifikasi ? 'Terverifikasi' : 'Menunggu'],
+                'pemakaian_saya' => [$no, $item->bahan->nama_bahan ?? '-', $item->userPemakai->nama ?? '-', $item->keperluan, $item->jumlah_pengambilan, $item->jumlah_terpakai, $item->id_user_verifikasi ? 'Terverifikasi' : 'Menunggu'],
                 'pemeliharaan' => [$no, $item->unitAlat->alat->nama_alat ?? '-', $item->teknisi->nama ?? '-', $item->tanggal_cek?->format('d/m/Y') ?? '-', $item->tanggal_cek_berikutnya?->format('d/m/Y') ?? '-', $item->kondisi, $item->hasil_pemeliharaan ?? '-'],
                 default => [$no, '-'],
             };

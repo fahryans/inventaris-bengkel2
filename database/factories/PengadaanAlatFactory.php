@@ -15,6 +15,7 @@ class PengadaanAlatFactory extends Factory
     {
         return [
             'id_alat' => Alat::factory(),
+            'id_spesifikasi_alat' => fn (array $attrs) => \App\Models\SpesifikasiAlat::factory()->create(['id_alat' => $attrs['id_alat']])->id,
             'id_user_input' => User::factory(),
             'tanggal_pengadaan' => now(),
             'harga_perolehan' => fake()->randomNumber(5),

@@ -15,7 +15,7 @@ class UnitAlatRequest extends FormRequest
 
     public function rules(): array
     {
-        $unitAlat = $this->route('unitAlat');
+        $unitAlat = $this->route('unit_alat');
 
         return [
             'id_alat' => ['required', 'exists:alat,id'],

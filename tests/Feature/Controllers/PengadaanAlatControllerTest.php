@@ -35,23 +35,25 @@ class PengadaanAlatControllerTest extends TestCase
     {
         $this->actingAs($this->admin)
             ->post(route('pengadaan_alat.store'), [])
-            ->assertSessionHasErrors(['id_alat', 'tanggal_pengadaan', 'harga_perolehan', 'jumlah', 'supplier']);
+            ->assertSessionHasErrors(['id_alat', 'id_spesifikasi_alat', 'tanggal_pengadaan', 'harga_perolehan', 'jumlah', 'supplier']);
     }
 
     public function test_store_creates_pengadaan_alat()
     {
         $alat = Alat::factory()->create();
+        $spesifikasi = \App\Models\SpesifikasiAlat::factory()->create(['id_alat' => $alat->id]);
 
         $this->actingAs($this->admin)
             ->post(route('pengadaan_alat.store'), [
                 'id_alat' => $alat->id,
+                'id_spesifikasi_alat' => $spesifikasi->id,
                 'tanggal_pengadaan' => now()->format('Y-m-d'),
                 'harga_perolehan' => 100000,
                 'jumlah' => 5,
                 'supplier' => 'Supplier A',
             ]);
 
-        $this->assertDatabaseHas('pengadaan_alat', ['id_alat' => $alat->id]);
+        $this->assertDatabaseHas('pengadaan_alat', ['id_alat' => $alat->id, 'id_spesifikasi_alat' => $spesifikasi->id]);
     }
 
     public function test_mark_received_requires_auth()
@@ -68,10 +70,15 @@ public function test_dosen_cannot_access_pengadaan_alat()
             ->assertForbidden();
     }
 
-    public function test_mark_received_creates_units_for_unit_tracked_alat()
+    public function test_mark_received_sets_received_units_available_for_unit_tracked_alat()
     {
         $kategori = \App\Models\Kategori::factory()->create(['jenis' => 'alat']);
-        $alat = Alat::factory()->create(['tipe_pelacakan' => 'unit', 'id_kategori' => $kategori->id, 'jumlah_alat' => 0]);
+        $alat = Alat::factory()->create(['tipe_pelacakan' => 'unit', 'id_kategori' => $kategori->id]);
+        \App\Models\UnitAlat::factory()->count(3)->create([
+            'id_alat' => $alat->id,
+            'kode_inventaris' => null,
+            'status' => 'maintenance',
+        ]);
         $pengadaan = PengadaanAlat::factory()->create([
             'id_alat' => $alat->id,
             'jumlah' => 3,
@@ -84,14 +91,14 @@ public function test_dosen_cannot_access_pengadaan_alat()
             ]);
 
         $this->assertEquals(3, $alat->fresh()->unitAlat()->count());
-        $this->assertEquals(0, $alat->fresh()->jumlah_alat);
+        $this->assertEquals(3, $alat->fresh()->unitAlat()->where('status', 'tersedia')->count());
         $this->assertNotNull($pengadaan->fresh()->tanggal_masuk);
     }
 
-    public function test_mark_received_increments_aggregate_stock_for_aggregate_alat()
+    public function test_mark_received_tracks_aggregate_stock_via_pengadaan_record()
     {
         $kategori = \App\Models\Kategori::factory()->create(['jenis' => 'alat']);
-        $alat = Alat::factory()->create(['tipe_pelacakan' => 'agregat', 'id_kategori' => $kategori->id, 'jumlah_alat' => 0]);
+        $alat = Alat::factory()->create(['tipe_pelacakan' => 'agregat', 'id_kategori' => $kategori->id]);
         $pengadaan = PengadaanAlat::factory()->create([
             'id_alat' => $alat->id,
             'jumlah' => 5,
@@ -103,6 +110,6 @@ public function test_dosen_cannot_access_pengadaan_alat()
                 'tanggal_masuk' => now()->format('Y-m-d'),
             ]);
 
-        $this->assertEquals(5, $alat->fresh()->jumlah_alat);
+        $this->assertEquals(5, $alat->fresh()->getAvailableQuantity());
     }
 }

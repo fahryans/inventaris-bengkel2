@@ -36,7 +36,7 @@
                         <option value="">Pilih Alat</option>
                         @foreach($alats as $alat)
                             <option value="{{ $alat->id }}" {{ old('id_alat') == $alat->id ? 'selected' : '' }}>
-                                {{ $alat->nama_alat }} ({{ $alat->getAvailableQuantity() }} tersedia)
+                                {{ $alat->nama_alat }} ({{ max(0, ($alat->pengadaan_alat_sum_jumlah ?? 0) - ($alat->peminjaman_alat_sum_jumlah ?? 0)) }} tersedia)
                             </option>
                         @endforeach
                     </select>
@@ -67,30 +67,6 @@
                     @error('keperluan')
                         <div class="invalid-feedback d-block">{{ $message }}</div>
                     @enderror
-                </div>
-
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label for="waktu_peminjaman" class="form-label">Waktu Peminjaman <span class="text-danger">*</span></label>
-                            <input type="datetime-local" name="waktu_peminjaman" id="waktu_peminjaman" class="form-control @error('waktu_peminjaman') is-invalid @enderror" 
-                                   value="{{ old('waktu_peminjaman') }}" required>
-                            @error('waktu_peminjaman')
-                                <div class="invalid-feedback d-block">{{ $message }}</div>
-                            @enderror
-                        </div>
-                    </div>
-
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label for="waktu_pengembalian" class="form-label">Waktu Pengembalian <span class="text-danger">*</span></label>
-                            <input type="datetime-local" name="waktu_pengembalian" id="waktu_pengembalian" class="form-control @error('waktu_pengembalian') is-invalid @enderror" 
-                                   value="{{ old('waktu_pengembalian') }}" required>
-                            @error('waktu_pengembalian')
-                                <div class="invalid-feedback d-block">{{ $message }}</div>
-                            @enderror
-                        </div>
-                    </div>
                 </div>
 
                 <div class="mb-3">

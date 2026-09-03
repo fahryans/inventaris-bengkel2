@@ -5,6 +5,7 @@ namespace Tests\Unit\Models;
 use Tests\TestCase;
 use App\Models\User;
 use App\Models\PeminjamanAlat;
+use App\Models\Laboratorium;
 
 class UserTest extends TestCase
 {
@@ -57,5 +58,36 @@ class UserTest extends TestCase
         $user = User::factory()->create();
 
         $this->assertEquals('aktif', $user->status);
+    }
+
+    public function test_assigned_lab_ids_is_empty_for_admin()
+    {
+        $user = User::factory()->create(['role' => 'admin_jurusan']);
+
+        $this->assertSame([], $user->assignedLabIds());
+    }
+
+    public function test_assigned_lab_ids_returns_flat_array_for_kepala_labor()
+    {
+        $kalab = User::factory()->create(['role' => 'kepala_labor']);
+        Laboratorium::factory()->count(2)->create(['id_user_kalab' => $kalab->id]);
+
+        $result = $kalab->assignedLabIds();
+
+        $this->assertCount(2, $result);
+        $this->assertSame([], array_filter($result, 'is_array'), 'Returned array must be flat, not nested');
+        $this->assertContainsOnly('int', $result);
+    }
+
+    public function test_assigned_lab_ids_returns_teknisi_labs()
+    {
+        $teknisi = User::factory()->create(['role' => 'teknisi']);
+        $labs = Laboratorium::factory()->count(2)->create();
+        $teknisi->laboratoriumTeknisi()->attach($labs->pluck('id'));
+
+        $result = $teknisi->assignedLabIds();
+
+        $this->assertCount(2, $result);
+        $this->assertContainsOnly('int', $result);
     }
 }

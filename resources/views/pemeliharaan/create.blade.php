@@ -27,8 +27,8 @@
                         <option value="">Pilih Unit Alat</option>
                         @foreach($unitAlats as $unit)
                             <option value="{{ $unit->id }}" {{ old('id_unit_alat') == $unit->id ? 'selected' : '' }}>
-                                {{ $unit->kode_inventaris }} - {{ $unit->alat->nama_alat }}
-                            </option>
+                                    {{ $unit->alat->nama_alat }} ({{ $unit->kode_inventaris ?? '#' . $unit->id }})
+                                </option>
                         @endforeach
                     </select>
                     @error('id_unit_alat')
@@ -38,17 +38,22 @@
 
                 <div class="mb-3">
                     <label for="id_teknisi" class="form-label">Teknisi <span class="text-danger">*</span></label>
-                    <select name="id_teknisi" id="id_teknisi" class="form-select @error('id_teknisi') is-invalid @enderror" required>
-                        <option value="">Pilih Teknisi</option>
-                        @foreach($teknisis as $tek)
-                            <option value="{{ $tek->id }}" {{ old('id_teknisi') == $tek->id ? 'selected' : '' }}>
-                                {{ $tek->nama }}
-                            </option>
-                        @endforeach
-                    </select>
-                    @error('id_teknisi')
-                        <div class="invalid-feedback d-block">{{ $message }}</div>
-                    @enderror
+                    @if(Auth::user()->role === 'teknisi')
+                        <input type="hidden" name="id_teknisi" value="{{ Auth::id() }}">
+                        <p class="form-control-plaintext fw-bold">{{ Auth::user()->nama }}</p>
+                    @else
+                        <select name="id_teknisi" id="id_teknisi" class="form-select @error('id_teknisi') is-invalid @enderror" required>
+                            <option value="">Pilih Teknisi</option>
+                            @foreach($teknisis as $tek)
+                                <option value="{{ $tek->id }}" {{ old('id_teknisi') == $tek->id ? 'selected' : '' }}>
+                                    {{ $tek->nama }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('id_teknisi')
+                            <div class="invalid-feedback d-block">{{ $message }}</div>
+                        @enderror
+                    @endif
                 </div>
 
                 <div class="row">
@@ -141,3 +146,20 @@
     </div>
 </div>
 @endsection
+
+@push('css')
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
+@endpush
+
+@push('js')
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    $('#id_unit_alat').select2({
+        placeholder: 'Pilih Unit Alat',
+        allowClear: true,
+        width: '100%'
+    });
+});
+</script>
+@endpush

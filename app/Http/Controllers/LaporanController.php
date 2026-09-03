@@ -93,6 +93,12 @@ class LaporanController extends Controller
             ];
         }
 
+        if ($isMahasiswa || $isDosen) {
+            $summary['peminjaman_dikembalikan'] = PeminjamanAlat::where('id_user_peminjam', Auth::id())
+                ->where('status', 'sudah_dikembalikan')->count();
+            $summary['pemakaian_saya'] = PemakaianBahan::where('id_user_pemakai', Auth::id())->count();
+        }
+
         return view('laporan.index', compact('summary', 'user'));
     }
 
@@ -105,8 +111,12 @@ class LaporanController extends Controller
         $isTeknisi = $user->role === 'teknisi';
         $isKepalaLab = $user->role === 'kepala_labor';
 
-        if ($isMahasiswa && !in_array($tipe, ['alat', 'bahan', 'peminjaman'])) {
+        if ($isMahasiswa && !in_array($tipe, ['alat', 'bahan', 'peminjaman', 'peminjaman_dikembalikan', 'pemakaian_saya'])) {
             abort(403, 'Anda tidak memiliki akses ke laporan ini.');
+        }
+
+        if (!$isMahasiswa && $user->role !== 'dosen' && in_array($tipe, ['peminjaman_dikembalikan', 'pemakaian_saya'])) {
+            abort(403, 'Laporan ini khusus mahasiswa/dosen.');
         }
 
         $labIds = [];
@@ -120,10 +130,19 @@ class LaporanController extends Controller
 
         $data = match($tipe) {
             'alat' => Alat::when($labIds, fn($q) => $q->whereIn('id_labor', $labIds))
-                ->with(['kategori', 'laboratorium'])->latest()->paginate(20),
+                ->with(['kategori', 'laboratorium', 'spesifikasiAlat'])
+                ->withCount(['unitAlat' => fn($q) => $q->where('status', 'tersedia')])
+                ->withSum('pengadaanAlat', 'jumlah')
+                ->withSum(['peminjamanAlat' => fn($q) => $q->active()], 'jumlah')
+                ->latest()->paginate(20),
             'bahan' => Bahan::when($labIds, fn($q) => $q->whereIn('id_labor', $labIds))
-                ->with('kategori')->latest()->paginate(20),
+                ->with('kategori')
+                ->withSum('pengadaanBahan', 'stok_tersisa_batch')
+                ->latest()->paginate(20),
             'peminjaman' => $this->getPeminjamanData($isMahasiswa, $filter),
+            'peminjaman_dikembalikan' => PeminjamanAlat::where('id_user_peminjam', Auth::id())
+                ->where('status', 'sudah_dikembalikan')
+                ->with(['alat', 'unitAlat', 'userPeminjam'])->latest()->paginate(20),
             'pemeliharaan' => PemeliharaanAlat::when($labIds, fn($q) => $q->whereHas('unitAlat.alat', fn($q2) => $q2->whereIn('id_labor', $labIds)))
                 ->with(['unitAlat', 'teknisi'])->latest()->paginate(20),
             'pengadaan_alat' => PengadaanAlat::when($labIds, fn($q) => $q->whereHas('alat', fn($q2) => $q2->whereIn('id_labor', $labIds)))
@@ -132,6 +151,8 @@ class LaporanController extends Controller
                 ->with(['bahan', 'userInput'])->latest()->paginate(20),
             'pemakaian_bahan' => PemakaianBahan::when($labIds, fn($q) => $q->whereHas('bahan', fn($q2) => $q2->whereIn('id_labor', $labIds)))
                 ->with(['bahan', 'userPemakai', 'userVerifikasi'])->latest()->paginate(20),
+            'pemakaian_saya' => PemakaianBahan::where('id_user_pemakai', Auth::id())
+                ->with(['bahan', 'userPemakai', 'userVerifikasi'])->latest()->paginate(20),
             default => abort(404),
         };
 
@@ -139,10 +160,12 @@ class LaporanController extends Controller
             'alat' => 'Laporan Data Alat',
             'bahan' => 'Laporan Data Bahan',
             'peminjaman' => $filter === 'terlambat' ? 'Laporan Peminjaman Terlambat' : 'Laporan Peminjaman Aktif Alat dan Bahan',
+            'peminjaman_dikembalikan' => 'Catatan Pengembalian Alat',
             'pemeliharaan' => 'Laporan Pemeliharaan Alat',
             'pengadaan_alat' => 'Laporan Pengadaan Alat',
             'pengadaan_bahan' => 'Laporan Pengadaan Bahan',
             'pemakaian_bahan' => 'Laporan Pemakaian Bahan',
+            'pemakaian_saya' => 'Catatan Pemakaian Bahan',
             default => 'Laporan',
         };
 
@@ -158,8 +181,12 @@ class LaporanController extends Controller
         $isTeknisi = $user->role === 'teknisi';
         $isKepalaLab = $user->role === 'kepala_labor';
 
-        if ($isMahasiswa && !in_array($tipe, ['alat', 'bahan', 'peminjaman'])) {
+        if ($isMahasiswa && !in_array($tipe, ['alat', 'bahan', 'peminjaman', 'peminjaman_dikembalikan', 'pemakaian_saya'])) {
             abort(403, 'Anda tidak memiliki akses ke laporan ini.');
+        }
+
+        if (!$isMahasiswa && $user->role !== 'dosen' && in_array($tipe, ['peminjaman_dikembalikan', 'pemakaian_saya'])) {
+            abort(403, 'Laporan ini khusus mahasiswa/dosen.');
         }
 
         $labIds = [];
@@ -187,6 +214,9 @@ class LaporanController extends Controller
                 ->with(['bahan', 'userPemakai', 'userVerifikasi'])->latest()->get(),
             'peminjaman_saya' => PeminjamanAlat::where('id_user_peminjam', Auth::id())
                 ->with(['alat', 'unitAlat', 'userPeminjam'])->latest()->get(),
+            'peminjaman_dikembalikan' => PeminjamanAlat::where('id_user_peminjam', Auth::id())
+                ->where('status', 'sudah_dikembalikan')
+                ->with(['alat', 'unitAlat', 'userPeminjam'])->latest()->get(),
             'pemakaian_saya' => PemakaianBahan::where('id_user_pemakai', Auth::id())
                 ->with(['bahan', 'userPemakai', 'userVerifikasi'])->latest()->get(),
             default => null,
@@ -206,12 +236,14 @@ class LaporanController extends Controller
             'pengadaan_bahan' => 'Laporan Pengadaan Bahan',
             'pemakaian_bahan' => 'Laporan Pemakaian Bahan',
             'peminjaman_saya' => 'Riwayat Peminjaman Saya',
+            'peminjaman_dikembalikan' => 'Catatan Pengembalian Alat',
             'pemakaian_saya' => 'Riwayat Pemakaian Saya',
             default => 'Laporan',
         };
 
         $template = match($tipe) {
             'peminjaman_saya' => 'laporan.pdf.peminjaman',
+            'peminjaman_dikembalikan' => 'laporan.pdf.peminjaman',
             'pemakaian_saya' => 'laporan.pdf.pemakaian_bahan',
             default => "laporan.pdf.{$tipe}",
         };

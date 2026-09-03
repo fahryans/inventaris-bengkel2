@@ -60,7 +60,9 @@ class PeminjamanAlatController extends Controller
         $this->authorize('create', PeminjamanAlat::class);
 
         $labIds = $this->getLabIds();
-        $alatsQuery = Alat::with('spesifikasiAlat')->where('tipe_pelacakan', 'agregat');
+        $alatsQuery = Alat::with('spesifikasiAlat')->where('tipe_pelacakan', 'agregat')
+            ->withSum('pengadaanAlat', 'jumlah')
+            ->withSum(['peminjamanAlat' => fn($q) => $q->active()], 'jumlah');
         $unitsQuery = UnitAlat::with('alat', 'spesifikasiAlat');
         if ($labIds) {
             $alatsQuery->whereIn('id_labor', $labIds);
@@ -81,13 +83,13 @@ class PeminjamanAlatController extends Controller
             'id_unit_alat' => ['nullable', 'exists:unit_alat,id'],
             'id_spesifikasi_alat' => ['nullable', 'exists:spesifikasi_alat,id'],
             'keperluan' => ['required', 'string', 'max:255'],
-            'waktu_peminjaman' => ['required', 'date_format:Y-m-d\TH:i'],
-            'waktu_pengembalian' => ['required', 'date_format:Y-m-d\TH:i', 'after:waktu_peminjaman'],
             'jumlah' => ['nullable', 'integer', 'min:1'],
             'kondisi_saat_peminjaman' => ['required', 'string', 'max:255'],
         ]);
 
         $validated['id_user_peminjam'] = Auth::id();
+        $validated['waktu_peminjaman'] = now();
+        $validated['waktu_pengembalian'] = now()->addHours(4);
 
         $peminjaman = $this->peminjamanService->createBorrowing($validated);
 
@@ -108,13 +110,20 @@ class PeminjamanAlatController extends Controller
         $validated = $request->validate([
             'id_alat' => ['nullable', 'exists:alat,id'],
             'id_unit_alat' => ['nullable', 'exists:unit_alat,id'],
+            'id_spesifikasi_alat' => ['nullable', 'exists:spesifikasi_alat,id'],
             'keperluan' => ['required', 'string', 'max:255'],
-            'waktu_pengembalian' => ['required', 'date_format:Y-m-d\TH:i'],
         ]);
 
         $validated['id_user_peminjam'] = Auth::id();
         $validated['waktu_peminjaman'] = now();
+        $validated['waktu_pengembalian'] = now()->addHours(4);
         $validated['kondisi_saat_peminjaman'] = 'baik';
+
+        // Jika unit alat dipilih, ambil id_spesifikasi_alat dari unit
+        if (!empty($validated['id_unit_alat']) && empty($validated['id_spesifikasi_alat'])) {
+            $unit = \App\Models\UnitAlat::with('spesifikasiAlat')->find($validated['id_unit_alat']);
+            $validated['id_spesifikasi_alat'] = $unit?->id_spesifikasi_alat;
+        }
 
         $peminjaman = $this->peminjamanService->createBorrowing($validated);
 
@@ -132,7 +141,7 @@ class PeminjamanAlatController extends Controller
     {
         $this->authorize('view', $peminjaman);
 
-        $peminjaman->load(['alat', 'spesifikasiAlat', 'unitAlat', 'userPeminjam']);
+        $peminjaman->load(['alat.laboratorium', 'spesifikasiAlat', 'unitAlat.alat.laboratorium', 'userPeminjam']);
 
         return view('peminjaman.show', compact('peminjaman'));
     }
@@ -147,7 +156,9 @@ class PeminjamanAlatController extends Controller
         }
 
         $labIds = $this->getLabIds();
-        $alatsQuery = Alat::with('spesifikasiAlat')->where('tipe_pelacakan', 'agregat');
+        $alatsQuery = Alat::with('spesifikasiAlat')->where('tipe_pelacakan', 'agregat')
+            ->withSum('pengadaanAlat', 'jumlah')
+            ->withSum(['peminjamanAlat' => fn($q) => $q->active()], 'jumlah');
         $unitsQuery = UnitAlat::with('alat', 'spesifikasiAlat');
         if ($labIds) {
             $alatsQuery->whereIn('id_labor', $labIds);
@@ -172,7 +183,6 @@ class PeminjamanAlatController extends Controller
 
         $validated = $request->validate([
             'keperluan' => ['required', 'string', 'max:255'],
-            'waktu_pengembalian' => ['nullable', 'date_format:Y-m-d\TH:i', 'after:waktu_peminjaman'],
             'kondisi_saat_peminjaman' => ['required', 'string', 'max:255'],
         ]);
 

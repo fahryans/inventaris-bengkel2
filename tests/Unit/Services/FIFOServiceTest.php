@@ -17,7 +17,7 @@ class FIFOServiceTest extends TestCase
         $user = User::factory()->create();
         $kategori = Kategori::factory()->create(['jenis' => 'bahan']);
         $laboratorium = Laboratorium::factory()->create(['id_user_kalab' => $user->id]);
-        $bahan = Bahan::factory()->create(['id_kategori' => $kategori->id, 'id_labor' => $laboratorium->id, 'stok_saat_ini' => 100]);
+        $bahan = Bahan::factory()->create(['id_kategori' => $kategori->id, 'id_labor' => $laboratorium->id]);
 
         return [$user, $bahan];
     }

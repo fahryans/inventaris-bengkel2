@@ -55,6 +55,7 @@
                         </select>
                     </form>
                 </div>
+                @if($showLabFilter)
                 <div class="col-md-2">
                     <form method="GET" action="{{ route('bahan.index') }}" class="d-flex gap-2">
                         <select name="labor" class="form-select form-select-sm" onchange="this.form.submit()">
@@ -67,6 +68,7 @@
                         </select>
                     </form>
                 </div>
+                @endif
                 <div class="col-md-2">
                     <form method="GET" action="{{ route('bahan.index') }}">
                         <select name="sort" class="form-select form-select-sm" onchange="this.form.submit()">
@@ -91,7 +93,7 @@
                             <th>Nama Bahan</th>
                             <th>Kategori</th>
                             <th>Lab</th>
-                            <th>Merek Pengadaan</th>
+                            <!-- <th>Merek Pengadaan</th> -->
                             <th>Total Stok</th>
                             <th>Satuan</th>
                             <th>Aksi</th>
@@ -105,15 +107,10 @@
                                 </td>
                                 <td><span class="badge bg-info">{{ $bahan->kategori->nama_kategori }}</span></td>
                                 <td>{{ $bahan->laboratorium->nama_labor }}</td>
+                                
                                 <td>
-                                    @php
-                                        $mereks = $bahan->pengadaanBahan->pluck('merek')->unique()->join(', ');
-                                    @endphp
-                                    {{ $mereks ?: '-' }}
-                                </td>
-                                <td>
-                                    <span class="badge bg-{{ $bahan->getTotalStock() > 0 ? 'success' : 'danger' }}">
-                                        {{ $bahan->getTotalStock() }}
+                                    <span class="badge bg-{{ $bahan->pengadaan_bahan_sum_stok_tersisa_batch > 0 ? 'success' : 'danger' }}">
+                                        {{ $bahan->pengadaan_bahan_sum_stok_tersisa_batch }}
                                     </span>
                                 </td>
                                 <td>{{ $bahan->satuan }}</td>

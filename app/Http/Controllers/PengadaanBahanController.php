@@ -72,6 +72,17 @@ class PengadaanBahanController extends Controller
         $validated = $request->validated();
         $validated['id_user_input'] = Auth::id();
 
+        // Auto-set stok_tersisa_batch = jumlah saat pengadaan dibuat
+        // Ini membuat stok langsung aktif tanpa perlu "Terima Barang"
+        if (!isset($validated['stok_tersisa_batch'])) {
+            $validated['stok_tersisa_batch'] = $validated['jumlah'];
+        }
+
+        // Set tanggal_masuk otomatis ke hari ini jika belum diset
+        if (!isset($validated['tanggal_masuk'])) {
+            $validated['tanggal_masuk'] = now()->toDateString();
+        }
+
         if ($request->hasFile('foto_transaksi')) {
             $validated['foto_transaksi'] = $request->file('foto_transaksi')->store('pengadaan', 'public');
         }
@@ -85,7 +96,7 @@ class PengadaanBahanController extends Controller
             ->log('Pengadaan bahan baru dicatat');
 
         return redirect()->route('pengadaan_bahan.index')
-            ->with('success', 'Pengadaan bahan berhasil dicatat');
+            ->with('success', 'Pengadaan bahan berhasil dicatat dan stok langsung aktif');
     }
 
     public function show($id)
@@ -104,7 +115,7 @@ class PengadaanBahanController extends Controller
         $this->authorize('update', $pengadaan);
 
         $labIds = $this->getLabIds();
-        $bahans = $labIds ? Bahan::whereIn('id_labor', $labIds)->get() : Bahan::all();
+        $bahans = $labIds ? Bahan::whereIn('id_labor', $labIds)->with('spesifikasiBahan')->get() : Bahan::with('spesifikasiBahan')->get();
 
         return view('pengadaan_bahan.edit', compact('pengadaan', 'bahans'));
     }

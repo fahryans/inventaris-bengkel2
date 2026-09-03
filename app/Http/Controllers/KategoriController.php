@@ -55,7 +55,13 @@ class KategoriController extends Controller
     {
         $this->authorize('view', $kategori);
 
-        $kategori->load(['alat', 'bahan']);
+        $kategori->load([
+            'alat' => fn($q) => $q
+                ->withCount(['unitAlat' => fn($u) => $u->where('status', 'tersedia')])
+                ->withSum('pengadaanAlat', 'jumlah')
+                ->withSum(['peminjamanAlat' => fn($p) => $p->active()], 'jumlah'),
+            'bahan' => fn($q) => $q->withSum('pengadaanBahan', 'stok_tersisa_batch'),
+        ]);
 
         return view('kategori.show', compact('kategori'));
     }

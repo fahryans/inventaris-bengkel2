@@ -351,9 +351,12 @@ new Chart(document.getElementById('pengadaanChart'), {
             this.style.transform = 'translateY(0)';
             this.style.boxShadow = '';
         });
-    });
+});
 </script>
 @endpush
+
+@include('dashboard._pinjam_pakai')
+
 @endsection
 
 @push('css')

@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Http\Requests\PemakaianBahanRequest;
 use App\Models\Bahan;
 use App\Models\PemakaianBahan;
-use App\Models\PengadaanBahan;
 use App\Services\FIFOService;
 use App\Services\StokService;
 use Illuminate\Http\Request;
@@ -39,7 +38,9 @@ class PemakaianBahanController extends Controller
         $query = PemakaianBahan::with(['bahan', 'pengadaanBahan', 'userPemakai', 'userVerifikasi'])->latest();
 
         $labIds = $this->getLabIds();
-        if ($labIds) {
+        if (in_array($user->role, ['dosen', 'mahasiswa'])) {
+            $query->where('id_user_pemakai', $user->id);
+        } elseif ($labIds) {
             $query->whereHas('bahan', fn($q) => $q->whereIn('id_labor', $labIds));
         }
 
@@ -71,9 +72,8 @@ class PemakaianBahanController extends Controller
 
         $labIds = $this->getLabIds();
         $bahans = $labIds ? Bahan::whereIn('id_labor', $labIds)->get() : Bahan::all();
-        $pengadaans = $labIds ? PengadaanBahan::whereHas('bahan', fn($q) => $q->whereIn('id_labor', $labIds))->get() : PengadaanBahan::all();
 
-        return view('pemakaian_bahan.create', compact('bahans', 'pengadaans'));
+        return view('pemakaian_bahan.create', compact('bahans'));
     }
 
     public function store(PemakaianBahanRequest $request)
@@ -94,13 +94,19 @@ class PemakaianBahanController extends Controller
         $pemakaian = null;
 
         DB::transaction(function () use ($validated, &$pemakaian) {
-            $pemakaian = PemakaianBahan::create($validated);
+            // Batch pengadaan dipilih otomatis FIFO (batch paling lama dulu),
+            // lalu catat batch pertama yang dipakai ke record.
+            // Jika spesifikasi dipilih, filter batch berdasarkan spesifikasi.
+            $idSpesifikasi = $validated['id_spesifikasi_bahan'] ?? null;
 
-            // Stok langsung berkurang sesuai jumlah pengambilan
-            $this->fifoService->consumeFromBatches(
+            $batchesUsed = $this->fifoService->consumeFromBatches(
                 $validated['id_bahan'],
-                $validated['jumlah_pengambilan']
+                $validated['jumlah_pengambilan'],
+                $idSpesifikasi
             );
+            $validated['id_pengadaan_bahan'] = $batchesUsed[0]['id_pengadaan_bahan'];
+
+            $pemakaian = PemakaianBahan::create($validated);
         });
 
         activity()
@@ -134,9 +140,8 @@ class PemakaianBahanController extends Controller
 
         $labIds = $this->getLabIds();
         $bahans = $labIds ? Bahan::whereIn('id_labor', $labIds)->get() : Bahan::all();
-        $pengadaans = $labIds ? PengadaanBahan::whereHas('bahan', fn($q) => $q->whereIn('id_labor', $labIds))->get() : PengadaanBahan::all();
 
-        return view('pemakaian_bahan.edit', compact('pemakaian', 'bahans', 'pengadaans'));
+        return view('pemakaian_bahan.edit', compact('pemakaian', 'bahans'));
     }
 
     public function update(PemakaianBahanRequest $request, $id)

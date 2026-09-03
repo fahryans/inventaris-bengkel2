@@ -79,6 +79,42 @@
             </div>
         </div>
 
+@if($user->role === 'mahasiswa' || $user->role === 'dosen')
+        <div class="col-md-4 col-sm-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="text-success text-uppercase mb-1 small font-weight-bold">Peminjaman Dikembalikan</div>
+                    <div class="h3 mb-0">{{ $summary['peminjaman_dikembalikan'] ?? 0 }}</div>
+                    <a href="{{ route('laporan.show', ['tipe' => 'peminjaman_dikembalikan']) }}" class="small text-muted d-block mb-2">Klik untuk lihat detail →</a>
+                    <div class="mt-2">
+                        <form method="POST" action="{{ route('laporan.export', 'peminjaman_dikembalikan') }}" class="d-inline">
+                            @csrf
+                            <button type="submit" class="btn btn-sm btn-outline-danger"><i class="fas fa-file-pdf"></i> PDF</button>
+                        </form>
+                        <a href="{{ route('export', 'peminjaman_dikembalikan') }}?format=excel" class="btn btn-sm btn-outline-success"><i class="fas fa-file-excel"></i> Excel</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 col-sm-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="text-primary text-uppercase mb-1 small font-weight-bold">Catatan Pemakaian Bahan</div>
+                    <div class="h3 mb-0">{{ $summary['pemakaian_saya'] ?? 0 }}</div>
+                    <a href="{{ route('laporan.show', ['tipe' => 'pemakaian_saya']) }}" class="small text-muted d-block mb-2">Klik untuk lihat detail →</a>
+                    <div class="mt-2">
+                        <form method="POST" action="{{ route('laporan.export', 'pemakaian_saya') }}" class="d-inline">
+                            @csrf
+                            <button type="submit" class="btn btn-sm btn-outline-danger"><i class="fas fa-file-pdf"></i> PDF</button>
+                        </form>
+                        <a href="{{ route('export', 'pemakaian_saya') }}?format=excel" class="btn btn-sm btn-outline-success"><i class="fas fa-file-excel"></i> Excel</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @endif
+
         @if($user->role !== 'mahasiswa')
         <div class="col-md-4 col-sm-6 mb-4">
             <div class="card border-left-warning shadow h-100 py-2">

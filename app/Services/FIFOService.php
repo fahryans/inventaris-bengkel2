@@ -14,18 +14,24 @@ class FIFOService
         $this->stokService = $stokService;
     }
 
-    public function consumeFromBatches(int $idBahan, int $jumlahTerpakai): array
+    public function consumeFromBatches(int $idBahan, int $jumlahTerpakai, ?int $idSpesifikasiBahan = null): array
     {
         if ($jumlahTerpakai <= 0) {
             throw new \Exception('Jumlah pemakaian harus lebih dari 0');
         }
 
-        return DB::transaction(function () use ($idBahan, $jumlahTerpakai) {
-            $batches = PengadaanBahan::query()
+        return DB::transaction(function () use ($idBahan, $jumlahTerpakai, $idSpesifikasiBahan) {
+            $query = PengadaanBahan::query()
                 ->where('id_bahan', $idBahan)
                 ->whereNotNull('tanggal_masuk')
-                ->where('stok_tersisa_batch', '>', 0)
-                ->orderByRaw('masa_expire_bahan IS NULL, masa_expire_bahan ASC')
+                ->where('stok_tersisa_batch', '>', 0);
+
+            // Filter berdasarkan spesifikasi jika dipilih
+            if ($idSpesifikasiBahan) {
+                $query->where('id_spesifikasi_bahan', $idSpesifikasiBahan);
+            }
+
+            $batches = $query->orderByRaw('masa_expire_bahan IS NULL, masa_expire_bahan ASC')
                 ->lockForUpdate()
                 ->get();
 

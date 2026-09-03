@@ -16,7 +16,8 @@ class LaboratoriumController extends Controller
         $this->authorize('viewAny', Laboratorium::class);
 
         $user = Auth::user();
-        $query = Laboratorium::with('kalab')->latest();
+        $query = Laboratorium::with('kalab')
+            ->withCount(['alat', 'bahan'])->latest();
 
         if ($user->role === 'teknisi') {
             $labIds = $user->laboratoriumTeknisi->pluck('id')->toArray();
@@ -63,9 +64,22 @@ class LaboratoriumController extends Controller
     {
         $this->authorize('view', $laboratorium);
 
-        $laboratorium->load(['kalab', 'alat', 'bahan']);
+        $laboratorium->load('kalab');
+        $laboratorium->loadCount(['alat', 'bahan']);
 
-        return view('laboratorium.show', compact('laboratorium'));
+        $alat = $laboratorium->alat()->with('kategori')
+            ->withCount(['unitAlat' => fn($q) => $q->where('status', 'tersedia')])
+            ->withSum('pengadaanAlat', 'jumlah')
+            ->withSum(['peminjamanAlat' => fn($q) => $q->active()], 'jumlah')
+            ->limit(10)
+            ->get();
+
+        $bahan = $laboratorium->bahan()->with('kategori')
+            ->withSum('pengadaanBahan', 'stok_tersisa_batch')
+            ->limit(10)
+            ->get();
+
+        return view('laboratorium.show', compact('laboratorium', 'alat', 'bahan'));
     }
 
     public function edit(Laboratorium $laboratorium)

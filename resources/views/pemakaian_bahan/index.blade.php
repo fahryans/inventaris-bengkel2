@@ -25,9 +25,11 @@
                     </ul>
                 </div>
                 @can('create', App\Models\PemakaianBahan::class)
+                @if(!in_array(Auth::user()->role, ['admin_jurusan', 'kepala_labor', 'teknisi', 'kadep']))
                 <a href="{{ route('pemakaian_bahan.create') }}" class="btn btn-sm btn-light">
                     <i class="fas fa-plus"></i> Tambah Pemakaian
                 </a>
+                @endif
                 @endcan
             </div>
         </div>
@@ -71,6 +73,7 @@
                     <thead class="table-light">
                         <tr>
                             <th>Bahan</th>
+                            <th>Pemakai</th>
                             <th>Keperluan</th>
                             <th>Waktu Pemakaian</th>
                             <th>Pengambilan</th>
@@ -84,6 +87,7 @@
                         @forelse($pemakaians as $pem)
                             <tr>
                                 <td><strong>{{ $pem->bahan->nama_bahan ?? '-' }}</strong></td>
+                                <td>{{ $pem->userPemakai->nama ?? '-' }}</td>
                                 <td>{{ $pem->keperluan }}</td>
                                 <td>{{ $pem->waktu_pemakaian?->format('d/m/Y H:i') ?? '-' }}</td>
                                 <td>{{ $pem->jumlah_pengambilan }}</td>
@@ -121,7 +125,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="8" class="text-center text-muted py-4">
+                                <td colspan="9" class="text-center text-muted py-4">
                                     <i class="fas fa-inbox"></i> Tidak ada data pemakaian bahan
                                 </td>
                             </tr>

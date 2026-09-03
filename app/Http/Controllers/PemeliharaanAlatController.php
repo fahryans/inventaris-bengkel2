@@ -37,7 +37,10 @@ class PemeliharaanAlatController extends Controller
 
         if ($request->filled('status')) {
             if ($request->status === 'overdue') {
-                $query->where('tanggal_cek_berikutnya', '<', now());
+                // Hanya jadwal TERAKHIR per unit yang dianggap overdue;
+                // jadwal lama yang sudah digantikan tidak lagi merah.
+                $query->whereIn('id', PemeliharaanAlat::selectRaw('MAX(id) as id')->groupBy('id_unit_alat'))
+                    ->where('tanggal_cek_berikutnya', '<', now());
             } elseif ($request->status === 'upcoming') {
                 $query->whereBetween('tanggal_cek_berikutnya', [now(), now()->addDays(7)]);
             }
@@ -56,20 +59,37 @@ class PemeliharaanAlatController extends Controller
         $pemeliharaans = $query->paginate(15);
         $teknisis = User::where('role', 'teknisi')->get();
 
-        return view('pemeliharaan.index', compact('pemeliharaans', 'teknisis'));
+        // Id pemeliharaan TERAKHIR per unit alat: acuan status overdue.
+        $latestIds = PemeliharaanAlat::selectRaw('MAX(id) as id')
+            ->groupBy('id_unit_alat')
+            ->pluck('id')
+            ->map(fn($i) => (int) $i)
+            ->toArray();
+
+        return view('pemeliharaan.index', compact('pemeliharaans', 'teknisis', 'latestIds'));
     }
 
     public function create()
     {
         $this->authorize('create', PemeliharaanAlat::class);
 
+        $user = Auth::user();
         $labIds = $this->getLabIds();
         $unitAlatsQuery = UnitAlat::with('alat');
         if ($labIds) {
             $unitAlatsQuery->whereHas('alat', fn($q) => $q->whereIn('id_labor', $labIds));
         }
         $unitAlats = $unitAlatsQuery->get();
-        $teknisis = User::where('role', 'teknisi')->get();
+
+        if ($user->role === 'teknisi') {
+            $teknisis = collect([$user]);
+        } elseif ($user->role === 'kepala_labor' && $labIds) {
+            $teknisis = User::where('role', 'teknisi')
+                ->whereHas('laboratoriumTeknisi', fn($q) => $q->whereIn('laboratorium.id', $labIds))
+                ->get();
+        } else {
+            $teknisis = User::where('role', 'teknisi')->get();
+        }
 
         return view('pemeliharaan.create', compact('unitAlats', 'teknisis'));
     }
@@ -78,7 +98,28 @@ class PemeliharaanAlatController extends Controller
     {
         $this->authorize('create', PemeliharaanAlat::class);
 
-        $pemeliharaan = PemeliharaanAlat::create($request->validated());
+        $validated = $request->validated();
+        $user = Auth::user();
+
+        if ($user->role === 'teknisi') {
+            $validated['id_teknisi'] = $user->id;
+
+            $unit = UnitAlat::with('alat')->find($validated['id_unit_alat']);
+            if (!$unit || !$user->isTeknisiOf($unit->alat->id_labor)) {
+                abort(403, 'Unit alat di luar laboratorium Anda');
+            }
+        } elseif ($user->role === 'kepala_labor') {
+            $labIds = $this->getLabIds();
+            $teknisiDapat = User::where('role', 'teknisi')
+                ->where('id', $validated['id_teknisi'])
+                ->whereHas('laboratoriumTeknisi', fn($q) => $q->whereIn('laboratorium.id', $labIds))
+                ->exists();
+            if (!$teknisiDapat) {
+                abort(403, 'Teknisi di luar laboratorium Anda');
+            }
+        }
+
+        $pemeliharaan = PemeliharaanAlat::create($validated);
 
         activity()
             ->performedOn($pemeliharaan)

@@ -22,40 +22,24 @@
                 @csrf
                 @method('PUT')
 
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label for="id_bahan" class="form-label">Bahan <span class="text-danger">*</span></label>
-                            <select name="id_bahan" id="id_bahan" class="form-select @error('id_bahan') is-invalid @enderror" required>
-                                <option value="">Pilih Bahan</option>
-                                @foreach($bahans as $bahan)
-                                    <option value="{{ $bahan->id }}" {{ old('id_bahan', $pemakaian->id_bahan) == $bahan->id ? 'selected' : '' }}>
-                                        {{ $bahan->nama_bahan }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            @error('id_bahan')
-                                <div class="invalid-feedback d-block">{{ $message }}</div>
-                            @enderror
-                        </div>
-                    </div>
+                <div class="mb-3">
+                    <label for="id_bahan" class="form-label">Bahan <span class="text-danger">*</span></label>
+                    <select name="id_bahan" id="id_bahan" class="form-select @error('id_bahan') is-invalid @enderror" required>
+                        <option value="">Pilih Bahan</option>
+                        @foreach($bahans as $bahan)
+                            <option value="{{ $bahan->id }}" {{ old('id_bahan', $pemakaian->id_bahan) == $bahan->id ? 'selected' : '' }}>
+                                {{ $bahan->nama_bahan }}
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('id_bahan')
+                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                    @enderror
+                </div>
 
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label for="id_pengadaan_bahan" class="form-label">Batch Pengadaan <span class="text-danger">*</span></label>
-                            <select name="id_pengadaan_bahan" id="id_pengadaan_bahan" class="form-select @error('id_pengadaan_bahan') is-invalid @enderror" required>
-                                <option value="">Pilih Batch</option>
-                                @foreach($pengadaans as $pad)
-                                    <option value="{{ $pad->id }}" {{ old('id_pengadaan_bahan', $pemakaian->id_pengadaan_bahan) == $pad->id ? 'selected' : '' }}>
-                                        {{ $pad->bahan->nama_bahan ?? '-' }} - {{ $pad->supplier }} ({{ $pad->tanggal_pengadaan?->format('d/m/Y') ?? '-' }})
-                                    </option>
-                                @endforeach
-                            </select>
-                            @error('id_pengadaan_bahan')
-                                <div class="invalid-feedback d-block">{{ $message }}</div>
-                            @enderror
-                        </div>
-                    </div>
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Batch pengadaan dipilih otomatis oleh sistem (FIFO: batch paling lama yang masih tersedia dahulu).
                 </div>
 
                 <div class="mb-3">

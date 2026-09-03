@@ -1,12 +1,12 @@
 @extends('layouts.admin')
 
-@section('title', 'Dashboard Teknisi ' . $labNames)
+@section('title', 'Dashboard ' . ($roleLabel ?? 'Teknisi') . ' ' . $labNames)
 
 @section('content')
 <div class="container-fluid">
     <div class="row mb-4">
         <div class="col-12">
-            <h1 class="h3 d-inline-block">Dashboard Teknisi {{ $labNames }}</h1>
+            <h1 class="h3 d-inline-block">Dashboard {{ $roleLabel ?? 'Teknisi' }} {{ $labNames }}</h1>
             <p class="text-muted">Jadwal Pemeliharaan & Perbaikan Alat</p>
         </div>
     </div>
@@ -219,6 +219,9 @@
         options: { responsive: true }
     });
     </script>
+
+@include('dashboard._pinjam_pakai')
+
 </div>
 @endsection
 

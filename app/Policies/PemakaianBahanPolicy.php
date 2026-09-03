@@ -44,20 +44,29 @@ class PemakaianBahanPolicy
 
     public function update(User $user, PemakaianBahan $pemakaian): bool
     {
-        return in_array($user->role, [
-            'admin_jurusan',
-            'kepala_labor',
-            'teknisi'
-        ]);
+        return $user->role === 'admin_jurusan';
     }
 
     public function verify(User $user, PemakaianBahan $pemakaian): bool
     {
-        return in_array($user->role, [
-            'admin_jurusan',
-            'kepala_labor',
-            'teknisi'
-        ]);
+        if (!in_array($user->role, ['admin_jurusan', 'kepala_labor', 'teknisi'])) {
+            return false;
+        }
+
+        return $this->isLabOwner($user, $pemakaian);
+    }
+
+    private function isLabOwner(User $user, PemakaianBahan $pemakaian): bool
+    {
+        if ($user->role === 'admin_jurusan') {
+            return true;
+        }
+
+        $labIds = $user->role === 'teknisi'
+            ? $user->laboratoriumTeknisi()->pluck('laboratorium.id')
+            : $user->laboratoriumDikelola()->pluck('laboratorium.id');
+
+        return $labIds->contains($pemakaian->bahan?->id_labor);
     }
 
     public function return(User $user, PemakaianBahan $pemakaian): bool
@@ -70,13 +79,15 @@ class PemakaianBahanPolicy
     public function verifyReturn(User $user, PemakaianBahan $pemakaian): bool
     {
         return in_array($user->role, ['admin_jurusan', 'kepala_labor', 'teknisi'])
-            && $pemakaian->status_pengembalian === 'pending';
+            && $pemakaian->status_pengembalian === 'pending'
+            && $this->isLabOwner($user, $pemakaian);
     }
 
     public function rejectReturn(User $user, PemakaianBahan $pemakaian): bool
     {
         return in_array($user->role, ['admin_jurusan', 'kepala_labor', 'teknisi'])
-            && $pemakaian->status_pengembalian === 'pending';
+            && $pemakaian->status_pengembalian === 'pending'
+            && $this->isLabOwner($user, $pemakaian);
     }
 
     public function delete(User $user, PemakaianBahan $pemakaian): bool

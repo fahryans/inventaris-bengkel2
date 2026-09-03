@@ -128,7 +128,7 @@
                             @error('foto')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
-                            <small class="text-muted">Max 2MB. Format: JPG, PNG, WEBP</small>
+                            <small class="text-muted">Max 5MB. Format: JPG, PNG, GIF, WEBP, SVG, dll</small>
                         </div>
 
                         <button type="submit" class="btn btn-info btn-sm">

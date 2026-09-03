@@ -146,12 +146,10 @@ class UnitAlatController extends Controller
     {
         $this->authorize('update', $unitAlat);
 
-        $labIds = $this->getLabIds();
-        $alatsQuery = Alat::with('spesifikasiAlat')->where('tipe_pelacakan', 'unit');
-        if ($labIds) {
-            $alatsQuery->whereIn('id_labor', $labIds);
-        }
-        $alats = $alatsQuery->get();
+        // Muat semua alat bertipe unit agar alat yang sedang diedit selalu ada
+        // di dropdown beserta spesifikasinya (tanpa filter lab). Akses dijaga
+        // policy update (teknisi hanya lab miliknya).
+        $alats = Alat::with('spesifikasiAlat')->where('tipe_pelacakan', 'unit')->get();
 
         return view('unit_alat.edit', compact('unitAlat', 'alats'));
     }
@@ -171,7 +169,7 @@ class UnitAlatController extends Controller
             ->event('updated')
             ->log('Unit alat diperbarui');
 
-        return redirect()->route('unit-alat.show', $unitAlat)
+        return redirect()->route('unit-alat.index')
             ->with('success', 'Unit alat berhasil diperbarui');
     }
 

@@ -30,7 +30,12 @@ class AlatController extends Controller
         $this->authorize('viewAny', Alat::class);
 
         $user = Auth::user();
-        $query = Alat::with(['kategori', 'laboratorium', 'spesifikasiAlat']);
+        $query = Alat::with(['kategori', 'laboratorium', 'spesifikasiAlat'])
+            ->withCount(['unitAlat'])  // total seluruh unit fisik
+            ->withCount(['unitAlat as unit_alat_tersedia' => fn($q) => $q->where('status', 'tersedia')])
+            ->withCount(['unitAlat as unit_alat_pinjam' => fn($q) => $q->where('status', 'dipinjam')])
+            ->withSum('pengadaanAlat', 'jumlah')
+            ->withSum(['peminjamanAlat' => fn($q) => $q->active()], 'jumlah');
 
         $labIds = $this->getLabIds();
         if ($labIds) {
@@ -103,6 +108,17 @@ class AlatController extends Controller
 
         $alat = Alat::create($validated);
 
+        // Simpan spesifikasi yang langsung ditambahkan bersamaan dengan alat.
+        if (!empty($validated['spesifikasi'])) {
+            $alat->spesifikasiAlat()->createMany(
+                collect($validated['spesifikasi'])->map(fn($s) => [
+                    'kode_spesifikasi' => $s['kode_spesifikasi'],
+                    'nama_spesifikasi' => $s['nama_spesifikasi'],
+                    'deskripsi' => $s['deskripsi'] ?? null,
+                ])->all()
+            );
+        }
+
         activity()
             ->performedOn($alat)
             ->withProperties(['attributes' => $alat->toArray()])
@@ -163,6 +179,53 @@ class AlatController extends Controller
         }
 
         $alat->update($validated);
+
+        // Handle spesifikasi dari form
+        if ($request->has('spesifikasi') && is_array($request->spesifikasi)) {
+            // Kode spesifikasi yang dikirim dari form (yang masih dipertahankan)
+            $submittedKodes = collect($request->spesifikasi)
+                ->filter(fn($s) => !empty($s['kode_spesifikasi']) && !empty($s['nama_spesifikasi']))
+                ->pluck('kode_spesifikasi')
+                ->values();
+
+            // Hapus spesifikasi existing yang TIDAK ada di form
+            // dan tidak dipakai oleh pengadaan manapun
+            $alat->spesifikasiAlat()
+                ->whereNotIn('kode_spesifikasi', $submittedKodes)
+                ->each(function ($spec) {
+                    try {
+                        $spec->delete();
+                    } catch (\Exception $e) {
+                        // Jika ada foreign key constraint, skip (spesifikasi masih dipakai pengadaan)
+                    }
+                });
+
+            // Update atau create spesifikasi dari form
+            foreach ($request->spesifikasi as $spec) {
+                if (empty($spec['kode_spesifikasi']) || empty($spec['nama_spesifikasi'])) {
+                    continue;
+                }
+
+                $existing = $alat->spesifikasiAlat()
+                    ->where('kode_spesifikasi', $spec['kode_spesifikasi'])
+                    ->first();
+
+                if ($existing) {
+                    // Update spesifikasi yang sudah ada
+                    $existing->update([
+                        'nama_spesifikasi' => $spec['nama_spesifikasi'],
+                        'deskripsi' => $spec['deskripsi'] ?? null,
+                    ]);
+                } else {
+                    // Buat spesifikasi baru
+                    $alat->spesifikasiAlat()->create([
+                        'kode_spesifikasi' => $spec['kode_spesifikasi'],
+                        'nama_spesifikasi' => $spec['nama_spesifikasi'],
+                        'deskripsi' => $spec['deskripsi'] ?? null,
+                    ]);
+                }
+            }
+        }
 
         activity()
             ->performedOn($alat)

@@ -95,6 +95,7 @@
                 </div>
                 <div class="card-body">
                     <p><strong>Tipe Alat:</strong><br><span class="badge bg-secondary">{{ $peminjaman->id_alat ? 'Agregat' : 'Unit' }}</span></p>
+                    <p><strong>Laboratorium Asal:</strong><br>{{ $peminjaman->alat?->laboratorium?->nama_labor ?? $peminjaman->unitAlat?->alat?->laboratorium?->nama_labor ?? '-' }}</p>
                     @if($peminjaman->isOverdue())
                         <p><strong>Status:</strong><br><span class="badge bg-danger">Overdue {{ $peminjaman->getDaysOverdue() }} hari</span></p>
                     @else
@@ -129,9 +130,9 @@
                     </div>
 
                     <div class="mb-3">
-                        <label for="waktu_kembali_aktual" class="form-label">Waktu Kembali Aktual <span class="text-danger">*</span></label>
-                        <input type="datetime-local" name="waktu_kembali_aktual" id="waktu_kembali_aktual"
-                               class="form-control" value="{{ now()->format('Y-m-d\TH:i') }}" required>
+                        <label class="form-label">Waktu Kembali Aktual <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" value="{{ now()->format('d/m/Y H:i') }}" readonly>
+                        <input type="hidden" name="waktu_kembali_aktual" value="{{ now()->format('Y-m-d\TH:i') }}">
                     </div>
 
                     <div class="mb-3">

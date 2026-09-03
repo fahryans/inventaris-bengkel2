@@ -25,9 +25,11 @@
                     </ul>
                 </div>
                 @can('create', \App\Models\PeminjamanAlat::class)
+                @if(!in_array(Auth::user()->role, ['admin_jurusan', 'kepala_labor', 'teknisi', 'kadep']))
                 <a href="{{ route('peminjaman.create') }}" class="btn btn-sm btn-light">
                     <i class="fas fa-plus"></i> Tambah Peminjaman
                 </a>
+                @endif
                 @endcan
             </div>
         </div>
@@ -59,6 +61,7 @@
                     <thead class="table-light">
                         <tr>
                             <th>Alat</th>
+                            <th>Jumlah</th>
                             <th>Peminjam</th>
                             <th>Keperluan</th>
                             <th>Waktu Peminjaman</th>
@@ -75,6 +78,9 @@
                                     <strong>
                                         {{ $pem->alat?->nama_alat ?? $pem->unitAlat?->alat?->nama_alat ?? 'Unknown' }}
                                     </strong>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-primary">{{ $pem->jumlah }}</span>
                                 </td>
                                 <td>{{ $pem->userPeminjam->nama }}</td>
                                 <td>{{ $pem->keperluan }}</td>
@@ -127,7 +133,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="8" class="text-center text-muted py-4">
+                                <td colspan="9" class="text-center text-muted py-4">
                                     <i class="fas fa-inbox"></i> Tidak ada data peminjaman
                                 </td>
                             </tr>

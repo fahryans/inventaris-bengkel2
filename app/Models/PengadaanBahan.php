@@ -15,6 +15,7 @@ class PengadaanBahan extends Model
 
     protected $fillable = [
         'id_bahan',
+        'id_spesifikasi_bahan',
         'id_user_input',
         'tanggal_pengadaan',
         'harga_perolehan',
@@ -40,6 +41,11 @@ class PengadaanBahan extends Model
     public function bahan(): BelongsTo
     {
         return $this->belongsTo(Bahan::class, 'id_bahan');
+    }
+
+    public function spesifikasiBahan(): BelongsTo
+    {
+        return $this->belongsTo(SpesifikasiBahan::class, 'id_spesifikasi_bahan');
     }
 
     public function userInput(): BelongsTo

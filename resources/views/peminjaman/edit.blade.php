@@ -71,30 +71,6 @@
                     @enderror
                 </div>
 
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label for="waktu_peminjaman" class="form-label">Waktu Peminjaman <span class="text-danger">*</span></label>
-                            <input type="datetime-local" name="waktu_peminjaman" id="waktu_peminjaman" class="form-control @error('waktu_peminjaman') is-invalid @enderror" 
-                                   value="{{ old('waktu_peminjaman', $peminjaman->waktu_peminjaman->format('Y-m-d\TH:i')) }}" required>
-                            @error('waktu_peminjaman')
-                                <div class="invalid-feedback d-block">{{ $message }}</div>
-                            @enderror
-                        </div>
-                    </div>
-
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label for="waktu_pengembalian" class="form-label">Waktu Pengembalian <span class="text-danger">*</span></label>
-                            <input type="datetime-local" name="waktu_pengembalian" id="waktu_pengembalian" class="form-control @error('waktu_pengembalian') is-invalid @enderror" 
-                                   value="{{ old('waktu_pengembalian', $peminjaman->waktu_pengembalian->format('Y-m-d\TH:i')) }}" required>
-                            @error('waktu_pengembalian')
-                                <div class="invalid-feedback d-block">{{ $message }}</div>
-                            @enderror
-                        </div>
-                    </div>
-                </div>
-
                 <div class="mb-3">
                     <label for="kondisi_saat_peminjaman" class="form-label">Kondisi Saat Peminjaman <span class="text-danger">*</span></label>
                     <select name="kondisi_saat_peminjaman" id="kondisi_saat_peminjaman" class="form-select @error('kondisi_saat_peminjaman') is-invalid @enderror" required>

@@ -82,6 +82,24 @@
                     </div>
                 </div>
 
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="status" class="form-label">Status <span class="text-danger">*</span></label>
+                            <select name="status" id="status" class="form-select @error('status') is-invalid @enderror" required>
+                                <option value="">Pilih Status</option>
+                                <option value="tersedia" {{ old('status') == 'tersedia' ? 'selected' : '' }}>Tersedia</option>
+                                <option value="dipinjam" {{ old('status') == 'dipinjam' ? 'selected' : '' }}>Dipinjam</option>
+                                <option value="rusak" {{ old('status') == 'rusak' ? 'selected' : '' }}>Rusak</option>
+                                <option value="maintenance" {{ old('status') == 'maintenance' ? 'selected' : '' }}>Maintenance</option>
+                            </select>
+                            @error('status')
+                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+                </div>
+
                 <div class="d-flex gap-2 justify-content-end">
                     <a href="{{ route('unit-alat.index') }}" class="btn btn-secondary">Batal</a>
                     <button type="submit" class="btn btn-primary">

@@ -6,17 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\PengadaanAlatResource;
 use App\Models\PengadaanAlat;
 use App\Models\UnitAlat;
-use App\Services\StokService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class PengadaanAlatController extends Controller
 {
-    public function __construct(
-        protected StokService $stokService,
-    ) {}
-
     public function index(Request $request)
     {
         $this->authorize('viewAny', PengadaanAlat::class);
@@ -91,7 +86,7 @@ class PengadaanAlatController extends Controller
                         ]);
                     }
                 } else {
-                    $this->stokService->tambahAlatAgregat($pengadaanAlat->alat, $pengadaanAlat->jumlah);
+                    // Agregat: stok diturunkan dari record pengadaan, tanpa mutasi manual
                 }
             });
         } catch (\Exception $e) {
@@ -152,13 +147,7 @@ class PengadaanAlatController extends Controller
                             UnitAlat::whereIn('id', $removed->pluck('id'))->delete();
                         }
                     } else {
-                        $delta = (int) $validated['jumlah'] - $oldJumlah;
-
-                        if ($delta > 0) {
-                            $this->stokService->tambahAlatAgregat($pengadaanAlat->alat, $delta);
-                        } elseif ($delta < 0) {
-                            $this->stokService->kurangiAlatAgregat($pengadaanAlat->alat, abs($delta));
-                        }
+                        // Agregat: stok diturunkan dari record pengadaan, tanpa mutasi manual
                     }
                 }
 
@@ -179,10 +168,6 @@ class PengadaanAlatController extends Controller
 
         try {
             DB::transaction(function () use ($pengadaanAlat) {
-                if ($pengadaanAlat->tanggal_masuk && !$pengadaanAlat->alat->isUnitTracked()) {
-                    $this->stokService->kurangiAlatAgregat($pengadaanAlat->alat, $pengadaanAlat->jumlah);
-                }
-
                 $pengadaanAlat->delete();
             });
         } catch (\Exception $e) {

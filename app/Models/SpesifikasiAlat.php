@@ -35,6 +35,11 @@ class SpesifikasiAlat extends Model
         return $this->hasMany(UnitAlat::class, 'id_spesifikasi_alat');
     }
 
+    public function peminjamanAlat(): HasMany
+    {
+        return $this->hasMany(PeminjamanAlat::class, 'id_spesifikasi_alat');
+    }
+
     public function getTotalUnit(): int
     {
         return $this->pengadaanAlat()->sum('jumlah');

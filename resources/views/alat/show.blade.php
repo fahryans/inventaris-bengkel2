@@ -80,7 +80,9 @@
                             @if($alat->foto)
                             <div class="mb-3">
                                 <p class="text-muted mb-1">Foto</p>
-                                <img src="{{ asset('storage/' . $alat->foto) }}" alt="Foto Alat" class="img-thumbnail" style="max-width: 200px;">
+                                <img src="{{ asset('storage/' . $alat->foto) }}" alt="Foto Alat"
+                                     class="img-thumbnail" style="max-width: 200px;"
+                                     onerror="this.onerror=null; this.src='{{ asset('img/no-image.svg') }}'; this.alt='Foto tidak tersedia';">
                             </div>
                             @endif
                         </div>

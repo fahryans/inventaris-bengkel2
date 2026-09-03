@@ -28,7 +28,7 @@
                         <option value="">Pilih Unit Alat</option>
                         @foreach($unitAlats as $unit)
                             <option value="{{ $unit->id }}" {{ old('id_unit_alat', $pemeliharaan->id_unit_alat) == $unit->id ? 'selected' : '' }}>
-                                {{ $unit->kode_inventaris }} - {{ $unit->alat->nama_alat }}
+                                {{ $unit->alat->nama_alat }} ({{ $unit->kode_inventaris ?? '#' . $unit->id }})
                             </option>
                         @endforeach
                     </select>

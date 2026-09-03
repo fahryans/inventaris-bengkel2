@@ -145,7 +145,7 @@
                 <div class="mb-3">
                     <label for="foto_transaksi" class="form-label">Foto Transaksi</label>
                     <input type="file" name="foto_transaksi" id="foto_transaksi" class="form-control @error('foto_transaksi') is-invalid @enderror" accept="image/*">
-                    <small class="text-muted">Format: JPG, PNG (Max 2MB)</small>
+                    <small class="text-muted">Format: JPG, PNG, GIF, WEBP, SVG, dll (Max 5MB)</small>
                     @error('foto_transaksi')
                         <div class="invalid-feedback d-block">{{ $message }}</div>
                     @enderror

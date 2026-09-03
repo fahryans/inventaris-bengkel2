@@ -56,6 +56,10 @@ Route::middleware(['auth'])->group(function () {
 
         Route::resource('users', UserController::class);
         Route::resource('laboratorium', LaboratoriumController::class)->except(['create', 'store']);
+
+        // Update SOP laboratory (rich text HTML)
+        Route::put('lab/{lab}/sop', [LabController::class, 'updateSop'])
+            ->name('lab.sop.update');
     });
 
     Route::middleware(['role:admin_jurusan,kepala_labor,teknisi,kadep,mahasiswa,dosen'])->group(function () {
@@ -73,6 +77,15 @@ Route::middleware(['auth'])->group(function () {
         Route::get('unit-alat/{unitAlat}/qr', [\App\Http\Controllers\UnitAlatController::class, 'qr'])
             ->name('unit-alat.qr');
         Route::resource('bahan', BahanController::class);
+
+        // Spesifikasi Bahan Management
+        Route::post('bahan/{bahan}/spesifikasi', [BahanController::class, 'storeSpesifikasi'])
+            ->name('bahan.spesifikasi.store');
+        Route::put('bahan/{bahan}/spesifikasi/{spesifikasi}', [BahanController::class, 'updateSpesifikasi'])
+            ->name('bahan.spesifikasi.update');
+        Route::delete('bahan/{bahan}/spesifikasi/{spesifikasi}', [BahanController::class, 'destroySpesifikasi'])
+            ->name('bahan.spesifikasi.destroy');
+
         Route::resource('kategori', KategoriController::class);
         Route::resource('pemeliharaan', PemeliharaanAlatController::class);
         Route::post('pemeliharaan/{pemeliharaan}/complete', [PemeliharaanAlatController::class, 'complete'])
@@ -103,6 +116,10 @@ Route::middleware(['auth'])->group(function () {
 
     Route::middleware(['role:admin_jurusan,kepala_labor,teknisi,dosen,mahasiswa,kadep'])->group(function () {
         Route::get('lab/{lab}', [LabController::class, 'show'])->name('lab.show');
+        // Peminjaman / pemakaian massal di halaman lab
+        Route::post('lab/{lab}/borrow-mass', [LabController::class, 'borrowMass'])
+            ->middleware('throttle:60,1')
+            ->name('lab.borrow_mass');
         Route::resource('peminjaman', PeminjamanAlatController::class);
         Route::post('peminjaman/quick', [PeminjamanAlatController::class, 'quickStore'])
             ->middleware('throttle:10,1')
@@ -121,10 +138,6 @@ Route::middleware(['auth'])->group(function () {
              ->middleware('throttle:5,1')
              ->name('laporan.export');
     });
-
-    Route::get('/activity-log', [ActivityLogController::class, 'index'])
-        ->name('activity-log.index')
-        ->middleware('role:admin_jurusan');
 
     // Export routes
     Route::middleware(['role:admin_jurusan,kepala_labor,teknisi,kadep,dosen,mahasiswa'])->group(function () {

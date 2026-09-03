@@ -132,4 +132,20 @@
         </div>
     </div>
 </div>
+
+@if($pengadaan->foto_transaksi)
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0"><i class="fas fa-image me-1"></i> Foto Transaksi</h5>
+            </div>
+            <div class="card-body text-center">
+                <img src="{{ asset('storage/' . $pengadaan->foto_transaksi) }}" alt="Foto Transaksi"
+                     class="img-fluid rounded shadow-lg" style="max-width: 100%;">
+            </div>
+        </div>
+    </div>
+</div>
+@endif
 @endsection

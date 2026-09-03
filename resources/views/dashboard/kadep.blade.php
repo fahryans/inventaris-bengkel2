@@ -374,4 +374,6 @@
 </script>
 @endpush
 
+@include('dashboard._pinjam_pakai')
+
 @endsection

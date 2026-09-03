@@ -6,7 +6,6 @@ use App\Http\Requests\PengadaanAlatRequest;
 use App\Models\Alat;
 use App\Models\PengadaanAlat;
 use App\Models\UnitAlat;
-use App\Services\StokService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -14,10 +13,6 @@ use Spatie\Activitylog\Facades\Activity;
 
 class PengadaanAlatController extends Controller
 {
-    public function __construct(
-        protected StokService $stokService,
-    ) {}
-
     private function getLabIds()
     {
         $user = Auth::user();
@@ -212,12 +207,8 @@ class PengadaanAlatController extends Controller
                 $pengadaan->alat->unitAlat()
                     ->where('kode_inventaris', null)
                     ->update(['status' => 'tersedia']);
-            } else {
-                $this->stokService->tambahAlatAgregat(
-                    $pengadaan->alat,
-                    $pengadaan->jumlah
-                );
             }
+            // Agregat: stok diturunkan dari record pengadaan (totalAcquired - peminjaman), tanpa mutasi manual
         });
 
         $pengadaan->refresh();

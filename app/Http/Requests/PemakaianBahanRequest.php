@@ -17,7 +17,7 @@ class PemakaianBahanRequest extends FormRequest
     {
         return [
             'id_bahan' => ['required', 'exists:bahan,id'],
-            'id_pengadaan_bahan' => ['required', 'exists:pengadaan_bahan,id'],
+            'id_spesifikasi_bahan' => ['nullable', 'exists:spesifikasi_bahan,id'],
             'id_laboratorium' => ['nullable', 'exists:laboratorium,id'],
             'keperluan' => ['required', 'string', 'max:255'],
             'jumlah_pengambilan' => ['required', 'integer', 'min:1'],
@@ -31,7 +31,7 @@ class PemakaianBahanRequest extends FormRequest
     {
         return [
             'id_bahan.required' => 'Bahan harus dipilih',
-            'id_pengadaan_bahan.required' => 'Pengadaan bahan harus dipilih',
+            'id_spesifikasi_bahan.exists' => 'Spesifikasi bahan tidak valid',
             'keperluan.required' => 'Keperluan tidak boleh kosong',
             'jumlah_pengambilan.required' => 'Jumlah pengambilan tidak boleh kosong',
             'jumlah_terpakai.required' => 'Jumlah terpakai tidak boleh kosong',

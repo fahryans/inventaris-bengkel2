@@ -60,6 +60,21 @@
                                 <th>Tgl Pinjam</th>
                                 <th>Tgl Kembali</th>
                                 <th>Status</th>
+                            @elseif($tipe === 'peminjaman_dikembalikan')
+                                <th>Alat</th>
+                                <th>Tipe</th>
+                                <th>Keperluan</th>
+                                <th>Peminjam</th>
+                                <th>Tgl Pinjam</th>
+                                <th>Tgl Kembali Aktual</th>
+                                <th>Kondisi Kembali</th>
+                            @elseif($tipe === 'pemakaian_saya')
+                                <th>Bahan</th>
+                                <th>Keperluan</th>
+                                <th>Jumlah Diambil</th>
+                                <th>Jumlah Terpakai</th>
+                                <th>Verifikasi</th>
+                                <th>Tanggal</th>
                             @elseif($tipe === 'pemeliharaan')
                                 <th>Unit Alat</th>
                                 <th>Teknisi</th>
@@ -110,16 +125,19 @@
                                             <span class="badge bg-secondary">{{ $spec->kode_spesifikasi }}</span>
                                         @endforeach
                                     </td>
-                                    <td>{{ $item->getAvailableQuantity() }}</td>
+                                    <td>
+                                        @if($item->tipe_pelacakan === 'unit')
+                                            {{ $item->unit_alat_count }}
+                                        @else
+                                            {{ max(0, ($item->pengadaan_alat_sum_jumlah ?? 0) - ($item->peminjaman_alat_sum_jumlah ?? 0)) }}
+                                        @endif
+                                    </td>
                                 @elseif($tipe === 'bahan')
                                     <td><strong>{{ $item->nama_bahan }}</strong></td>
                                     <td><span class="badge bg-info">{{ $item->kategori?->nama_kategori ?? '-' }}</span></td>
                                     <td>
-                                        @php
-                                            $totalStok = \App\Models\PengadaanBahan::where('id_bahan', $item->id)->sum('stok_tersisa_batch');
-                                        @endphp
-                                        <span class="badge bg-{{ $totalStok > 0 ? 'success' : 'danger' }}">
-                                            {{ $totalStok }} {{ $item->satuan }}
+                                        <span class="badge bg-{{ ($item->pengadaan_bahan_sum_stok_tersisa_batch ?? 0) > 0 ? 'success' : 'danger' }}">
+                                            {{ $item->pengadaan_bahan_sum_stok_tersisa_batch ?? 0 }} {{ $item->satuan }}
                                         </span>
                                     </td>
                                     <td>{{ $item->satuan }}</td>
@@ -154,6 +172,31 @@
                                             {{ ucfirst(str_replace('_', ' ', $item->status)) }}
                                         </span>
                                     </td>
+                                @elseif($tipe === 'peminjaman_dikembalikan')
+                                    <td><strong>{{ $item->equipment_name }}</strong></td>
+                                    <td>
+                                        <span class="badge bg-{{ $item->equipment_type === 'Agregat' ? 'primary' : 'info' }}">
+                                            {{ $item->equipment_type }}
+                                        </span>
+                                    </td>
+                                    <td><small>{{ $item->keperluan ?? '-' }}</small></td>
+                                    <td>{{ $item->userPeminjam?->nama ?? '-' }}</td>
+                                    <td><small>{{ $item->waktu_peminjaman?->format('d-m-Y H:i') }}</small></td>
+                                    <td><small>{{ $item->waktu_kembali_aktual?->format('d-m-Y H:i') ?? '-' }}</small></td>
+                                    <td><span class="badge bg-info">{{ $item->kondisi_saat_pengembalian ?? '-' }}</span></td>
+                                @elseif($tipe === 'pemakaian_saya')
+                                    <td><strong>{{ $item->bahan->nama_bahan ?? '-' }}</strong></td>
+                                    <td><small>{{ $item->keperluan ?? '-' }}</small></td>
+                                    <td>{{ $item->jumlah_pengambilan }}</td>
+                                    <td>{{ $item->jumlah_terpakai }}</td>
+                                    <td>
+                                        @if($item->id_user_verifikasi)
+                                            <span class="badge bg-success">Terverifikasi</span>
+                                        @else
+                                            <span class="badge bg-secondary">Menunggu</span>
+                                        @endif
+                                    </td>
+                                    <td><small>{{ $item->waktu_pemakaian?->format('d-m-Y') ?? '-' }}</small></td>
                                 @elseif($tipe === 'pemeliharaan')
                                     <td><strong>{{ $item->unitAlat->alat->nama_alat ?? '-' }}</strong></td>
                                     <td>{{ $item->teknisi->nama ?? '-' }}</td>

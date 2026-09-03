@@ -22,6 +22,89 @@ class DashboardController extends Controller
             : 'MONTH(created_at) as month';
     }
 
+    /**
+     * Data section "card labor + tab peminjaman/pemakaian" ala dashboard mahasiswa.
+     * Teknisi/kalab: hanya lab miliknya. Admin/kadep: semua lab.
+     */
+    private function pinjamPakaiSection(): array
+    {
+        $user = Auth::user();
+
+        if ($user->role === 'teknisi') {
+            $labIds = $user->laboratoriumTeknisi->pluck('id')->toArray();
+        } elseif ($user->role === 'kepala_labor') {
+            $labIds = $user->laboratoriumDikelola->pluck('id')->toArray();
+        } else {
+            $labIds = null; // admin_jurusan & kadep: semua lab
+        }
+
+        // Kartu lab selalu menampilkan SEMUA lab, agar pengguna bisa meminjam
+        // alat/memakai bahan dari lab lain melalui kartu tersebut (semua role).
+        $pkLabs = Laboratorium::withCount(['alat', 'bahan'])->get();
+
+        $peminjamanScope = function ($q) use ($labIds) {
+            if ($labIds) {
+                $q->where(function ($inner) use ($labIds) {
+                    $inner->whereHas('alat', fn($a) => $a->whereIn('id_labor', $labIds))
+                        ->orWhereHas('unitAlat.alat', fn($a) => $a->whereIn('id_labor', $labIds));
+                });
+            }
+        };
+
+        $pkActiveCount = PeminjamanAlat::where('status', 'terpinjam')
+            ->where($peminjamanScope)->count();
+
+        $pkRiwayatCount = PeminjamanAlat::where($peminjamanScope)->count();
+
+        $pkPeminjaman = PeminjamanAlat::where('status', 'terpinjam')
+            ->where($peminjamanScope)
+            ->with(['alat', 'unitAlat', 'userPeminjam'])
+            ->latest()
+            ->limit(5)
+            ->get();
+
+        $bahanScope = fn($q) => $labIds ? $q->whereIn('id_labor', $labIds) : $q;
+
+        $pkPendingPemakaian = PemakaianBahan::whereNull('id_user_verifikasi')
+            ->whereNull('jumlah_pengembalian')
+            ->whereHas('bahan', $bahanScope)
+            ->with(['bahan', 'pengadaanBahan', 'userPemakai'])
+            ->latest()
+            ->limit(10)
+            ->get();
+
+        $pkPendingReturns = PemakaianBahan::where('status_pengembalian', 'pending')
+            ->whereHas('bahan', $bahanScope)
+            ->with(['bahan', 'pengadaanBahan', 'userPemakai'])
+            ->latest()
+            ->limit(10)
+            ->get();
+
+        // Data milik user itu sendiri: pinjaman alat & pemakaian bahan.
+        $pkMyPeminjaman = PeminjamanAlat::where('id_user_peminjam', Auth::id())
+            ->with(['alat', 'unitAlat', 'userPeminjam'])
+            ->latest()
+            ->limit(10)
+            ->get();
+
+        $pkMyPemakaian = PemakaianBahan::where('id_user_pemakai', Auth::id())
+            ->with(['bahan', 'pengadaanBahan', 'userVerifikasi'])
+            ->latest()
+            ->limit(10)
+            ->get();
+
+        return compact(
+            'pkLabs',
+            'pkActiveCount',
+            'pkRiwayatCount',
+            'pkPeminjaman',
+            'pkPendingPemakaian',
+            'pkPendingReturns',
+            'pkMyPeminjaman',
+            'pkMyPemakaian'
+        );
+    }
+
     public function index(Request $request)
     {
         $user = Auth::user();
@@ -89,69 +172,7 @@ class DashboardController extends Controller
             'labNames',
             'alatCounts',
             'pengadaanPerBulan'
-        ));
-    }
-
-    private function kepalaLaborDashboard()
-    {
-        $user = Auth::user();
-        $lab = Laboratorium::where('id_user_kalab', $user->id)->first();
-
-        if (!$lab) {
-            return view('dashboard.no-lab', ['message' => 'Anda belum ditugaskan sebagai kepala laboratorium']);
-        }
-
-        $labIds = [$lab->id];
-        $labNames = $lab->nama_labor;
-
-        $totalAlat = Alat::whereIn('id_labor', $labIds)->count();
-        $totalBahan = Bahan::whereIn('id_labor', $labIds)->count();
-        $lowStockBahan = Bahan::whereIn('id_labor', $labIds)->lowStock()->count();
-        $upcomingMaintenance = PemeliharaanAlat::whereHas('unitAlat.alat', function ($q) use ($labIds) {
-            $q->whereIn('id_labor', $labIds);
-        })->whereNull('tanggal_cek')
-            ->where('tanggal_cek_berikutnya', '<=', now()->addDays(7))
-            ->count();
-
-        $activePeminjaman = PeminjamanAlat::where('status', 'terpinjam')
-            ->where(function ($q) use ($labIds) {
-                $q->whereHas('alat', fn($a) => $a->whereIn('id_labor', $labIds))
-                  ->orWhereHas('unitAlat.alat', fn($a) => $a->whereIn('id_labor', $labIds));
-            })
-            ->with(['userPeminjam', 'alat', 'unitAlat'])
-            ->latest()
-            ->limit(5)
-            ->get();
-
-        $peminjamanPerBulan = PeminjamanAlat::where(function ($q) use ($labIds) {
-            $q->whereHas('alat', fn($a) => $a->whereIn('id_labor', $labIds))
-              ->orWhereHas('unitAlat.alat', fn($a) => $a->whereIn('id_labor', $labIds));
-        })
-            ->whereYear('created_at', now()->year)
-            ->selectRaw($this->monthExpression() . ', count(*) as total')
-            ->groupBy('month')
-            ->pluck('total', 'month')
-            ->toArray();
-        $peminjamanPerBulan = collect(range(1, 12))->map(fn($m) => $peminjamanPerBulan[$m] ?? 0)->toArray();
-
-        $bahans = Bahan::whereIn('id_labor', $labIds)->orderBy('nama_bahan')->get(['id', 'nama_bahan']);
-        $bahanNames = $bahans->pluck('nama_bahan');
-        $stokBahan = $bahans->map(function ($bahan) {
-            return \App\Models\PengadaanBahan::where('id_bahan', $bahan->id)->sum('stok_tersisa_batch');
-        });
-
-        return view('dashboard.kepala-labor', compact(
-            'lab',
-            'labNames',
-            'totalAlat',
-            'totalBahan',
-            'lowStockBahan',
-            'upcomingMaintenance',
-            'activePeminjaman',
-            'peminjamanPerBulan',
-            'bahanNames',
-            'stokBahan'
-        ));
+        ) + $this->pinjamPakaiSection());
     }
 
     private function teknisiDashboard()
@@ -161,8 +182,45 @@ class DashboardController extends Controller
         $user = Auth::user();
         $labIds = $user->laboratoriumTeknisi->pluck('id')->toArray();
 
-        $maintenanceSchedule = PemeliharaanAlat::where('id_teknisi', Auth::id())
-            ->whereHas('unitAlat.alat', fn($q) => $q->whereIn('id_labor', $labIds))
+        $data = $this->maintenanceData(Auth::id(), $labIds) + $this->statusUnitData($labIds);
+
+        return view('dashboard.teknisi', $data + $this->pinjamPakaiSection())
+            ->with('roleLabel', 'Teknisi')
+            ->with('labNames', $user->laboratoriumTeknisi->pluck('nama_labor')->implode(', '));
+    }
+
+    private function kepalaLaborDashboard()
+    {
+        $user = Auth::user();
+        $labs = $user->laboratoriumDikelola;
+
+        if ($labs->isEmpty()) {
+            return view('dashboard.no-lab', ['message' => 'Anda belum ditugaskan sebagai kepala laboratorium']);
+        }
+
+        $labIds = $labs->pluck('id')->toArray();
+
+        $data = $this->maintenanceData(null, $labIds) + $this->statusUnitData($labIds);
+
+        return view('dashboard.teknisi', $data + $this->pinjamPakaiSection())
+            ->with('roleLabel', 'Kepala Laboratorium')
+            ->with('labNames', $labs->pluck('nama_labor')->implode(', '));
+    }
+
+    /**
+     * Data jadwal pemeliharaan untuk view dashboard teknisi/kalab.
+     * $teknisiId diisi untuk teknisi (hanya jadwal miliknya); null untuk kalab
+     * (semua jadwal di lab miliknya).
+     */
+    private function maintenanceData(?int $teknisiId, array $labIds)
+    {
+        $base = PemeliharaanAlat::query()
+            ->whereHas('unitAlat.alat', fn($q) => $q->whereIn('id_labor', $labIds));
+        if ($teknisiId) {
+            $base->where('id_teknisi', $teknisiId);
+        }
+
+        $maintenanceSchedule = (clone $base)
             ->where('tanggal_cek_berikutnya', '<=', now()->addDays(14))
             ->where(function ($q) {
                 $q->whereNull('tanggal_cek')
@@ -174,8 +232,7 @@ class DashboardController extends Controller
             ->limit(10)
             ->get();
 
-        $overdueCount = PemeliharaanAlat::where('id_teknisi', Auth::id())
-            ->whereHas('unitAlat.alat', fn($q) => $q->whereIn('id_labor', $labIds))
+        $overdueCount = (clone $base)
             ->where('tanggal_cek_berikutnya', '<', now())
             ->where(function ($q) {
                 $q->whereNull('tanggal_cek')
@@ -183,14 +240,12 @@ class DashboardController extends Controller
             })
             ->count();
 
-        $completedThisMonth = PemeliharaanAlat::where('id_teknisi', Auth::id())
-            ->whereHas('unitAlat.alat', fn($q) => $q->whereIn('id_labor', $labIds))
+        $completedThisMonth = (clone $base)
             ->whereBetween('tanggal_cek', [now()->startOfMonth(), now()->endOfMonth()])
             ->where('kondisi', 'baik')
             ->count();
 
-        $pemeliharaanPerBulan = PemeliharaanAlat::where('id_teknisi', Auth::id())
-            ->whereHas('unitAlat.alat', fn($q) => $q->whereIn('id_labor', $labIds))
+        $pemeliharaanPerBulan = (clone $base)
             ->whereYear('created_at', now()->year)
             ->selectRaw($this->monthExpression() . ', count(*) as total')
             ->groupBy('month')
@@ -198,22 +253,28 @@ class DashboardController extends Controller
             ->toArray();
         $pemeliharaanPerBulan = collect(range(1, 12))->map(fn($m) => $pemeliharaanPerBulan[$m] ?? 0)->toArray();
 
+        return compact('maintenanceSchedule', 'overdueCount', 'completedThisMonth', 'pemeliharaanPerBulan');
+    }
+
+    private function statusUnitData(array $labIds): array
+    {
+        $counts = \App\Models\UnitAlat::whereIn('id_alat', function ($q) use ($labIds) {
+            $q->select('id')->from('alat')->whereIn('id_labor', $labIds);
+        })
+            ->selectRaw('status, COUNT(*) as total')
+            ->groupBy('status')
+            ->pluck('total', 'status')
+            ->toArray();
+
         $statusLabels = ['Tersedia', 'Dipinjam', 'Rusak', 'Maintenance'];
         $statusCounts = [
-            \App\Models\UnitAlat::whereIn('id_alat', fn($q) => $q->select('id')->from('alat')->whereIn('id_labor', $labIds))->where('status', 'tersedia')->count(),
-            \App\Models\UnitAlat::whereIn('id_alat', fn($q) => $q->select('id')->from('alat')->whereIn('id_labor', $labIds))->where('status', 'dipinjam')->count(),
-            \App\Models\UnitAlat::whereIn('id_alat', fn($q) => $q->select('id')->from('alat')->whereIn('id_labor', $labIds))->where('status', 'rusak')->count(),
-            \App\Models\UnitAlat::whereIn('id_alat', fn($q) => $q->select('id')->from('alat')->whereIn('id_labor', $labIds))->where('status', 'maintenance')->count(),
+            $counts['tersedia'] ?? 0,
+            $counts['dipinjam'] ?? 0,
+            $counts['rusak'] ?? 0,
+            $counts['maintenance'] ?? 0,
         ];
 
-        return view('dashboard.teknisi', compact(
-            'maintenanceSchedule',
-            'overdueCount',
-            'completedThisMonth',
-            'pemeliharaanPerBulan',
-            'statusLabels',
-            'statusCounts'
-        ))->with('labNames', $user->laboratoriumTeknisi->pluck('nama_labor')->implode(', '));
+        return compact('statusLabels', 'statusCounts');
     }
 
     private function kadepDashboard()
@@ -255,7 +316,7 @@ class DashboardController extends Controller
             'lowStockBahan',
             'peminjamPerBulan',
             'myPemakaianBahan'
-        ));
+        ) + $this->pinjamPakaiSection());
     }
 
     private function userDashboard()

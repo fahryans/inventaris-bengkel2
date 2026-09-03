@@ -20,7 +20,11 @@ class AlatRequest extends FormRequest
             'id_labor' => ['required', 'exists:laboratorium,id'],
             'nama_alat' => ['required', 'string', 'max:255'],
             'tipe_pelacakan' => ['required', 'in:unit,agregat'],
-            'foto' => ['nullable', 'image', 'max:2048'],
+            'foto' => ['nullable', 'image', 'mimes:jpeg,jpg,png,gif,webp,bmp,svg,avif,ico,tiff', 'max:5120'],
+            'spesifikasi' => ['nullable', 'array'],
+            'spesifikasi.*.kode_spesifikasi' => ['required', 'string', 'max:255'],
+            'spesifikasi.*.nama_spesifikasi' => ['required', 'string', 'max:255'],
+            'spesifikasi.*.deskripsi' => ['nullable', 'string', 'max:1000'],
         ];
     }
 

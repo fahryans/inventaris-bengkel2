@@ -5,9 +5,9 @@
 
         <h3>
 
-            <i class="fas fa-industry me-2"></i>
+            <img src="{{ asset('images/unplogo.png') }}" alt="Logo UNP" style="height: 48px; width: auto;" class="me-0.2">
 
-            SIMA Bengkel
+              SIMA Bengkel
 
         </h3>
 
@@ -154,15 +154,6 @@
                 Laporan
             </a>
         </li>
-
-        @can('viewAny', \Spatie\Activitylog\Models\Activity::class)
-        <li>
-            <a href="{{ route('activity-log.index') }}" class="{{ request()->routeIs('activity-log.*') ? 'active' : '' }}">
-                <i class="fas fa-history"></i>
-                Aktivitas Sistem
-            </a>
-        </li>
-        @endcan
 
         {{-- PENGATURAN --}}
         <li class="menu-title">

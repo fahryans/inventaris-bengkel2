@@ -103,6 +103,7 @@
                             <th>Tipe</th>
                             <th>Spesifikasi</th>
                             <th>Total</th>
+                            <th>Terpinjam</th>
                             <th>Aksi</th>
                         </tr>
                     </thead>
@@ -127,7 +128,18 @@
                                     @endforelse
                                 </td>
                                 <td>
-                                    <strong>{{ $alat->getAvailableQuantity() }}</strong>
+                                    @if($alat->tipe_pelacakan === 'unit')
+                                        <strong>{{ $alat->unit_alat_count }}</strong>
+                                    @else
+                                        <strong>{{ $alat->pengadaan_alat_sum_jumlah ?? 0 }}</strong>
+                                    @endif
+                                </td>
+                                <td>
+                                    @if($alat->tipe_pelacakan === 'unit')
+                                        <span class="badge bg-warning">{{ $alat->unit_alat_pinjam }}</span>
+                                    @else
+                                        <span class="badge bg-warning">{{ $alat->peminjaman_alat_sum_jumlah ?? 0 }}</span>
+                                    @endif
                                 </td>
                                 <td>
                                     <div class="btn-group btn-group-sm" role="group">

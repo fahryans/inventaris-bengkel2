@@ -91,11 +91,30 @@
                         <div class="mb-3">
                             <label for="foto" class="form-label">Foto</label>
                             <input type="file" name="foto" id="foto" class="form-control @error('foto') is-invalid @enderror" accept="image/*">
-                            <small class="text-muted">Format: JPG, PNG (Max 2MB)</small>
+                            <small class="text-muted">Format: JPG, PNG, GIF, WEBP, SVG, dll (Max 5MB)</small>
                             @error('foto')
                                 <div class="invalid-feedback d-block">{{ $message }}</div>
                             @enderror
                         </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-12">
+                        <hr>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="mb-0">Spesifikasi Alat</h5>
+                            <button type="button" class="btn btn-sm btn-outline-primary" id="btnAddSpesifikasi">
+                                <i class="fas fa-plus"></i> Tambah Spesifikasi
+                            </button>
+                        </div>
+                        <p class="text-muted small">Tambahkan minimal satu spesifikasi agar saat pengadaan alat hanya perlu memilih spesifikasi.</p>
+
+                        <div id="spesifikasiContainer"></div>
+
+                        @error('spesifikasi')
+                            <div class="invalid-feedback d-block">{{ $message }}</div>
+                        @enderror
                     </div>
                 </div>
 
@@ -109,4 +128,46 @@
         </div>
     </div>
 </div>
+
+@push('js')
+<script>
+(function () {
+    const container = document.getElementById('spesifikasiContainer');
+    let index = container.querySelectorAll('.spesifikasi-row').length;
+
+    function rowHtml(i) {
+        return '<div class="row g-3 mb-3 spesifikasi-row align-items-center">'
+            + '<div class="col-md-3">'
+            + '<input type="text" name="spesifikasi[' + i + '][kode_spesifikasi]" class="form-control" placeholder="Kode Spesifikasi (mis: PK-01)" required>'
+            + '</div>'
+            + '<div class="col-md-3">'
+            + '<input type="text" name="spesifikasi[' + i + '][nama_spesifikasi]" class="form-control" placeholder="Nama Spesifikasi (mis: Premium)" required>'
+            + '</div>'
+            + '<div class="col-md-5">'
+            + '<input type="text" name="spesifikasi[' + i + '][deskripsi]" class="form-control" placeholder="Deskripsi (opsional)">'
+            + '</div>'
+            + '<div class="col-md-1 text-end">'
+            + '<button type="button" class="btn btn-outline-danger btn-sm btn-remove-spesifikasi" title="Hapus"><i class="fas fa-trash"></i></button>'
+            + '</div>'
+            + '</div>';
+    }
+
+    function addRow() {
+        container.insertAdjacentHTML('beforeend', rowHtml(index));
+        index++;
+    }
+
+    document.getElementById('btnAddSpesifikasi').addEventListener('click', addRow);
+
+    container.addEventListener('click', function (e) {
+        if (e.target.closest('.btn-remove-spesifikasi')) {
+            e.target.closest('.spesifikasi-row').remove();
+        }
+    });
+
+    // Sediakan satu baris kosong pertama.
+    addRow();
+})();
+</script>
+@endpush
 @endsection

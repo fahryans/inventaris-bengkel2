@@ -12,6 +12,18 @@
         </ol>
     </nav>
 
+    @if ($errors->any())
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <strong>Terjadi Kesalahan:</strong>
+            <ul class="mb-0 mt-2">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+
     <div class="card shadow-sm">
         <div class="card-header bg-[#5b202f] text-[#f5f0e9]">
             <h5 class="mb-0">Form Edit Alat</h5>
@@ -93,15 +105,35 @@
                             <label for="foto" class="form-label">Foto</label>
                             @if($alat->foto)
                                 <div class="mb-2">
-                                    <img src="{{ asset('storage/' . $alat->foto) }}" alt="Foto Alat" class="img-thumbnail" style="max-width: 200px;">
+                                    <img src="{{ asset('storage/' . $alat->foto) }}" alt="Foto Alat" class="img-thumbnail" style="max-width: 200px;"
+                                         onerror="this.onerror=null; this.src='{{ asset('img/no-image.svg') }}'; this.alt='Foto tidak tersedia';">
                                 </div>
                             @endif
                             <input type="file" name="foto" id="foto" class="form-control @error('foto') is-invalid @enderror" accept="image/*">
-                            <small class="text-muted">Format: JPG, PNG (Max 2MB)</small>
+                            <small class="text-muted">Format: JPG, PNG, GIF, WEBP, SVG, dll (Max 5MB)</small>
                             @error('foto')
                                 <div class="invalid-feedback d-block">{{ $message }}</div>
                             @enderror
                         </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-12">
+                        <hr>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="mb-0">Spesifikasi Alat ({{ $alat->spesifikasiAlat->count() }})</h5>
+                            <button type="button" class="btn btn-sm btn-outline-primary" id="btnAddSpesifikasi">
+                                <i class="fas fa-plus"></i> Tambah Spesifikasi
+                            </button>
+                        </div>
+                        <p class="text-muted small">Edit atau tambahkan spesifikasi alat.</p>
+
+                        <div id="spesifikasiContainer"></div>
+
+                        @error('spesifikasi')
+                            <div class="invalid-feedback d-block">{{ $message }}</div>
+                        @enderror
                     </div>
                 </div>
 
@@ -115,4 +147,61 @@
         </div>
     </div>
 </div>
+
+@push('js')
+<script>
+(function () {
+    const container = document.getElementById('spesifikasiContainer');
+    // Load existing spesifikasi dari server
+    const existingSpesifikasi = {!! json_encode($alat->spesifikasiAlat->map(fn($s) => ['kode_spesifikasi' => $s->kode_spesifikasi, 'nama_spesifikasi' => $s->nama_spesifikasi, 'deskripsi' => $s->deskripsi])) !!};
+    let index = existingSpesifikasi.length;
+
+    function rowHtml(i, data) {
+        const kode = data ? data.kode_spesifikasi : '';
+        const nama = data ? data.nama_spesifikasi : '';
+        const deskripsi = data ? data.deskripsi : '';
+        return '<div class="row g-3 mb-3 spesifikasi-row align-items-center">'
+            + '<div class="col-md-3">'
+            + '<input type="text" name="spesifikasi[' + i + '][kode_spesifikasi]" class="form-control" placeholder="Kode Spesifikasi (mis: PK-01)" value="' + kode + '" required>'
+            + '</div>'
+            + '<div class="col-md-3">'
+            + '<input type="text" name="spesifikasi[' + i + '][nama_spesifikasi]" class="form-control" placeholder="Nama Spesifikasi (mis: Premium)" value="' + nama + '" required>'
+            + '</div>'
+            + '<div class="col-md-5">'
+            + '<input type="text" name="spesifikasi[' + i + '][deskripsi]" class="form-control" placeholder="Deskripsi (opsional)" value="' + deskripsi + '">'
+            + '</div>'
+            + '<div class="col-md-1 text-end">'
+            + '<button type="button" class="btn btn-outline-danger btn-sm btn-remove-spesifikasi" title="Hapus"><i class="fas fa-trash"></i></button>'
+            + '</div>'
+            + '</div>';
+    }
+
+    function addRow(data) {
+        container.insertAdjacentHTML('beforeend', rowHtml(index, data));
+        index++;
+    }
+
+    document.getElementById('btnAddSpesifikasi').addEventListener('click', function() {
+        addRow(null);
+    });
+
+    container.addEventListener('click', function (e) {
+        if (e.target.closest('.btn-remove-spesifikasi')) {
+            e.preventDefault();
+            e.target.closest('.spesifikasi-row').remove();
+        }
+    });
+
+    // Load semua spesifikasi existing sebagai baris
+    existingSpesifikasi.forEach(function(data) {
+        addRow(data);
+    });
+
+    // Jika tidak ada spesifikasi, sediakan satu baris kosong
+    if (existingSpesifikasi.length === 0) {
+        addRow(null);
+    }
+})();
+</script>
+@endpush
 @endsection

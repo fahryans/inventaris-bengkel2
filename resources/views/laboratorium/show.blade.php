@@ -67,14 +67,14 @@
         <div class="col-md-4">
             <div class="card shadow-sm mb-3">
                 <div class="card-header bg-info text-white">
-                    <h6 class="mb-0">Alat ({{ $laboratorium->alat->count() }})</h6>
+                    <h6 class="mb-0">Alat ({{ $laboratorium->alat_count }})</h6>
                 </div>
                 <div class="card-body">
-                    @forelse($laboratorium->alat()->limit(10)->get() as $alat)
+                    @forelse($alat as $row)
                         <div class="mb-2 pb-2 border-bottom">
-                            <p class="mb-1"><strong>{{ $alat->nama_alat }}</strong></p>
-                            <small class="text-muted">{{ $alat->kategori->nama_kategori }}</small><br>
-                            <small>Jumlah: {{ $alat->getAvailableQuantity() }}</small>
+                            <p class="mb-1"><strong>{{ $row->nama_alat }}</strong></p>
+                            <small class="text-muted">{{ $row->kategori->nama_kategori }}</small><br>
+                            <small>Jumlah: {{ $row->tipe_pelacakan === 'unit' ? $row->unit_alat_count : max(0, ($row->pengadaan_alat_sum_jumlah ?? 0) - ($row->peminjaman_alat_sum_jumlah ?? 0)) }}</small>
                         </div>
                     @empty
                         <p class="text-muted text-center">Belum ada alat</p>
@@ -84,14 +84,14 @@
 
             <div class="card shadow-sm">
                 <div class="card-header bg-warning text-dark">
-                    <h6 class="mb-0">Bahan ({{ $laboratorium->bahan->count() }})</h6>
+                    <h6 class="mb-0">Bahan ({{ $laboratorium->bahan_count }})</h6>
                 </div>
                 <div class="card-body">
-                    @forelse($laboratorium->bahan()->limit(10)->get() as $bahan)
+                    @forelse($bahan as $row)
                         <div class="mb-2 pb-2 border-bottom">
-                            <p class="mb-1"><strong>{{ $bahan->nama_bahan }}</strong></p>
-                            <small class="text-muted">{{ $bahan->kategori->nama_kategori }}</small><br>
-                            <small>Stok: {{ $bahan->stok_saat_ini }} {{ $bahan->satuan }}</small>
+                            <p class="mb-1"><strong>{{ $row->nama_bahan }}</strong></p>
+                            <small class="text-muted">{{ $row->kategori->nama_kategori }}</small><br>
+                            <small>Stok: {{ $row->pengadaan_bahan_sum_stok_tersisa_batch ?? 0 }} {{ $row->satuan }}</small>
                         </div>
                     @empty
                         <p class="text-muted text-center">Belum ada bahan</p>

@@ -15,7 +15,6 @@ class User extends Authenticatable
     use HasApiTokens, HasFactory, Notifiable, SoftDeletes;
 
     protected $fillable = [
-        'name',
         'role',
         'nama',
         'no_hp',
@@ -105,7 +104,7 @@ class User extends Authenticatable
             return [];
         }
         if ($this->role === 'kepala_labor') {
-            return [$this->laboratoriumDikelola()->pluck('laboratorium.id')->toArray()];
+            return $this->laboratoriumDikelola()->pluck('laboratorium.id')->toArray();
         }
         if ($this->role === 'teknisi') {
             return $this->laboratoriumTeknisi()->pluck('laboratorium.id')->toArray();

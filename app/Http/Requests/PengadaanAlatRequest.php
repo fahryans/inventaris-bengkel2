@@ -30,7 +30,7 @@ class PengadaanAlatRequest extends FormRequest
             'merek' => ['required', 'string', 'max:255'],
             'supplier' => ['required', 'string', 'max:255'],
             'tanggal_masuk' => ['nullable', 'date'],
-            'foto_transaksi' => ['nullable', 'image', 'max:2048'],
+            'foto_transaksi' => ['nullable', 'image', 'mimes:jpeg,jpg,png,gif,webp,bmp,svg,avif,ico,tiff', 'max:5120'],
         ];
     }
 

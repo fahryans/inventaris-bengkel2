@@ -32,7 +32,8 @@ class PemeliharaanAlatPolicy
     {
         return in_array($user->role, [
             'admin_jurusan',
-            'kepala_labor'
+            'kepala_labor',
+            'teknisi'
         ]);
     }
 

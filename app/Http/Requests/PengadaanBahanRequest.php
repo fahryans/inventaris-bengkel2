@@ -22,6 +22,7 @@ class PengadaanBahanRequest extends FormRequest
     {
         return [
             'id_bahan' => ['required', 'exists:bahan,id'],
+            'id_spesifikasi_bahan' => ['required', 'exists:spesifikasi_bahan,id'],
             'tanggal_pengadaan' => ['required', 'date'],
             'harga_perolehan' => ['required', 'numeric', 'min:0'],
             'jumlah' => ['required', 'integer', 'min:1'],
@@ -29,7 +30,7 @@ class PengadaanBahanRequest extends FormRequest
             'masa_expire_bahan' => ['nullable', 'date'],
             'supplier' => ['required', 'string', 'max:255'],
             'tanggal_masuk' => ['nullable', 'date'],
-            'foto_transaksi' => ['nullable', 'image', 'max:2048'],
+            'foto_transaksi' => ['nullable', 'image', 'mimes:jpeg,jpg,png,gif,webp,bmp,svg,avif,ico,tiff', 'max:5120'],
         ];
     }
 
@@ -37,6 +38,8 @@ class PengadaanBahanRequest extends FormRequest
     {
         return [
             'id_bahan.required' => 'Bahan harus dipilih',
+            'id_spesifikasi_bahan.required' => 'Spesifikasi bahan harus dipilih',
+            'id_spesifikasi_bahan.exists' => 'Spesifikasi bahan tidak valid',
             'tanggal_pengadaan.required' => 'Tanggal pengadaan tidak boleh kosong',
             'harga_perolehan.required' => 'Harga perolehan tidak boleh kosong',
             'jumlah.required' => 'Jumlah tidak boleh kosong',

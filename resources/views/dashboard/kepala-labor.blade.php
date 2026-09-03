@@ -205,6 +205,8 @@ new Chart(document.getElementById('stokBahanChart'), {
 </script>
 @endsection
 
+@include('dashboard._pinjam_pakai')
+
 @push('css')
 <style>
     .badge {

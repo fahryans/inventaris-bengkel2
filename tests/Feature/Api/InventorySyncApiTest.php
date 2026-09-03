@@ -10,6 +10,7 @@ use App\Models\Kategori;
 use App\Models\Laboratorium;
 use App\Models\PengadaanBahan;
 use App\Models\PemakaianBahan;
+use App\Models\PengadaanAlat;
 use Laravel\Sanctum\Sanctum;
 
 class InventorySyncApiTest extends TestCase
@@ -40,10 +41,10 @@ class InventorySyncApiTest extends TestCase
         $lab = Laboratorium::factory()->create();
         $alat = Alat::factory()->create([
             'tipe_pelacakan' => 'agregat',
-            'jumlah_alat' => 10,
             'id_kategori' => $kategori->id,
             'id_labor' => $lab->id,
         ]);
+        PengadaanAlat::factory()->create(['id_alat' => $alat->id, 'jumlah' => 10, 'tanggal_masuk' => now()]);
 
         $response = $this->postJson('/api/peminjaman', [
             'id_alat' => $alat->id,
@@ -54,7 +55,7 @@ class InventorySyncApiTest extends TestCase
         ]);
 
         $response->assertStatus(201);
-        $this->assertEquals(7, $alat->fresh()->jumlah_alat);
+        $this->assertEquals(7, $alat->fresh()->getAvailableQuantity());
         $this->assertEquals('terpinjam', \App\Models\PeminjamanAlat::latest('id')->first()->status);
     }
 
@@ -65,10 +66,10 @@ class InventorySyncApiTest extends TestCase
         $lab = Laboratorium::factory()->create();
         $alat = Alat::factory()->create([
             'tipe_pelacakan' => 'agregat',
-            'jumlah_alat' => 10,
             'id_kategori' => $kategori->id,
             'id_labor' => $lab->id,
         ]);
+        PengadaanAlat::factory()->create(['id_alat' => $alat->id, 'jumlah' => 10, 'tanggal_masuk' => now()]);
 
         $create = $this->postJson('/api/peminjaman', [
             'id_alat' => $alat->id,
@@ -85,7 +86,7 @@ class InventorySyncApiTest extends TestCase
             'kondisi_saat_pengembalian' => 'baik',
         ])->assertStatus(200);
 
-        $this->assertEquals(10, $alat->fresh()->jumlah_alat);
+        $this->assertEquals(10, $alat->fresh()->getAvailableQuantity());
     }
 
     public function test_api_store_pemakaian_bahan_consumes_fifo_stock()
@@ -94,7 +95,6 @@ class InventorySyncApiTest extends TestCase
         $kategori = Kategori::factory()->create(['jenis' => 'bahan']);
         $lab = Laboratorium::factory()->create();
         $bahan = Bahan::factory()->create([
-            'stok_saat_ini' => 30,
             'id_kategori' => $kategori->id,
             'id_labor' => $lab->id,
         ]);
@@ -115,7 +115,7 @@ class InventorySyncApiTest extends TestCase
         ]);
 
         $response->assertStatus(201);
-        $this->assertEquals(15, $bahan->fresh()->stok_saat_ini);
+        $this->assertEquals(5, $bahan->fresh()->getTotalStock());
         $this->assertEquals(5, $pengadaan->fresh()->stok_tersisa_batch);
     }
 
@@ -125,7 +125,6 @@ class InventorySyncApiTest extends TestCase
         $kategori = Kategori::factory()->create(['jenis' => 'bahan']);
         $lab = Laboratorium::factory()->create();
         $bahan = Bahan::factory()->create([
-            'stok_saat_ini' => 10,
             'id_kategori' => $kategori->id,
             'id_labor' => $lab->id,
         ]);
@@ -140,7 +139,7 @@ class InventorySyncApiTest extends TestCase
             'tanggal_masuk' => now()->format('Y-m-d'),
         ])->assertStatus(200);
 
-        $this->assertEquals(30, $bahan->fresh()->stok_saat_ini);
+        $this->assertEquals(20, $bahan->fresh()->getTotalStock());
         $this->assertEquals(20, $pengadaan->fresh()->stok_tersisa_batch);
     }
 

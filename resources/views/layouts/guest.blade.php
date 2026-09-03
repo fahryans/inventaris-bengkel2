@@ -13,6 +13,7 @@
 
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
+        <script src="{{ asset('js/password-toggle.js') }}" defer></script>
     </head>
     <body class="font-sans text-white antialiased">
         <div class="min-h-screen flex items-center justify-center px-6 py-12 relative"

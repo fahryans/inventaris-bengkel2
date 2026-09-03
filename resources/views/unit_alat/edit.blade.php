@@ -25,16 +25,9 @@
                 <div class="row">
                     <div class="col-md-6">
                         <div class="mb-3">
-                            <label for="id_alat" class="form-label">Alat <span class="text-danger">*</span></label>
-                            <select name="id_alat" id="id_alat" class="form-select @error('id_alat') is-invalid @enderror" required>
-                                <option value="">Pilih Alat</option>
-                                @foreach($alats as $alat)
-                                    <option value="{{ $alat->id }}" {{ old('id_alat', $unitAlat->id_alat) == $alat->id ? 'selected' : '' }}
-                                            data-spesifikasi='@json($alat->spesifikasiAlat->map(fn($s) => ['id' => $s->id, 'kode' => $s->kode_spesifikasi, 'nama' => $s->nama_spesifikasi]))'>
-                                        {{ $alat->nama_alat }}
-                                    </option>
-                                @endforeach
-                            </select>
+                            <label class="form-label">Alat <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" value="{{ $unitAlat->alat->nama_alat }}" readonly>
+                            <input type="hidden" name="id_alat" value="{{ $unitAlat->id_alat }}">
                             @error('id_alat')
                                 <div class="invalid-feedback d-block">{{ $message }}</div>
                             @enderror
@@ -46,6 +39,16 @@
                             <label for="id_spesifikasi_alat" class="form-label">Spesifikasi <span class="text-danger">*</span></label>
                             <select name="id_spesifikasi_alat" id="id_spesifikasi_alat" class="form-select @error('id_spesifikasi_alat') is-invalid @enderror" required>
                                 <option value="">Pilih Spesifikasi</option>
+                                @php
+                                    $currentAlat = $alats->firstWhere('id', $unitAlat->id_alat);
+                                @endphp
+                                @if($currentAlat)
+                                    @foreach($currentAlat->spesifikasiAlat as $spec)
+                                        <option value="{{ $spec->id }}" {{ old('id_spesifikasi_alat', $unitAlat->id_spesifikasi_alat) == $spec->id ? 'selected' : '' }}>
+                                            {{ $spec->kode_spesifikasi }} - {{ $spec->nama_spesifikasi }}
+                                        </option>
+                                    @endforeach
+                                @endif
                             </select>
                             @error('id_spesifikasi_alat')
                                 <div class="invalid-feedback d-block">{{ $message }}</div>
@@ -82,6 +85,24 @@
                     </div>
                 </div>
 
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="status" class="form-label">Status <span class="text-danger">*</span></label>
+                            <select name="status" id="status" class="form-select @error('status') is-invalid @enderror" required>
+                                <option value="">Pilih Status</option>
+                                <option value="tersedia" {{ old('status', $unitAlat->status) == 'tersedia' ? 'selected' : '' }}>Tersedia</option>
+                                <option value="dipinjam" {{ old('status', $unitAlat->status) == 'dipinjam' ? 'selected' : '' }}>Dipinjam</option>
+                                <option value="rusak" {{ old('status', $unitAlat->status) == 'rusak' ? 'selected' : '' }}>Rusak</option>
+                                <option value="maintenance" {{ old('status', $unitAlat->status) == 'maintenance' ? 'selected' : '' }}>Maintenance</option>
+                            </select>
+                            @error('status')
+                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+                </div>
+
                 <div class="d-flex gap-2 justify-content-end">
                     <a href="{{ route('unit-alat.index') }}" class="btn btn-secondary">Batal</a>
                     <button type="submit" class="btn btn-primary">
@@ -93,51 +114,3 @@
     </div>
 </div>
 @endsection
-
-@push('js')
-<script>
-document.getElementById('id_alat').addEventListener('change', function() {
-    const selected = this.options[this.selectedIndex];
-    const spesifikasiSelect = document.getElementById('id_spesifikasi_alat');
-    
-    // Clear spesifikasi options
-    spesifikasiSelect.innerHTML = '<option value="">Pilih Spesifikasi</option>';
-    
-    // Get spesifikasi data
-    const spesifikasiData = selected.getAttribute('data-spesifikasi');
-    
-    if (spesifikasiData) {
-        const spesifikasis = JSON.parse(spesifikasiData);
-        spesifikasis.forEach(function(spec) {
-            const option = document.createElement('option');
-            option.value = spec.id;
-            option.textContent = spec.kode + ' - ' + spec.nama;
-            spesifikasiSelect.appendChild(option);
-        });
-    }
-});
-
-// Set spesifikasi value after page load
-document.addEventListener('DOMContentLoaded', function() {
-    const selected = document.getElementById('id_alat').options[document.getElementById('id_alat').selectedIndex];
-    if (selected) {
-        const spesifikasiData = selected.getAttribute('data-spesifikasi');
-        if (spesifikasiData) {
-            const spesifikasis = JSON.parse(spesifikasiData);
-            const currentSpesifikasiId = {{ $unitAlat->id_spesifikasi_alat }};
-            const spesifikasiSelect = document.getElementById('id_spesifikasi_alat');
-            spesifikasiSelect.innerHTML = '<option value="">Pilih Spesifikasi</option>';
-            spesifikasis.forEach(function(spec) {
-                const option = document.createElement('option');
-                option.value = spec.id;
-                option.textContent = spec.kode + ' - ' + spec.nama;
-                if (spec.id == currentSpesifikasiId) {
-                    option.selected = true;
-                }
-                spesifikasiSelect.appendChild(option);
-            });
-        }
-    }
-});
-</script>
-@endpush
